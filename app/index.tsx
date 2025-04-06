@@ -34,7 +34,7 @@ export default function LandingPage() {
 
       <Pressable
         onPress={navigateToLogin}
-        className="bg-white px-6 py-2 rounded-lg mx-auto min-w-[300px] mt-4"
+        className="bg-white px-6 py-4 rounded-lg mx-auto min-w-[300px] mt-4"
       >
         <Text className="text-primary font-poppins-bold text-center ">
           Log In
@@ -42,7 +42,7 @@ export default function LandingPage() {
       </Pressable>
       <Pressable
         onPress={navigateToRegister}
-        className="bg-white px-6 py-2 rounded-lg mx-auto min-w-[300px] mt-4"
+        className="bg-white px-6 py-4 rounded-lg mx-auto min-w-[300px] mt-4"
       >
         <Text className="text-primary font-poppins-bold text-center">
           Register
