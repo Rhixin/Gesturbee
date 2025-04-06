@@ -9,6 +9,9 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+
 import "../global.css";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -17,6 +20,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),

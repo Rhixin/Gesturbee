@@ -1,4 +1,4 @@
-import { View, Text, Button } from "react-native";
+import { View, Text, Button, Pressable } from "react-native";
 import { useRouter } from "expo-router"; // Import useRouter from expo-router
 
 export default function Profile() {
@@ -16,22 +16,26 @@ export default function Profile() {
   };
 
   return (
-    <View className="flex-1 justify-center items-center bg-blue-500 p-5">
-      <Text className="text-white text-xl font-bold mb-6">Profile Screen</Text>
+    <View className="flex flex-col justify-center items-center h-[100vh]">
+      <Text className="text-tertiary text-xl font-bold mb-6">Profile Page</Text>
 
-      <View className="w-full max-w-md">
-        <Button
-          title="Edit Personal Information"
-          onPress={goToChangeInformation}
-          color="#4CAF50"
-        />
-        <View className="my-4" />
-        <Button
-          title="Change Password"
-          onPress={gotToChangePassword}
-          color="#4CAF50"
-        />
-      </View>
+      <Pressable
+        onPress={goToChangeInformation}
+        className="bg-white px-6 py-2 rounded-lg mx-auto min-w-[200px] mt-4"
+      >
+        <Text className="text-primary font-poppins-bold text-center">
+          Change Information
+        </Text>
+      </Pressable>
+
+      <Pressable
+        onPress={gotToChangePassword}
+        className="bg-white px-6 py-2 rounded-lg mx-auto min-w-[200px] mt-4"
+      >
+        <Text className="text-primary font-poppins-bold text-center">
+          Change Password
+        </Text>
+      </Pressable>
     </View>
   );
 }
