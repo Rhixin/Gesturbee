@@ -14,7 +14,7 @@ export default function LandingPage() {
   };
 
   return (
-    <View className="flex flex-col items-center justify-center h-[100vh] bg-gradient-to-b from-[#00BFAF] to-[#104846]">
+    <View className="flex flex-col items-center justify-center h-[100vh] bg-primary">
       <View className="flex flex-row gap-4">
         <Image
           source={require("../assets/images/Bee.png")}

@@ -1,41 +1,180 @@
-import { View, Text, Button, Pressable } from "react-native";
-import { useRouter } from "expo-router"; // Import useRouter from expo-router
+import { View, Text, Image, Pressable, Modal } from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 
 export default function Profile() {
-  const router = useRouter(); // Initialize the router
+  const [modalVisible, setModalVisible] = useState(false);
+  const [chosenProfileTab, setChosenProfileTab] = useState(null);
 
-  // Function for handling button presses
-  const goToChangeInformation = () => {
-    // Navigate to the "change-name" page
-    router.push("/profile/changeinformation");
-  };
+  const trophyCount = 5;
+  const fireCount = 9;
 
-  const gotToChangePassword = () => {
-    // Navigate to the "edit-info" page
-    router.push("/profile/changepassword");
-  };
+  function handleModal(chosenComponent) {
+    setModalVisible(true);
+    setChosenProfileTab(chosenComponent);
+  }
 
   return (
-    <View className="flex flex-col justify-center items-center h-[100vh]">
-      <Text className="text-tertiary text-xl font-bold mb-6">Profile Page</Text>
-
-      <Pressable
-        onPress={goToChangeInformation}
-        className="bg-white px-6 py-2 rounded-lg mx-auto min-w-[200px] mt-4"
+    <>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
       >
-        <Text className="text-primary font-poppins-bold text-center">
-          Change Information
-        </Text>
-      </Pressable>
+        <View className="flex-1 justify-end items-center">
+          <View className="w-full bg-white p-6 rounded-t-3xl shadow-lg h-[60%]">
+            <Pressable
+              className=" p-3 rounded-md"
+              onPress={() => setModalVisible(!modalVisible)}
+            >
+              <Ionicons
+                className="flex justify-end"
+                name="close"
+                size={32}
+                color="black"
+              />
+            </Pressable>
 
-      <Pressable
-        onPress={gotToChangePassword}
-        className="bg-white px-6 py-2 rounded-lg mx-auto min-w-[200px] mt-4"
-      >
-        <Text className="text-primary font-poppins-bold text-center">
-          Change Password
-        </Text>
-      </Pressable>
+            {chosenProfileTab}
+          </View>
+        </View>
+      </Modal>
+
+      <View className="w-full p-4 bg-primary flex flex-row items-center justify-end gap-4 pt-14">
+        {/* Trophy Icon with Count */}
+        <View className="flex flex-row items-center">
+          <Ionicons name="trophy" size={24} color="white" />
+          <Text className="text-white ml-1">{trophyCount}</Text>
+        </View>
+
+        {/* Fire Icon with Count */}
+        <View className="flex flex-row items-center">
+          <Ionicons name="flame" size={24} color="white" />
+          <Text className="text-white ml-1">{fireCount}</Text>
+        </View>
+      </View>
+
+      <View className="flex flex-col items-center h-[100vh] justify-around pb-10">
+        {/* Profile Image and Name */}
+        <View className="flex justify-center items-center">
+          <Image
+            source={require("../../../assets/images/Bee.png")}
+            className="max-w-[150px] max-h-[150px] rounded-full object-contain bg-primary p-4"
+          />
+          <Text className="text-start mt-4 font-poppins text-lg">
+            Zhazted Rhixin V. Valles
+          </Text>
+        </View>
+
+        {/* Streak Section */}
+        <View className="min-h-[180px] items-center justify-end max-w-[350px] mx-auto rounded-2xl bg-[#FFEFC1] relative py-8">
+          <Ionicons
+            name="flame"
+            size={98}
+            color="#00BFAF"
+            className="absolute top-[-30px] text-primary z-10"
+          />
+          <StreakSection />
+        </View>
+
+        {/* Account Section */}
+        <View>
+          <Text className="text-tertiary text-lg font-bold mb-2">Account</Text>
+
+          <View className="h-auto justify-items-center max-w-[500px] mx-auto">
+            <Pressable
+              className="border rounded-t-2xl w-full p-4 min-w-[350px]"
+              onPress={() => {
+                handleModal(EditPersonalInformation);
+              }}
+            >
+              <View className="flex flex-row items-center">
+                <Ionicons name="person-outline" size={20} color="black" />
+                <Text className="text-start text-sm ml-2">
+                  Edit Personal Information
+                </Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              className="border border-t-0 w-full p-4 min-w-[350px]"
+              onPress={() => {
+                handleModal(ChangePassword);
+              }}
+            >
+              <View className="flex flex-row items-center">
+                <Ionicons name="lock-closed-outline" size={20} color="black" />
+                <Text className="text-start text-sm ml-2 bg-transparent">
+                  Change Password
+                </Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              className="border border-t-0 rounded-b-2xl w-full p-4 min-w-[350px]"
+              onPress={() => {
+                handleModal(Settings);
+              }}
+            >
+              <View className="flex flex-row items-center">
+                <Ionicons name="settings-outline" size={20} color="black" />
+                <Text className="text-start text-sm ml-2">Settings</Text>
+              </View>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Logout Button */}
+        <View className="mb-40">
+          <Pressable className="border rounded-lg w-full p-4 min-w-[350px]">
+            <View className="flex flex-row items-center">
+              <Ionicons name="log-out-outline" size={20} color="black" />
+              <Text className="text-start text-sm ml-2">Logout</Text>
+            </View>
+          </Pressable>
+        </View>
+      </View>
+    </>
+  );
+}
+
+function StreakSection() {
+  const streakData = [true, true, true, false, false, false, false];
+  return (
+    <View className="justify-center items-center min-w-[350px] mx-auto rounded-2xl bg-[#FFEFC1]">
+      <Text className="text-xl font-bold mb-2 font-poppins-medium">
+        Start Daily Streak
+      </Text>
+      <View className="flex flex-row justify-evenly w-full">
+        {streakData.map((streak, index) => (
+          <View key={index} className="flex items-center">
+            <View
+              className={`w-[30px] h-[30px] rounded-full ${
+                streak ? "bg-primary" : "border-primary border-2"
+              } flex justify-center items-center`}
+            ></View>
+            <Text className="text-black font-poppins">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][index]}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
+}
+
+function EditPersonalInformation() {
+  return <Text>Personal Info</Text>;
+}
+
+function ChangePassword() {
+  return <Text>Change Passowrd</Text>;
+}
+
+function Settings() {
+  return <Text>Settings</Text>;
 }
