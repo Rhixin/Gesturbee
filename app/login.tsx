@@ -1,9 +1,10 @@
 import { View, Text, Image, Pressable, TextInput } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import { useRouter, Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 const Login = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const navigateToHome = () => {
     router.push("/(auth)/home");
@@ -30,11 +31,13 @@ const Login = () => {
           <Text className="text-tertiary font-poppins-semibold mb-2">
             Email
           </Text>
-          <TextInput
-            className="border border-primary rounded-lg p-4 min-h-[40px] text-base text-black"
-            placeholder="Enter your email"
-            placeholderTextColor="#9CA3AF"
-          />
+          <View className="border p-1 px-2 border-primary rounded-lg ">
+            <TextInput
+              className="min-h-[40px] text-base text-black"
+              placeholder="Enter your email"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
         </View>
 
         {/* Password Label & Input */}
@@ -42,12 +45,22 @@ const Login = () => {
           <Text className="text-tertiary font-poppins-semibold mb-2">
             Password
           </Text>
-          <TextInput
-            className="border border-primary rounded-lg p-4 min-h-[40px] text-base text-black"
-            placeholder="Enter your password"
-            placeholderTextColor="#9CA3AF"
-            secureTextEntry={true}
-          />
+
+          <View className="border p-1 px-2 border-primary rounded-lg flex-row items-center justify-between">
+            <TextInput
+              className="min-h-[40px] text-base text-black flex-1 pr-2"
+              placeholder="Enter your password"
+              placeholderTextColor="#9CA3AF"
+              secureTextEntry={!showPassword}
+            />
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={24}
+                color="#6B7280"
+              />
+            </Pressable>
+          </View>
         </View>
 
         {/* Forget Passoword */}
