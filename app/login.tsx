@@ -1,14 +1,34 @@
-import { View, Text, Image, Pressable, TextInput } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  TextInput,
+  ActivityIndicator,
+} from "react-native";
 import { useRouter, Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import LottieView from "lottie-react-native";
+import Loading from "@/components/Loading";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const router = useRouter();
+
   const navigateToHome = () => {
-    router.push("/(auth)/home");
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      router.push("/(auth)/home");
+    }, 2000);
   };
+
+  if (loading) {
+    return <Loading></Loading>;
+  }
 
   return (
     <View className="bg-primary h-[100vh] flex">
@@ -31,7 +51,7 @@ const Login = () => {
           <Text className="text-tertiary font-poppins-semibold mb-2">
             Email
           </Text>
-          <View className="border p-1 px-2 border-primary rounded-lg ">
+          <View className="border p-1 px-2 border-primary rounded-lg">
             <TextInput
               className="min-h-[40px] text-base text-black"
               placeholder="Enter your email"
@@ -63,7 +83,7 @@ const Login = () => {
           </View>
         </View>
 
-        {/* Forget Passoword */}
+        {/* Forget Password */}
         <View className="flex items-end w-full mb-4">
           <Text className="text-tertiary font-poppins">Forget Password?</Text>
         </View>
@@ -78,7 +98,14 @@ const Login = () => {
           </Text>
         </Pressable>
 
-        {/*  Sign Up */}
+        {/* Loading Indicator */}
+        {loading && (
+          <View style={{ marginTop: 10 }}>
+            <ActivityIndicator size="large" color="#0000ff" />
+          </View>
+        )}
+
+        {/* Sign Up */}
         <View className="w-full items-center my-8">
           <Text className="font-poppins text-primary">
             Don't have an account?
