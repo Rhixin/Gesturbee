@@ -1,8 +1,9 @@
 import { View, Text, Image, Pressable, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ChangePassword from "@/components/ChangePassword";
 
 export default function Profile() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -16,6 +17,8 @@ export default function Profile() {
     setChosenProfileTab(chosenComponent);
   }
 
+
+
   return (
     <>
       <Modal
@@ -27,7 +30,7 @@ export default function Profile() {
         }}
       >
         <View className="flex-1 justify-end items-center">
-          <View className="w-full bg-white p-6 rounded-t-3xl shadow-lg h-[60%]">
+          <View className="w-full bg-primary p-6 rounded-t-3xl shadow-lg h-[60%]">
             <Pressable
               className=" p-3 rounded-md"
               onPress={() => setModalVisible(!modalVisible)}
@@ -107,9 +110,10 @@ export default function Profile() {
             <Pressable
               className="border border-t-0 w-full p-4 min-w-[350px]"
               onPress={() => {
-                handleModal(ChangePassword);
+                handleModal(<ChangePassword></ChangePassword>);
               }}
             >
+              
               <View className="flex flex-row items-center">
                 <Ionicons name="lock-closed-outline" size={20} color="black" />
                 <Text className="text-start text-sm ml-2 bg-transparent">
@@ -117,6 +121,9 @@ export default function Profile() {
                 </Text>
               </View>
             </Pressable>
+
+
+            
 
             <Pressable
               className="border border-t-0 rounded-b-2xl w-full p-4 min-w-[350px]"
@@ -177,9 +184,6 @@ function EditPersonalInformation() {
   return <Text>Personal Info</Text>;
 }
 
-function ChangePassword() {
-  return <Text>Change Passowrd</Text>;
-}
 
 function Settings() {
   return <Text>Settings</Text>;

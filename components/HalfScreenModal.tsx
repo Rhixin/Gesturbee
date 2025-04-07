@@ -21,7 +21,7 @@ export default function HalfScreenModal({
       }}
     >
       <View className="flex-1 justify-end items-center">
-        <View className="w-full bg-white p-6 rounded-t-lg shadow-lg h-[60%]">
+        <View className="w-full bg-primary p-6 rounded-t-lg shadow-lg h-[60%]">
           <Pressable
             className="p-3 rounded-md"
             onPress={() => setModalVisible(!modalVisible)}
