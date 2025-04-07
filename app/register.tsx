@@ -28,6 +28,16 @@ const Register = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [emailisFocused, emailsetIsFocused] = useState(false);
+  const [passwordisFocused, passwordsetIsFocused] = useState(false);
+  const [confirmpasswordisFocused, confirmpasswordsetIsFocused] = useState(false);
+
+  const [firstnameisFocused, firstnamesetIsFocused] = useState(false);
+  const [lastnameisFocused, lastnamesetIsFocused] = useState(false);
+  const [schoolisFocused, schoolsetIsFocused] = useState(false);
+
+
   
   // Validation states
   const [emailError, setEmailError] = useState('');
@@ -98,7 +108,8 @@ const Register = () => {
             <View className="mb-5">
               <Text className="text-sm font-medium text-subtitlegray mb-2">Email</Text>
               <TextInput
-                className={`border p-4 rounded-lg text-base bg-gray-100 ${emailError ? 'border-red-500' : 'border-gray-300'}`}
+                className={`border p-4 rounded-lg text-base bg-gray-100 ${
+                  emailisFocused ? 'border-blue-700' : 'border-gray-300'} ${emailError ? 'border-red-500' : 'border-gray-300'}`}
                 value={email}
                 style={{
                   outlineStyle: 'none',
@@ -110,19 +121,24 @@ const Register = () => {
                 placeholder="Enter your email address"
                 placeholderTextColor="#888"
                 keyboardType="email-address"
+                onFocus={() => emailsetIsFocused(true)}  
+                onBlur={() => emailsetIsFocused(false)} 
               />
               {emailError ? <Text className="text-red-500 text-sm mt-1 ml-1">{emailError}</Text> : null}
             </View>
 
             <View className="mb-5">
               <Text className="text-sm font-medium text-subtitlegray mb-2">Password</Text>
-              <View className={`flex-row items-center border p-2 rounded-lg bg-gray-100 ${passwordError ? 'border-red-500' : 'border-gray-300'}`}>
-                <TextInput
+              <View
+                className={`flex-row items-center border p-2 rounded-lg bg-gray-100 ${
+                  passwordisFocused ? 'border-blue-700' : 'border-gray-300'
+                } ${passwordError ? 'border-red-500' : ''}`}>  
+               <TextInput
                   className="flex-1 text-base focus:border-transparent bg-gray-100"
+                  value={password}
                   style={{
                     outlineStyle: 'none',
                   }}
-                  value={password}
                   onChangeText={(text) => {
                     setPassword(text);
                     setPasswordError('');
@@ -130,6 +146,8 @@ const Register = () => {
                   placeholder="Enter your password"
                   placeholderTextColor="#888"
                   secureTextEntry={!showPassword}
+                  onFocus={() => passwordsetIsFocused(true)}  
+                  onBlur={() => passwordsetIsFocused(false)} 
                 />
                 <TouchableOpacity
                   className="p-2"
@@ -148,7 +166,9 @@ const Register = () => {
 
             <View className="mb-5">
               <Text className="text-sm font-medium text-subtitlegray mb-2">Confirm Password</Text>
-              <View className={`flex-row items-center border p-2 rounded-lg bg-gray-100 ${confirmPasswordError ? 'border-red-500' : 'border-gray-300'}`}>
+              <View className={`flex-row items-center border p-2 rounded-lg bg-gray-100 
+              ${confirmpasswordisFocused ? 'border-blue-700' : 'border-gray-300' }
+              ${confirmPasswordError ? 'border-red-500' : 'border-gray-300'}`}>
                 <TextInput
                   className="flex-1 text-base focus:border-transparent border-gray-300"
                   style={{
@@ -162,6 +182,8 @@ const Register = () => {
                   placeholder="Confirm your password"
                   placeholderTextColor="#888"
                   secureTextEntry={!showConfirmPassword}
+                  onFocus={() => confirmpasswordsetIsFocused(true)}  
+                  onBlur={() => confirmpasswordsetIsFocused(false)} 
                 />
                 <TouchableOpacity
                   className="p-2"
@@ -196,7 +218,7 @@ const Register = () => {
             <TouchableOpacity
               onPress={() => setSelectedRole('teacher')}
               className={`${
-                selectedRole === 'teacher' ? 'bg-primary' : 'bg-white'
+                selectedRole === 'teacher' ? 'bg-primary text-white' : 'bg-white'
               } rounded-xl p-4 mb-4 border border-gray-200 shadow-md`}
             >
               <View className="flex-row items-center">
@@ -204,7 +226,7 @@ const Register = () => {
                   source={require('../assets/images/teacher-icon.png')} 
                   className="w-12 h-12 mr-4" 
                 />
-                <Text className="text-base text-gray-600 font-medium">Teacher</Text>
+                <Text className={`text-base font-medium ${selectedRole === 'teacher' ? 'text-white' :'text-gray-600' }`}> Teacher </Text>
               </View>
             </TouchableOpacity>
 
@@ -219,7 +241,7 @@ const Register = () => {
                   source={require('../assets/images/student-icon.png')} 
                   className="w-12 h-12 mr-4" 
                 />
-                <Text className="text-base text-gray-600 font-medium">Student</Text>
+                <Text className={`text-base font-medium ${selectedRole === 'student' ? 'text-white' :'text-gray-600' }`}> Student </Text>
               </View>
             </TouchableOpacity>
 
@@ -240,40 +262,56 @@ const Register = () => {
 
             <View className="mb-5">
               <Text className="text-sm font-medium text-subtitlegray mb-2">First Name</Text>
-              <TextInput
-                className={`border p-4 rounded-lg text-base bg-gray-100 border-gray-300`}
+              
+              <TextInput className={`border p-4 rounded-lg text-base bg-gray-100 ${
+                  firstnameisFocused ? 'border-blue-700' : 'border-gray-300'} `}                
                 value={firstName}
                 onChangeText={(text) => {
                   setFirstName(text);
                 }}
+                style={{
+                  outlineStyle: 'none',
+                }}
                 placeholder="Enter your first name"
                 placeholderTextColor="#888"
+                onFocus={() => firstnamesetIsFocused(true)}  
+                onBlur={() => firstnamesetIsFocused(false)} 
               />
               </View>
 
               <View className="mb-5">
               <Text className="text-sm font-medium text-subtitlegray mb-2">Last Name</Text>
-              <TextInput
-                className={`border p-4 rounded-lg text-base bg-gray-100 border-gray-300`}
+              <TextInput className={`border p-4 rounded-lg text-base bg-gray-100 ${
+                  lastnameisFocused ? 'border-blue-700' : 'border-gray-300'} `}          
                 value={lastName}
                 onChangeText={(text) => {
                   setLastName(text);
                 }}
+                style={{
+                  outlineStyle: 'none',
+                }}
                 placeholder="Enter your last name"
                 placeholderTextColor="#888"
+                onFocus={() => lastnamesetIsFocused(true)}  
+                onBlur={() => lastnamesetIsFocused(false)} 
               />
               </View>
 
               <View className="mb-5">
               <Text className="text-sm font-medium text-subtitlegray mb-2">School Name</Text>
-              <TextInput
-                className={`border p-4 rounded-lg text-base bg-gray-100 border-gray-300`}
+              <TextInput className={`border p-4 rounded-lg text-base bg-gray-100 ${
+                  schoolisFocused ? 'border-blue-700' : 'border-gray-300'} `}     
                 value={schoolName}
                 onChangeText={(text) => {
                   setSchool(text);
                 }}
+                style={{
+                  outlineStyle: 'none',
+                }}
                 placeholder="Enter your school name"
                 placeholderTextColor="#888"
+                onFocus={() => schoolsetIsFocused(true)}  
+                onBlur={() => schoolsetIsFocused(false)} 
               />
               </View>
            
