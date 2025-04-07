@@ -1,9 +1,12 @@
-// app/index.tsx (Home Screen)
-import { Text, View, Pressable, Image } from "react-native";
+import { Text, View, TouchableOpacity, Image } from "react-native";
 import { useRouter } from "expo-router";
+import LottieView from "lottie-react-native";
+import { useState, useEffect } from "react";
+import { useGlobal } from "@/components/GlobalContext";
 
 export default function LandingPage() {
   const router = useRouter();
+  const { bubbleAnimation } = useGlobal();
 
   const navigateToLogin = () => {
     router.push("/login");
@@ -14,7 +17,21 @@ export default function LandingPage() {
   };
 
   return (
-    <View className="flex flex-col items-center justify-center h-[100vh] bg-primary">
+    <View className="flex flex-col items-center justify-center h-[100vh] bg-primary relative">
+      <LottieView
+        source={bubbleAnimation}
+        autoPlay
+        loop
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          opacity: 0.2,
+        }}
+      />
+
       <View className="flex flex-row gap-4">
         <Image
           source={require("../assets/images/Bee.png")}
@@ -32,22 +49,24 @@ export default function LandingPage() {
         </View>
       </View>
 
-      <Pressable
+      <TouchableOpacity
         onPress={navigateToLogin}
         className="bg-white px-6 py-4 rounded-lg mx-auto min-w-[300px] mt-4"
+        activeOpacity={0.8}
       >
-        <Text className="text-primary font-poppins-bold text-center ">
+        <Text className="text-primary font-poppins-bold text-center">
           Log In
         </Text>
-      </Pressable>
-      <Pressable
+      </TouchableOpacity>
+      <TouchableOpacity
         onPress={navigateToRegister}
         className="bg-white px-6 py-4 rounded-lg mx-auto min-w-[300px] mt-4"
+        activeOpacity={0.8}
       >
         <Text className="text-primary font-poppins-bold text-center">
           Register
         </Text>
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }
