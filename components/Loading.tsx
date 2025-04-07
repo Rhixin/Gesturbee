@@ -9,7 +9,7 @@ const Loading = () => {
   }, []);
 
   return (
-    <View className="h-[100vh] bg-white flex justify-center items-center">
+    <View className="absolute w-full h-[100vh] bg-white flex justify-center items-center">
       <LottieView
         source={animation}
         autoPlay
@@ -20,7 +20,9 @@ const Loading = () => {
           height: 128,
         }}
       />
-      <Text className="text-secondary font-poppins-medium">Loading...</Text>
+      <Text className="text-secondary font-poppins-medium mt-4">
+        Loading...
+      </Text>
     </View>
   );
 };

@@ -1,11 +1,12 @@
-import { Text, View, Pressable, Image } from "react-native";
+import { Text, View, TouchableOpacity, Image } from "react-native";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import { useState, useEffect } from "react";
+import { useGlobal } from "@/components/GlobalContext";
 
 export default function LandingPage() {
   const router = useRouter();
-  const [animation, setAnimation] = useState(null);
+  const { bubbleAnimation } = useGlobal();
 
   const navigateToLogin = () => {
     router.push("/login");
@@ -15,14 +16,10 @@ export default function LandingPage() {
     router.push("/register");
   };
 
-  useEffect(() => {
-    setAnimation(require("../assets/animations/bubbles_yellow.json"));
-  }, []);
-
   return (
     <View className="flex flex-col items-center justify-center h-[100vh] bg-primary relative">
       <LottieView
-        source={animation}
+        source={bubbleAnimation}
         autoPlay
         loop
         style={{
@@ -52,22 +49,24 @@ export default function LandingPage() {
         </View>
       </View>
 
-      <Pressable
+      <TouchableOpacity
         onPress={navigateToLogin}
         className="bg-white px-6 py-4 rounded-lg mx-auto min-w-[300px] mt-4"
+        activeOpacity={0.8}
       >
         <Text className="text-primary font-poppins-bold text-center">
           Log In
         </Text>
-      </Pressable>
-      <Pressable
+      </TouchableOpacity>
+      <TouchableOpacity
         onPress={navigateToRegister}
         className="bg-white px-6 py-4 rounded-lg mx-auto min-w-[300px] mt-4"
+        activeOpacity={0.8}
       >
         <Text className="text-primary font-poppins-bold text-center">
           Register
         </Text>
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }

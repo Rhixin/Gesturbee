@@ -12,11 +12,16 @@ const theme = {
   fonts: {
     poppins: "Poppins",
     poppinsMedium: "Poppins-Medium",
-    poppinsBold: "Poppins-Bold"
-  }
+    poppinsBold: "Poppins-Bold",
+  },
 };
 
-const StepIndicator = ({ currentStep, setCurrentStep, totalSteps = 3, stepLabels = [] }) => {
+const StepIndicator = ({
+  currentStep,
+  setCurrentStep,
+  totalSteps = 3,
+  stepLabels = [],
+}) => {
   if (totalSteps < 2) {
     throw new Error("Total steps must be at least 2");
   }
@@ -27,7 +32,6 @@ const StepIndicator = ({ currentStep, setCurrentStep, totalSteps = 3, stepLabels
     <View style={styles.container}>
       {steps.map((step, index) => (
         <View key={step} style={styles.stepContainer}>
-        
           <Pressable
             style={[
               styles.stepCircle,
@@ -35,12 +39,17 @@ const StepIndicator = ({ currentStep, setCurrentStep, totalSteps = 3, stepLabels
             ]}
             onPress={() => setCurrentStep(step)}
           >
-            <Text style={currentStep >= step ? styles.activeStepText : styles.inactiveStepText}>
+            <Text
+              style={
+                currentStep >= step
+                  ? styles.activeStepText
+                  : styles.inactiveStepText
+              }
+            >
               {step}
             </Text>
           </Pressable>
 
-          
           {index < steps.length - 1 && (
             <View
               style={[
@@ -50,9 +59,13 @@ const StepIndicator = ({ currentStep, setCurrentStep, totalSteps = 3, stepLabels
             />
           )}
 
-         
           {stepLabels[index] && (
-            <Text style={[styles.stepLabel, currentStep >= step && styles.activeStepLabel]}>
+            <Text
+              style={[
+                styles.stepLabel,
+                currentStep >= step && styles.activeStepLabel,
+              ]}
+            >
               {stepLabels[index]}
             </Text>
           )}
@@ -65,25 +78,22 @@ const StepIndicator = ({ currentStep, setCurrentStep, totalSteps = 3, stepLabels
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     marginVertical: 16,
     width: "100%",
   },
   stepContainer: {
-    alignItems: "center",
     flex: 1,
   },
   stepCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 54,
+    height: 54,
+    borderRadius: 32,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
   },
   activeStep: {
-    backgroundColor: theme.colors.primary, 
+    backgroundColor: theme.colors.secondary,
   },
   inactiveStep: {
     backgroundColor: theme.colors.inactive,
@@ -100,14 +110,14 @@ const styles = StyleSheet.create({
   },
   stepLine: {
     position: "absolute",
-    top: 16,
-    left: "50%",
+    top: "50%",
+
     width: "100%",
     height: 4,
     zIndex: 1,
   },
   activeLine: {
-    backgroundColor: theme.colors.primary, 
+    backgroundColor: theme.colors.secondary,
   },
   inactiveLine: {
     backgroundColor: theme.colors.inactive,
@@ -119,7 +129,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.poppins,
   },
   activeStepLabel: {
-    color: theme.colors.primary, 
+    color: theme.colors.primary,
     fontFamily: theme.fonts.poppinsMedium,
   },
 });
