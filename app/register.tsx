@@ -93,10 +93,10 @@ const Register = () => {
         <Text className="text-2xl font-bold text-primary ">Sign Up</Text>
         {currentStep === 1 && (
           <View className="mt-6">
-            <Text className="text-lg font-semibold text-gray-700 mb-4">Enter your account details</Text>
+            <Text className="text-lg font-semibold text-titlegray mb-4">Enter your account details</Text>
 
             <View className="mb-5">
-              <Text className="text-sm font-medium text-gray-500 mb-2">Email</Text>
+              <Text className="text-sm font-medium text-subtitlegray mb-2">Email</Text>
               <TextInput
                 className={`border p-4 rounded-lg text-base bg-gray-100 ${emailError ? 'border-red-500' : 'border-gray-300'}`}
                 value={email}
@@ -115,7 +115,7 @@ const Register = () => {
             </View>
 
             <View className="mb-5">
-              <Text className="text-sm font-medium text-gray-500 mb-2">Password</Text>
+              <Text className="text-sm font-medium text-subtitlegray mb-2">Password</Text>
               <View className={`flex-row items-center border p-2 rounded-lg bg-gray-100 ${passwordError ? 'border-red-500' : 'border-gray-300'}`}>
                 <TextInput
                   className="flex-1 text-base focus:border-transparent bg-gray-100"
@@ -147,7 +147,7 @@ const Register = () => {
             </View>
 
             <View className="mb-5">
-              <Text className="text-sm font-medium text-gray-500 mb-2">Confirm Password</Text>
+              <Text className="text-sm font-medium text-subtitlegray mb-2">Confirm Password</Text>
               <View className={`flex-row items-center border p-2 rounded-lg bg-gray-100 ${confirmPasswordError ? 'border-red-500' : 'border-gray-300'}`}>
                 <TextInput
                   className="flex-1 text-base focus:border-transparent border-gray-300"
@@ -191,7 +191,7 @@ const Register = () => {
 
         {currentStep === 2 && (
           <View className="mt-6">
-            <Text className="text-lg font-semibold text-gray-700 mb-4">I am signing up as a...</Text>
+            <Text className="text-lg font-semibold text-titlegray mb-4">I am signing up as a...</Text>
             
             <TouchableOpacity
               onPress={() => setSelectedRole('teacher')}
@@ -236,10 +236,10 @@ const Register = () => {
 
         {currentStep === 3 && (
           <View className="mt-6">
-            <Text className="text-lg font-semibold text-gray-700 mb-4">Enter your account details</Text>
+            <Text className="text-lg font-semibold text-titlegray mb-4">Enter your account details</Text>
 
             <View className="mb-5">
-              <Text className="text-sm font-medium text-gray-500 mb-2">First Name</Text>
+              <Text className="text-sm font-medium text-subtitlegray mb-2">First Name</Text>
               <TextInput
                 className={`border p-4 rounded-lg text-base bg-gray-100 border-gray-300`}
                 value={firstName}
@@ -252,7 +252,7 @@ const Register = () => {
               </View>
 
               <View className="mb-5">
-              <Text className="text-sm font-medium text-gray-500 mb-2">Last Name</Text>
+              <Text className="text-sm font-medium text-subtitlegray mb-2">Last Name</Text>
               <TextInput
                 className={`border p-4 rounded-lg text-base bg-gray-100 border-gray-300`}
                 value={lastName}
@@ -265,7 +265,7 @@ const Register = () => {
               </View>
 
               <View className="mb-5">
-              <Text className="text-sm font-medium text-gray-500 mb-2">School Name</Text>
+              <Text className="text-sm font-medium text-subtitlegray mb-2">School Name</Text>
               <TextInput
                 className={`border p-4 rounded-lg text-base bg-gray-100 border-gray-300`}
                 value={schoolName}
@@ -289,7 +289,7 @@ const Register = () => {
 
         <View className="mt-6 items-center">
           <Text className="text-sm text-gray-500">Already have an account?  <TouchableOpacity onPress={navigateToLogin}>
-            <Text className="text-teal-500 font-semibold text-sm">Log In</Text>
+            <Text className="text-primary font-semibold text-sm">Log In</Text>
           </TouchableOpacity>
           </Text>
          
