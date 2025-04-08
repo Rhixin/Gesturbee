@@ -1,4 +1,5 @@
-import { useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   View,
   Text,
@@ -9,7 +10,7 @@ import {
 } from "react-native";
 
 export default function Stage() {
-  const { id } = useLocalSearchParams();
+  const { stageId } = useLocalSearchParams();
 
   const stageDummy = {
     name: "Alphabets",
@@ -21,19 +22,42 @@ export default function Stage() {
     ],
   };
 
-  return (
-    <SafeAreaView className="pt-10 bg-primary h-[100vh] flex items-center">
-      <View className="bg-white rounded-2xl py-6 px-6 mb-6 w-[90%]">
-        <Text className="font-poppins-bold text-secondary text-xl">
-          Stage {id + ":   " + stageDummy.name}
-        </Text>
-      </View>
+  const router = useRouter();
 
-      <ScrollView className="w-[90%] max-h-ful">
+  const navigateToLevel = (levelId: number) => {
+    router.push(`/home/stage/${stageId}/level/${levelId}`);
+  };
+
+  const goBack = () => {
+    router.back();
+  };
+
+  return (
+    <View className="bg-primary h-[100vh] items-center">
+      <SafeAreaView className=" bg-white rounded-b-3xl w-full">
+        <TouchableOpacity
+          className="px-8"
+          onPress={() => {
+            goBack();
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color={"black"} />
+        </TouchableOpacity>
+
+        <View className="rounded-2xl w-[100%]  p-4 items-center">
+          <Text className="font-poppins-bold text-secondary text-3xl">
+            Stage {stageId + ":   " + stageDummy.name}
+          </Text>
+        </View>
+      </SafeAreaView>
+
+      <ScrollView className="w-[90%] max-h-full pt-8">
         {stageDummy.levels.map((item, index) => (
           <TouchableOpacity
-            className="bg-white rounded-2xl my-2 p-6 h-auto flex flex-row gap-4"
+            key={index}
+            className="bg-white rounded-2xl my-2 p-6 h-auto flex flex-row gap-4 "
             activeOpacity={0.8}
+            onPress={() => navigateToLevel(item.id)}
           >
             <View
               key={item.id}
@@ -56,6 +80,6 @@ export default function Stage() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
