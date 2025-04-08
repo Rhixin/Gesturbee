@@ -31,8 +31,11 @@ const Register = () => {
     selectedRole: null,
   });
 
+  //Step Indicator Steps
   const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 3;
 
+  //Eye close open states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -49,8 +52,6 @@ const Register = () => {
   const [firstnameisFocused, firstnamesetIsFocused] = useState(false);
   const [lastnameisFocused, lastnamesetIsFocused] = useState(false);
   const [schoolisFocused, schoolsetIsFocused] = useState(false);
-
-  const totalSteps = 3;
 
   const validateEmail = (email: string | undefined) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

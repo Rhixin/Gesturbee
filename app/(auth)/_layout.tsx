@@ -23,9 +23,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="lessons"
+        name="classes"
         options={{
-          title: "Lessons",
+          title: "Classes",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "book" : "book-outline"}

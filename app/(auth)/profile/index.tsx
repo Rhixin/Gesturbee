@@ -17,8 +17,6 @@ export default function Profile() {
     setChosenProfileTab(chosenComponent);
   }
 
-
-
   return (
     <>
       <Modal
@@ -113,7 +111,6 @@ export default function Profile() {
                 handleModal(<ChangePassword></ChangePassword>);
               }}
             >
-              
               <View className="flex flex-row items-center">
                 <Ionicons name="lock-closed-outline" size={20} color="black" />
                 <Text className="text-start text-sm ml-2 bg-transparent">
@@ -121,9 +118,6 @@ export default function Profile() {
                 </Text>
               </View>
             </Pressable>
-
-
-            
 
             <Pressable
               className="border border-t-0 rounded-b-2xl w-full p-4 min-w-[350px]"
@@ -183,7 +177,6 @@ function StreakSection() {
 function EditPersonalInformation() {
   return <Text>Personal Info</Text>;
 }
-
 
 function Settings() {
   return <Text>Settings</Text>;

@@ -32,7 +32,7 @@ const Login = () => {
   }
 
   return (
-    <View className="bg-primary h-[100vh] flex">
+    <View className="bg-primary h-[100vh] flex ">
       {/* Top Message */}
       <View className="min-h-[100px] flex flex-row items-center justify-start gap-6 px-6 mt-20">
         <Text className="text-white font-poppins-bold text-3xl">
