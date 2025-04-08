@@ -5,7 +5,6 @@ import { Ionicons } from "@expo/vector-icons";
 import CreateClassModal from "@/components/CreateClassModal";
 import JoinClassModal from "@/components/JoinClassModal";
 
-
 const Classes = () => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -19,8 +18,7 @@ const Classes = () => {
 
   const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
 
-  const addNewClass = (newClass) => 
-  {
+  const addNewClass = (newClass) => {
     setClasses((prevClasses) => [
       ...prevClasses,
       { id: String(prevClasses.length + 1), ...newClass },
@@ -30,7 +28,9 @@ const Classes = () => {
   return (
     <View className="flex-1 bg-gray">
       <SafeAreaView className="px-6 pt-10 flex-row justify-between items-center z-50 bg-white shadow-sm">
-        <Text className="text-3xl font-poppins-bold text-titlegray">My Classes</Text>
+        <Text className="text-3xl font-poppins-bold text-titlegray">
+          My Classes
+        </Text>
         <View className="relative">
           <TouchableOpacity
             onPress={toggleDropdown}
@@ -41,22 +41,30 @@ const Classes = () => {
 
           {dropdownVisible && (
             <View className="absolute top-12 right-0 bg-white shadow-md min-w-[120px] rounded-md z-50">
-              <TouchableOpacity className="px-4 py-3 flex-row items-center border-b border-gray-100"
+              <TouchableOpacity
+                className="px-4 py-3 flex-row items-center border-b border-gray-100"
                 onPress={() => {
                   setCreateClassModalVisible(true);
                   setDropdownVisible(false);
-                }}>
+                }}
+              >
                 <Ionicons name="add-circle-outline" size={20} color="#00BFAF" />
-                <Text className="ml-2 text-gray-700 font-medium">Create Class</Text>
+                <Text className="ml-2 text-gray-700 font-medium">
+                  Create Class
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity className="px-4 py-3 flex-row items-center"
-              onPress={() => {
-                setJoinClassModalVisible(true);
-                setDropdownVisible(false);
-              }}>
+              <TouchableOpacity
+                className="px-4 py-3 flex-row items-center"
+                onPress={() => {
+                  setJoinClassModalVisible(true);
+                  setDropdownVisible(false);
+                }}
+              >
                 <Ionicons name="enter-outline" size={20} color="#00BFAF" />
-                <Text className="ml-2 text-gray-700 font-medium">Join Class</Text>
+                <Text className="ml-2 text-gray-700 font-medium">
+                  Join Class
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -81,16 +89,16 @@ const Classes = () => {
         )}
       />
 
-      <CreateClassModal 
-        modalVisible={createClassModalVisible} 
-        setModalVisible={setCreateClassModalVisible} 
-        addNewClass={addNewClass}  
+      <CreateClassModal
+        modalVisible={createClassModalVisible}
+        setModalVisible={setCreateClassModalVisible}
+        addNewClass={addNewClass}
       />
 
-      <JoinClassModal 
-        modalVisible={joinClassModalVisible} 
-        setModalVisible={setJoinClassModalVisible} 
-        addNewClass={addNewClass}  
+      <JoinClassModal
+        modalVisible={joinClassModalVisible}
+        setModalVisible={setJoinClassModalVisible}
+        addNewClass={addNewClass}
       />
     </View>
   );

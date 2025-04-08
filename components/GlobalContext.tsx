@@ -26,6 +26,8 @@ interface GlobalContextType {
   setIsLoading: (value: boolean) => void;
   bubbleAnimation: any;
   setBubbleAnimation: (value: any) => void;
+  progressAnimation: any;
+  setProgressAnimation: (value: any) => void;
 }
 
 // Create the actual context with a default (dummy) value
@@ -43,9 +45,11 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [bubbleAnimation, setBubbleAnimation] = useState(null);
+  const [progressAnimation, setProgressAnimation] = useState(null);
 
   useEffect(() => {
     setBubbleAnimation(require("../assets/animations/bubbles_yellow.json"));
+    setProgressAnimation(require("../assets/animations/progress_bee.json"));
   }, []);
 
   return (
@@ -57,6 +61,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading,
         bubbleAnimation,
         setBubbleAnimation,
+        progressAnimation,
+        setProgressAnimation,
       }}
     >
       {children}
