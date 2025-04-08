@@ -1,3 +1,4 @@
+import ProgressBar from "@/components/Progressbar";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -15,10 +16,10 @@ export default function Stage() {
   const stageDummy = {
     name: "Alphabets",
     levels: [
-      { id: 1, title: "A-G" },
-      { id: 2, title: "H-N" },
-      { id: 3, title: "O-U" },
-      { id: 4, title: "V-Z" },
+      { id: 1, title: "A-G", percent: 40 },
+      { id: 2, title: "H-N", percent: 80 },
+      { id: 3, title: "O-U", percent: 30 },
+      { id: 4, title: "V-Z", percent: 60 },
     ],
   };
 
@@ -33,19 +34,19 @@ export default function Stage() {
   };
 
   return (
-    <View className="bg-primary h-[100vh] items-center">
-      <SafeAreaView className=" bg-white rounded-b-3xl w-full">
+    <View className="bg-white h-[100vh] items-center">
+      <SafeAreaView className=" bg-primary rounded-b-3xl w-full">
         <TouchableOpacity
           className="px-8"
           onPress={() => {
             goBack();
           }}
         >
-          <Ionicons name="arrow-back" size={24} color={"black"} />
+          <Ionicons name="arrow-back" size={24} color={"white"} />
         </TouchableOpacity>
 
         <View className="rounded-2xl w-[100%]  p-4 items-center">
-          <Text className="font-poppins-bold text-secondary text-3xl">
+          <Text className="font-poppins-bold text-white text-3xl">
             Stage {stageId + ":   " + stageDummy.name}
           </Text>
         </View>
@@ -55,7 +56,7 @@ export default function Stage() {
         {stageDummy.levels.map((item, index) => (
           <TouchableOpacity
             key={index}
-            className="bg-white rounded-2xl my-2 p-6 h-auto flex flex-row gap-4 "
+            className="bg-gray-200 rounded-2xl my-2 p-6 h-auto flex flex-row gap-4 "
             activeOpacity={0.8}
             onPress={() => navigateToLevel(item.id)}
           >
@@ -75,7 +76,13 @@ export default function Stage() {
               <Text className="text-tertiary font-poppins-bold text-xl">
                 {"Level: " + (index + 1) + ": " + item.title}
               </Text>
-              <View className="h-8 w-full bg-primary rounded-2xl"></View>
+              <View className="h-auto">
+                <ProgressBar
+                  percent={item.percent}
+                  backgroundColor="bg-white"
+                  fillColor="bg-secondary"
+                ></ProgressBar>
+              </View>
             </View>
           </TouchableOpacity>
         ))}
