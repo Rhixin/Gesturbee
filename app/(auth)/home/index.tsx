@@ -9,6 +9,7 @@ import {
   Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { TouchableOpacity } from "react-native";
 
 export default function Home() {
   const scrollViewRef = useRef<RNScrollView>(null);
@@ -24,7 +25,7 @@ export default function Home() {
   const router = useRouter();
 
   const navigateToStage = (id: number) => {
-    router.push(`/home/stages/${id}`);
+    router.push(`/home/stage/${id}`);
   };
 
   return (
@@ -36,7 +37,11 @@ export default function Home() {
     >
       <SafeAreaView className="pt-10">
         {dummyData.map((item) => (
-          <Pressable key={item.id} onPress={() => navigateToStage(item.id)}>
+          <TouchableOpacity
+            key={item.id}
+            onPress={() => navigateToStage(item.id)}
+            activeOpacity={0.7}
+          >
             <View
               className={`w-full flex ${
                 item.level % 2 === 0 ? "items-start" : "items-end"
@@ -76,7 +81,7 @@ export default function Home() {
                 </View>
               </View>
             </View>
-          </Pressable>
+          </TouchableOpacity>
         ))}
       </SafeAreaView>
     </ScrollView>
