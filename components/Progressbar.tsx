@@ -20,13 +20,14 @@ export default function ProgressBar({
   const clampedPercent = Math.min(100, Math.max(0, percent));
 
   return (
-    <View className="w-full h-auto py-4">
+    <View className="w-full py-4">
       <View
-        className={`w-full h-8 rounded-full overflow-hidden relative ${backgroundColor}`}
+        className={`w-full rounded-full overflow-hidden relative ${backgroundColor}`}
+        style={{ height: 20 }}
       >
         <View
-          className={`h-full ${fillColor} rounded-full`}
-          style={{ width: `${clampedPercent}%` }}
+          className={`${fillColor} rounded-full`}
+          style={{ width: `${clampedPercent}%`, height: 20 }}
         />
       </View>
 
