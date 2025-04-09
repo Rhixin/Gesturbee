@@ -4,17 +4,29 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import CreateClassModal from "@/components/CreateClassModal";
 import JoinClassModal from "@/components/JoinClassModal";
+import { useRouter } from "expo-router";
 
 const Classes = () => {
+  const [classes, setClasses] = useState([
+    { id: 1, name: "Sped-1", students: 30 },
+    { id: 2, name: "Sped-2", students: 30 },
+  ]);
+
+  const router = useRouter();
+
+  const navigateToStage = (id: number, classroomName: string) => {
+    const classData = classes.find((cls) => cls.id === id);
+    router.push({
+      pathname: "/classes/classroom/[id]",
+      params: { ...classData, id, classroomName },
+    });
+  };
+
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const [createClassModalVisible, setCreateClassModalVisible] = useState(false);
 
   const [joinClassModalVisible, setJoinClassModalVisible] = useState(false);
-
-  const [classes, setClasses] = useState([
-    { id: "1", name: "Sped-1", students: 30 },
-  ]);
 
   const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
 
@@ -73,7 +85,7 @@ const Classes = () => {
 
       <FlatList
         data={classes}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id + ""}
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20 }}
         renderItem={({ item }) => (
           <View className="bg-primary rounded-xl p-6 mb-4 z-10">
@@ -82,7 +94,11 @@ const Classes = () => {
               <Ionicons name="person" size={16} color="white" />
               <Text className="text-white ml-2">{item.students} students</Text>
             </View>
-            <TouchableOpacity className="bg-yellow-400 px-4 py-2 rounded-md self-end">
+
+            <TouchableOpacity
+              className="bg-yellow-400 px-4 py-2 rounded-md self-end"
+              onPress={() => navigateToStage(item.id, item.name)}
+            >
               <Text className="text-white font-semibold">View Class</Text>
             </TouchableOpacity>
           </View>
@@ -98,7 +114,6 @@ const Classes = () => {
       <JoinClassModal
         modalVisible={joinClassModalVisible}
         setModalVisible={setJoinClassModalVisible}
-        addNewClass={addNewClass}
       />
     </View>
   );
