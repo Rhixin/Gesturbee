@@ -36,9 +36,9 @@ export default function Home() {
       }}
     >
       <SafeAreaView className="pt-10">
-        {dummyData.map((item) => (
+        {dummyData.map((item, index) => (
           <TouchableOpacity
-            key={item.id}
+            key={index}
             onPress={() => navigateToStage(item.id)}
             activeOpacity={0.7}
           >

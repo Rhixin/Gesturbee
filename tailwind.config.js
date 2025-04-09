@@ -11,6 +11,7 @@ module.exports = {
         titlegray: "#373e50", //text-gray-700
         subtitlegray: "#6B7280", //text-gray-500
         placeholder: "#888", //text input placeholder
+        darkhoney: "#985b10",
       },
       fontFamily: {
         poppins: ["Poppins"],

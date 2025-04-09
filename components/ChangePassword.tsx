@@ -1,116 +1,119 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { View, TextInput, Pressable, Text, TouchableOpacity } from "react-native";
+import {
+  View,
+  TextInput,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 
 export default function ChangePassword({ onClose = () => {}, onSave = () => {} } = {}) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [error, setError] = useState('');
+
   const handleSaveChanges = () => {
-    // Add validation logic here
-    if (newPassword === confirmPassword) {
-      onSave();
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setError("Please fill in all fields.");
+      return;
     }
+    if (newPassword.length < 6) {
+      setError("New password must be at least 6 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setError('');
+    onSave(); // Call parent save function
   };
 
+  const inputFields = [
+    {
+      label: "Current Password",
+      value: currentPassword,
+      setValue: setCurrentPassword,
+      show: showCurrentPassword,
+      toggle: () => setShowCurrentPassword(!showCurrentPassword),
+      placeholder: "Enter your current password"
+    },
+    {
+      label: "New Password",
+      value: newPassword,
+      setValue: setNewPassword,
+      show: showNewPassword,
+      toggle: () => setShowNewPassword(!showNewPassword),
+      placeholder: "Enter new password"
+    },
+    {
+      label: "Confirm Password",
+      value: confirmPassword,
+      setValue: setConfirmPassword,
+      show: showConfirmPassword,
+      toggle: () => setShowConfirmPassword(!showConfirmPassword),
+      placeholder: "Re-enter new password"
+    }
+  ];
+
   return (
-    <View className="bg-primary">
-
-      {/* Title */}
-      <Text className="text-xl font-bold text-center mt-5 mb-8">Change your password</Text>
-      
-      {/* Current Password */}
-      <View className="mb-4 mt-9">
-        <Text className="mb-2 text-base">Current Password</Text>
-        <View className="bg-white rounded-lg flex-row items-center py-2 border border-gray-200">
-          <TextInput
-            className="flex-1 px-6 h-full text-base"
-            placeholder="Input your current password"
-            placeholderTextColor="#9CA3AF"
-            secureTextEntry={!showCurrentPassword}
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-          />
-          <Pressable 
-            className="px-6 h-full justify-center" 
-            onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-          >
-            <Ionicons
-              name={showCurrentPassword ? "eye-off" : "eye"}
-              size={24}
-              color="#6B7280"
-            />
-          </Pressable>
-        </View>
-      </View>
-
-      {/* New Password */}
-      <View className="mb-4">
-        <Text className="mb-2 text-base">New Password</Text>
-        <View className="bg-white rounded-lg flex-row items-center py-2 border border-gray-200">
-          <TextInput
-            className="flex-1 px-6 h-12 text-base"
-            placeholder="*****"
-            placeholderTextColor="#9CA3AF"
-            secureTextEntry={!showNewPassword}
-            value={newPassword}
-            onChangeText={setNewPassword}
-          />
-          <Pressable 
-            className="px-6 h-full justify-center" 
-            onPress={() => setShowNewPassword(!showNewPassword)}
-          >
-            <Ionicons
-              name={showNewPassword ? "eye-off" : "eye"}
-              size={24}
-              color="#6B7280"
-            />
-          </Pressable>
-        </View>
-      </View>
-
-      {/* Confirm Password */}
-      <View className="mb-6">
-        <Text className="mb-2 text-base">Confirm Password</Text>
-        <View className="bg-white rounded-lg flex-row items-center py-2 border border-gray-200">
-          <TextInput
-            className="flex-1 px-6 h-full text-base"
-            placeholder="*****"
-            placeholderTextColor="#9CA3AF"
-            secureTextEntry={!showConfirmPassword}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
-          <Pressable 
-            className="px-6 h-full justify-center" 
-            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-          >
-            <Ionicons
-              name={showConfirmPassword ? "eye-off" : "eye"}
-              size={24}
-              color="#6B7280"
-            />
-          </Pressable>
-        </View>
-      </View>
-
-
-      {/* Save button */}
-      <TouchableOpacity 
-        className="bg-yellow-300 py-4 rounded-lg mt-4 border-2 border-gray-500"
-        onPress={handleSaveChanges}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          className="bg-primary p-5"
         >
-        <Text className="text-center font-bold">Save changes</Text>
-       </TouchableOpacity>
+          <Text className="text-2xl font-bold text-center mb-8">Change Your Password</Text>
 
-      
+          {error ? (
+            <Text className="text-red-500 text-center mb-4 font-medium">{error}</Text>
+          ) : null}
 
-    </View>
-    
+          {inputFields.map(({ label, value, setValue, show, toggle, placeholder }, index) => (
+            <View className="mb-5" key={index}>
+              <Text className="mb-2 text-base font-semibold">{label}</Text>
+              <View className={`bg-white rounded-lg flex-row items-center py-2 border ${error && !value ? 'border-red-500' : 'border-gray-200'}`}>
+                <TextInput
+                  className="flex-1 px-6 h-12 text-base"
+                  placeholder={placeholder}
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={!show}
+                  value={value}
+                  onChangeText={setValue}
+                />
+                <Pressable className="px-4 justify-center" onPress={toggle}>
+                  <Ionicons name={show ? "eye-off" : "eye"} size={22} color="#6B7280" />
+                </Pressable>
+              </View>
+            </View>
+          ))}
+
+          <TouchableOpacity
+            className="bg-secondary py-4 rounded-lg mt-4 "
+            onPress={handleSaveChanges}
+            disabled={!currentPassword || !newPassword || !confirmPassword}
+          >
+            <Text className="text-center font-bold text-lg text-black">Save Changes</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
