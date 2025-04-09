@@ -24,7 +24,7 @@ const Login = () => {
     setTimeout(() => {
       setIsLoading(false);
       router.push("/(auth)/home");
-    }, 2000);
+    }, 1000);
   };
 
   if (isLoading) {

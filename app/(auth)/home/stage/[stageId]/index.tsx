@@ -14,12 +14,18 @@ export default function Stage() {
   const { stageId } = useLocalSearchParams();
 
   const stageDummy = {
+    stageId: 1,
     name: "Alphabets",
     levels: [
-      { id: 1, title: "A-G", percent: 40 },
-      { id: 2, title: "H-N", percent: 80 },
-      { id: 3, title: "O-U", percent: 30 },
-      { id: 4, title: "V-Z", percent: 60 },
+      { levelid: 1, levelname: "A-C", percent: 40 },
+      { levelid: 2, levelname: "D-F", percent: 0 },
+      { levelid: 3, levelname: "G-I", percent: 0 },
+      { levelid: 4, levelname: "J-L", percent: 0 },
+      { levelid: 5, levelname: "M-O", percent: 0 },
+      { levelid: 6, levelname: "P-R", percent: 0 },
+      { levelid: 7, levelname: "S-U", percent: 0 },
+      { levelid: 8, levelname: "V-X", percent: 0 },
+      { levelid: 9, levelname: "Y-Z", percent: 0 },
     ],
   };
 
@@ -52,20 +58,27 @@ export default function Stage() {
         </View>
       </SafeAreaView>
 
-      <ScrollView className="w-[90%] max-h-full pt-8">
+      <ScrollView
+        className="w-[90%] max-h-full pt-8 mb-28"
+        showsVerticalScrollIndicator={false}
+      >
         {stageDummy.levels.map((item, index) => (
           <TouchableOpacity
             key={index}
             className="bg-gray-200 rounded-2xl my-2 p-6 h-auto flex flex-row gap-4 "
             activeOpacity={0.8}
-            onPress={() => navigateToLevel(item.id)}
+            onPress={() => navigateToLevel(item.levelid)}
           >
             <View
-              key={item.id}
+              key={item.levelid}
               className="max-h-[60px] flex items-center justify-center"
             >
               <Image
-                source={require("@/assets/images/beehive locked.png")}
+                source={
+                  item.percent === 0
+                    ? require("@/assets/images/beehive locked.png")
+                    : require("@/assets/images/beehive unlocked.png")
+                }
                 className="max-w-[70px] max-h-[70px]"
                 style={{
                   transform: [{ scale: 2 }],
@@ -74,12 +87,14 @@ export default function Stage() {
             </View>
             <View className="flex-1 flex-col justify-between">
               <Text className="text-tertiary font-poppins-bold text-xl">
-                {"Level: " + (index + 1) + ": " + item.title}
+                {"Level: " + (index + 1) + ": " + item.levelname}
               </Text>
               <View className="h-auto">
                 <ProgressBar
                   percent={item.percent}
-                  backgroundColor="bg-white"
+                  backgroundColor={
+                    item.percent === 0 ? "bg-tertiary" : "bg-white"
+                  }
                   fillColor="bg-secondary"
                 ></ProgressBar>
               </View>
