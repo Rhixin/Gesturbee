@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 import React, { useEffect, useState } from "react";
 import LottieView from "lottie-react-native";
 
-const Loading = () => {
+const Loading = ({ text }: { text: String }) => {
   const [animation, setAnimation] = useState(null);
   useEffect(() => {
     setAnimation(require("../assets/animations/loading.json"));
@@ -20,9 +20,7 @@ const Loading = () => {
           height: 128,
         }}
       />
-      <Text className="text-secondary font-poppins-medium mt-4">
-        Loading...
-      </Text>
+      <Text className="text-secondary font-poppins-medium mt-4">{text}</Text>
     </View>
   );
 };

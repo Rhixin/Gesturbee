@@ -28,7 +28,7 @@ const Login = () => {
   };
 
   if (isLoading) {
-    return <Loading></Loading>;
+    return <Loading text={"Logging In..."}></Loading>;
   }
 
   return (
