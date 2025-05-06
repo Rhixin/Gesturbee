@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,19 +6,34 @@ import {
   TouchableOpacity,
   Platform,
   Image,
+  KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 
 import { Ionicons } from "@expo/vector-icons";
 import StepIndicator from "../components/StepIndicator";
+import CustomDropdown from "../components/GenderDropDown";
+
 import { useGlobal } from "@/components/GlobalContext";
+import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const Register = () => {
+
+  const inputBaseClass = "flex-1 text-base bg-gray-100 min-h-[40px]";
+  const passwordInputRef = useRef<TextInput>(null);
+  const confirmPasswordInputRef = useRef<TextInput>(null);
+
+  
+
   const router = useRouter();
 
   const navigateToLogin = () => {
     router.push("/login");
   };
+  
+  
 
   //User Form
   const [userForm, setUserForm] = useState({
@@ -27,9 +42,16 @@ const Register = () => {
     confirmPassword: "",
     firstName: "",
     lastName: "",
-    schoolName: "",
+    gender: "",
+    birthday: "",
     selectedRole: null,
   });
+
+  const genderOptions = [
+    { label: "Male", value: "Male" },
+    { label: "Female", value: "Female" },
+    { label: "Other", value: "Other" }
+  ];
 
   //Step Indicator Steps
   const [currentStep, setCurrentStep] = useState(1);
@@ -47,11 +69,17 @@ const Register = () => {
   //Focus states
   const [emailisFocused, emailsetIsFocused] = useState(false);
   const [passwordisFocused, passwordsetIsFocused] = useState(false);
-  const [confirmpasswordisFocused, confirmpasswordsetIsFocused] =
-    useState(false);
+  const [confirmpasswordisFocused, confirmpasswordsetIsFocused] = useState(false);
   const [firstnameisFocused, firstnamesetIsFocused] = useState(false);
   const [lastnameisFocused, lastnamesetIsFocused] = useState(false);
-  const [schoolisFocused, schoolsetIsFocused] = useState(false);
+  const [birthdayisFocused, birthdaysetIsFocused] = useState(false);
+  const [genderisFocused, gendersetIsFocused] = useState(false);
+
+
+  //birthday
+const [showPicker, setShowPicker] = useState(false);
+const [birthdayDate, setBirthdayDate] = useState(new Date());
+  
 
   const validateEmail = (email: string | undefined) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -99,6 +127,16 @@ const Register = () => {
   };
 
   return (
+
+    
+    <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={{ flex: 1 }}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+
     <View className="bg-primary h-[100vh] flex">
       {/* Top Message */}
       <View className="min-h-[100px] flex flex-row items-center justify-start gap-6 px-6 mt-20">
@@ -118,6 +156,8 @@ const Register = () => {
           totalSteps={totalSteps}
         />
 
+
+
         <Text className="text-2xl font-bold text-primary ">Sign Up</Text>
         {currentStep === 1 && (
           <View className="mt-6">
@@ -129,13 +169,19 @@ const Register = () => {
               <Text className="text-sm font-medium text-subtitlegray mb-2">
                 Email
               </Text>
+              <View className={`border rounded-lg bg-gray-100 px-4 py-1 ${
+                emailError
+                  ? "border-red-500"
+                  : emailisFocused
+                  ? "border-blue-700"
+                  : "border-gray-300"
+              }`}>
               <TextInput
-                className={`border p-4 rounded-lg text-base bg-gray-100 ${
-                  emailisFocused ? "border-blue-700" : "border-gray-300"
-                } ${emailError ? "border-red-500" : "border-gray-300"}`}
+                className={"text-base bg-gray-100 w-full min-h-[40px]"}
                 value={userForm.email}
                 style={{
                   outlineStyle: "none",
+                  textAlignVertical: "center",
                 }}
                 onChangeText={(text) => {
                   setUserForm((prev: any) => ({ ...prev, email: text }));
@@ -146,7 +192,9 @@ const Register = () => {
                 keyboardType="email-address"
                 onFocus={() => emailsetIsFocused(true)}
                 onBlur={() => emailsetIsFocused(false)}
-              />
+                />
+                </View>
+             
               {emailError ? (
                 <Text className="text-red-500 text-sm mt-1 ml-1">
                   {emailError}
@@ -159,18 +207,20 @@ const Register = () => {
                 Password
               </Text>
               <View
-                className={`flex-row items-center border p-2 rounded-lg bg-gray-100 ${
+                className={`flex-row items-center border px-4 py-1 rounded-lg bg-gray-100 ${
                   passwordisFocused ? "border-blue-700" : "border-gray-300"
                 } ${passwordError ? "border-red-500" : ""}`}
               >
                 <TextInput
-                  className="flex-1 text-base focus:border-transparent bg-gray-100"
-                  value={userForm.password}
+                  ref={passwordInputRef}
+                  className={inputBaseClass}
                   style={{
                     outlineStyle: "none",
                   }}
+                  value={userForm.password}
                   onChangeText={(text) => {
-                    setUserForm((prev: any) => ({ ...prev, password: text }));
+                    setUserForm((prev: any) => ({ ...prev, 
+                      password: text }));
                     setPasswordError("");
                   }}
                   placeholder="Enter your password"
@@ -205,14 +255,13 @@ const Register = () => {
                 Confirm Password
               </Text>
               <View
-                className={`flex-row items-center border p-2 rounded-lg bg-gray-100 
-              ${
-                confirmpasswordisFocused ? "border-blue-700" : "border-gray-300"
-              }
-              ${confirmPasswordError ? "border-red-500" : "border-gray-300"}`}
+                className={`flex-row items-center border px-4 py-1 rounded-lg bg-gray-100 ${
+                confirmpasswordisFocused ? "border-blue-700" : "border-gray-300"}
+              ${confirmPasswordError ? "border-red-500" : ""}`}
               >
                 <TextInput
-                  className="flex-1 text-base focus:border-transparent border-gray-300"
+                 ref={confirmPasswordInputRef}
+                  className={inputBaseClass}
                   style={{
                     outlineStyle: "none",
                   }}
@@ -410,30 +459,66 @@ const Register = () => {
               />
             </View>
 
-            <View className="mb-5">
-              <Text className="text-sm font-medium text-subtitlegray mb-2">
-                School Name
-              </Text>
-              <TextInput
-                className={`border p-4 rounded-lg text-base bg-gray-100 ${
-                  schoolisFocused ? "border-blue-700" : "border-gray-300"
-                } `}
-                value={userForm.schoolName}
-                onChangeText={(text) => {
+          
+            <CustomDropdown
+              label="Gender"
+              value={userForm.gender}
+              options={genderOptions}
+              placeholder="Select Gender"
+              onSelect={(value) => {
+                setUserForm((prev) => ({
+                  ...prev,
+                  gender: value
+                }));
+              }}
+            />
+      
+
+        <View className="mb-5">
+          <Text className="text-sm font-medium text-subtitlegray mb-2">
+            Birthday
+          </Text>
+          <TouchableOpacity
+            onPress={() => setShowPicker(true)}
+            className={`border p-4 rounded-lg text-base bg-gray-100 ${
+              birthdayisFocused ? "border-blue-700" : "border-gray-300"
+            }`}
+            onFocus={() => birthdaysetIsFocused(true)}
+            onBlur={() => birthdaysetIsFocused(false)}
+          >
+          <Text className="text-base text-gray-700">
+          {userForm.birthday
+            ? new Date(userForm.birthday).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : "Select your birthday"}
+        </Text>
+
+          </TouchableOpacity>
+
+          {showPicker && (
+            <DateTimePicker
+              value={birthdayDate}
+              mode="date"
+              display="spinner"
+              maximumDate={new Date()} 
+              onChange={(event, selectedDate) => {
+                setShowPicker(Platform.OS === "ios"); 
+                if (selectedDate) {
+                  setBirthdayDate(selectedDate);
                   setUserForm((prev: any) => ({
                     ...prev,
-                    schoolName: text,
+                    birthday: selectedDate.toISOString(),
                   }));
-                }}
-                style={{
-                  outlineStyle: "none",
-                }}
-                placeholder="Enter your school name"
-                placeholderTextColor="#888"
-                onFocus={() => schoolsetIsFocused(true)}
-                onBlur={() => schoolsetIsFocused(false)}
-              />
-            </View>
+                }
+              }}
+            />
+          )}
+        </View>
+
+
 
             <TouchableOpacity
               className="bg-teal-500 p-4 rounded-lg flex-row justify-center items-center"
@@ -446,16 +531,21 @@ const Register = () => {
         )}
 
         <View className="mt-6 items-center">
-          <Text className="text-sm text-gray-500">
+          <Text className="text-sm text-gray-500" style={{ textAlign: 'center' }}>
             Already have an account?{" "}
             <TouchableOpacity onPress={navigateToLogin}>
-              <Text className="text-primary font-semibold text-sm">Log In</Text>
+              <Text className="text-primary font-semibold text-sm" style={{ textAlign: 'center' }}>Log In</Text>
             </TouchableOpacity>
           </Text>
         </View>
+
+
       </View>
     </View>
+    </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 export default Register;
+
