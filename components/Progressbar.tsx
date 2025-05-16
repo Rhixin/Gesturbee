@@ -1,7 +1,7 @@
-import LottieView from "lottie-react-native";
+// import LottieView from "lottie-react-native";
 import React, { useState } from "react";
 import { View, LayoutChangeEvent } from "react-native";
-import { useGlobal } from "./GlobalContext";
+import { useGlobal } from "../context/GlobalContext";
 
 export default function ProgressBar({
   percent,
@@ -42,7 +42,7 @@ export default function ProgressBar({
         />
       </View>
 
-      {percent > 0 && barWidth > 0 && (
+      {/* {percent > 0 && barWidth > 0 && (
         <LottieView
           source={progressAnimation}
           autoPlay
@@ -55,7 +55,7 @@ export default function ProgressBar({
             height: imageHeight,
           }}
         />
-      )}
+      )} */}
     </View>
   );
 }

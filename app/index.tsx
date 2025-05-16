@@ -1,8 +1,8 @@
 import { Text, View, TouchableOpacity, Image } from "react-native";
 import { useRouter } from "expo-router";
-import LottieView from "lottie-react-native";
+// import LottieView from "lottie-react-native";
 import { useState, useEffect } from "react";
-import { useGlobal } from "@/components/GlobalContext";
+import { useGlobal } from "@/context/GlobalContext";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function LandingPage() {
 
   return (
     <View className="flex flex-col items-center justify-center h-[100vh] bg-primary relative">
-      <LottieView
+      {/* <LottieView
         source={bubbleAnimation}
         autoPlay
         loop
@@ -30,7 +30,7 @@ export default function LandingPage() {
           bottom: 0,
           opacity: 0.2,
         }}
-      />
+      /> */}
 
       <View className="flex flex-row gap-4">
         <Image

@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import React, { useEffect, useState } from "react";
-import LottieView from "lottie-react-native";
+// import LottieView from "lottie-react-native";
 
 const Loading = () => {
   const [animation, setAnimation] = useState(null);
@@ -10,7 +10,7 @@ const Loading = () => {
 
   return (
     <View className="absolute w-full h-[100vh] bg-white flex justify-center items-center">
-      <LottieView
+      {/* <LottieView
         source={animation}
         autoPlay
         loop
@@ -19,7 +19,7 @@ const Loading = () => {
           width: 128,
           height: 128,
         }}
-      />
+      /> */}
       <Text className="text-secondary font-poppins-medium mt-4">
         Loading...
       </Text>

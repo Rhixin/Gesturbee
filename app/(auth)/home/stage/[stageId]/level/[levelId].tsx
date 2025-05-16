@@ -3,22 +3,32 @@ import SuccessModal from "@/components/SuccessModal";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
-import { View, Text, SafeAreaView, TouchableOpacity } from "react-native";
-import { Video, ResizeMode } from 'expo-av';
+import React, { useEffect, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import { Video, ResizeMode } from "expo-av";
+import { WebView } from "react-native-webview";
+import { getGesturbeeCamera } from "@/utils/getGesturbeeCamera";
+import { StatusBar } from "expo-status-bar";
 
-
+import { Feather } from "@expo/vector-icons";
+import CameraBuffer from "@/components/CameraBuffer";
 
 export default function Level() {
   const { levelId } = useLocalSearchParams();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-
   const [status, setStatus] = React.useState({});
-  const videoRef = useRef(null);
+  const [webViewError, setWebViewError] = useState(null);
+  const [isWebViewReady, setIsWebViewReady] = useState(false);
 
+  const videoRef = useRef(null);
+  const webViewRef = useRef(null);
 
   const router = useRouter();
   const goBack = () => router.back();
@@ -26,9 +36,10 @@ export default function Level() {
   const handleSelectAnswer = (option: string) => {
     console.log("Selected:", option);
     setSelectedAnswer(option);
-  
-    const correctAnswer = levelDummy.lessons[currentLessonIndex].contents.review.answer;
-  
+
+    const correctAnswer =
+      levelDummy.lessons[currentLessonIndex].contents.review.answer;
+
     if (option === correctAnswer) {
       setShowSuccessModal(true);
     }
@@ -37,10 +48,8 @@ export default function Level() {
   const handleContinue = () => {
     setShowSuccessModal(false);
     goToNextContent();
-    setSelectedAnswer(null); 
+    setSelectedAnswer(null);
   };
-  
-  
 
   const levelDummy = {
     levelId: 2,
@@ -130,15 +139,36 @@ export default function Level() {
     100;
 
   const goToNextContent = () => {
-    if (currentContentIndex == 2 && currentLessonIndex < totalLessons) {
+    if (currentContentIndex === 2 && currentLessonIndex < totalLessons - 1) {
       setCurrentLessonIndex(currentLessonIndex + 1);
+      setCurrentIndex(0);
+    } else if (
+      !(currentLessonIndex === totalLessons - 1 && currentContentIndex === 2)
+    ) {
+      setCurrentIndex((currentContentIndex + 1) % 3);
     }
 
-    setCurrentIndex((currentContentIndex + 1) % 3);
+    // Reset WebView state when changing content
+    setWebViewError(null);
+    setIsWebViewReady(false);
+  };
+
+  const goToPreviousContent = () => {
+    if (currentContentIndex === 0 && currentLessonIndex > 0) {
+      setCurrentLessonIndex(currentLessonIndex - 1);
+      setCurrentIndex(2);
+    } else if (!(currentLessonIndex === 0 && currentContentIndex === 0)) {
+      setCurrentIndex((currentContentIndex - 1 + 3) % 3);
+    }
+
+    // Reset WebView state when changing content
+    setWebViewError(null);
+    setIsWebViewReady(false);
   };
 
   return (
     <View className="bg-white h-[100vh] items-center">
+      <StatusBar style="light" />
       <SafeAreaView className="bg-secondary rounded-b-3xl w-full">
         <TouchableOpacity className="px-8" onPress={goBack}>
           <Ionicons name="arrow-back" size={24} color={"white"} />
@@ -168,7 +198,6 @@ export default function Level() {
         </View>
       </SafeAreaView>
 
-
       {/* 
       DYNAMIC CONTENT OF THE LESSON
       1.VID
@@ -177,126 +206,170 @@ export default function Level() {
       */}
 
       {currentContentIndex === 0 && (
-        <> 
-      <View className="mx-4 my-6">
-      <View className="w-[100%] bg-gray-300 rounded-lg overflow-hidden aspect-video items-center justify-center">
-      <Video
-          ref={videoRef} 
-          source={require('@/assets/videos/a.mp4')}
-          useNativeControls
-          resizeMode={ResizeMode.COVER}
-          shouldPlay={true}
-          isLooping={true}
-          onPlaybackStatusUpdate={status => setStatus(() => status)}
-          onEnd={async () => {
-            if (videoRef.current) {
-              await videoRef.current.setStatusAsync
-              ({
-                shouldPlay: true,
-                positionMillis: 0,
-              });
-            }
-          }}
-          style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
-        />
-      </View>
-    </View>
+        <>
+          <View className="mx-4 my-6">
+            <View className="w-[100%] bg-gray-300 rounded-lg overflow-hidden aspect-video items-center justify-center">
+              <Video
+                ref={videoRef}
+                source={require("@/assets/videos/a.mp4")}
+                useNativeControls
+                resizeMode={ResizeMode.COVER}
+                shouldPlay={true}
+                isLooping={true}
+                onPlaybackStatusUpdate={(status) => setStatus(() => status)}
+                onEnd={async () => {
+                  if (videoRef.current) {
+                    await videoRef.current.setStatusAsync({
+                      shouldPlay: true,
+                      positionMillis: 0,
+                    });
+                  }
+                }}
+                style={{ width: "100%", height: "100%", aspectRatio: 16 / 9 }}
+              />
+            </View>
+          </View>
 
-     <View className="mb-6 w-[50%]" >
-      <View className="bg-teal-500 p-4 rounded-lg">
-        <View className="flex-row items-center">
-          <TouchableOpacity> 
-          <Ionicons name="bookmark-outline" size={24} color="white" className="mr-5" />
-          </TouchableOpacity>
-          <Text className="text-white text-2xl font-poppins-medium ml-2">{levelDummy.lessons[currentLessonIndex].contents.video.videotitle}
-          </Text>
-        </View>
-      </View>
-    </View>
-
-    
-    </>
+          <View className="mb-6 w-[50%]">
+            <View className="bg-teal-500 p-4 rounded-lg">
+              <View className="flex-row items-center">
+                <TouchableOpacity>
+                  <Ionicons
+                    name="bookmark-outline"
+                    size={24}
+                    color="white"
+                    className="mr-5"
+                  />
+                </TouchableOpacity>
+                <Text className="text-white text-2xl font-poppins-medium ml-2">
+                  {
+                    levelDummy.lessons[currentLessonIndex].contents.video
+                      .videotitle
+                  }
+                </Text>
+              </View>
+            </View>
+          </View>
+        </>
       )}
 
       {currentContentIndex === 1 && (
-        <Text>
-          {levelDummy.lessons[currentLessonIndex].contents.execute.executetitle}
-        </Text>
+        // TODO: Integrate AI here
+        <View className="w-full h-[60vh] items-center">
+          <Text className="text-black text-2xl font-poppins-medium ml-2 mt-6">
+            {
+              levelDummy.lessons[currentLessonIndex].contents.execute
+                .executetitle
+            }
+          </Text>
+
+          <CameraBuffer></CameraBuffer>
+
+          {/* <WebView
+            source={{ uri: "https://gesturbee-app-model.vercel.app/" }}
+          /> */}
+        </View>
       )}
 
       {currentContentIndex === 2 && (
-         <> 
-         <View className="mx-4 my-4">
-         <View className="w-[100%] bg-gray-300 rounded-lg overflow-hidden aspect-video items-center justify-center">
-         <Video
-          ref={videoRef} 
-          source={require('@/assets/videos/a.mp4')}
-          useNativeControls
-          resizeMode={ResizeMode.COVER}
-          shouldPlay={true}
-          isLooping={true}
-          onPlaybackStatusUpdate={status => setStatus(() => status)}
-          onEnd={async () => {
-            if (videoRef.current) {
-              await videoRef.current.setStatusAsync
-              ({
-                shouldPlay: true,
-                positionMillis: 0,
-              });
-            }
-          }}
-          style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
-        />
-         </View>
-       </View>
-   
-       <View className="mb-4">
-        <Text className="text-2xl text-gray-800 font-semibold text-center">
-          {levelDummy.lessons[currentLessonIndex].contents.review.reviewtitle}
-        </Text>
-      </View>
+        <>
+          <View className="mx-4 my-4">
+            <View className="w-[100%] bg-gray-300 rounded-lg overflow-hidden aspect-video items-center justify-center">
+              <Video
+                ref={videoRef}
+                source={require("@/assets/videos/a.mp4")}
+                useNativeControls
+                resizeMode={ResizeMode.COVER}
+                shouldPlay={true}
+                isLooping={true}
+                onPlaybackStatusUpdate={(status) => setStatus(() => status)}
+                onEnd={async () => {
+                  if (videoRef.current) {
+                    await videoRef.current.setStatusAsync({
+                      shouldPlay: true,
+                      positionMillis: 0,
+                    });
+                  }
+                }}
+                style={{ width: "100%", height: "100%", aspectRatio: 16 / 9 }}
+              />
+            </View>
+          </View>
 
-      <View className="space-y-4">
-      {levelDummy.lessons[currentLessonIndex].contents.review.choices.map((option, index) => (
-          <TouchableOpacity
-            key={index}
-            className={`border rounded-full w-[250px] py-2 mb-3 px-6 items-center flex-row justify-between ${
-              selectedAnswer === option
-                ? option === levelDummy.lessons[currentLessonIndex].contents.review.answer
-                  ? "bg-teal-500 border-teal-500"
-                  : "bg-white border-teal-500"
-                : "bg-white border-gray-300"
-            }`}
-            onPress={() => handleSelectAnswer(option)}
-          >
-            <Text
-              className={`text-xl font-medium ${
-                selectedAnswer === option && option === levelDummy.lessons[currentLessonIndex].contents.review.answer
-                  ? "text-white"
-                  : "text-teal-500"
-              }`}
-            >
-              {option}
+          <View className="mb-4">
+            <Text className="text-2xl text-gray-800 font-semibold text-center">
+              {
+                levelDummy.lessons[currentLessonIndex].contents.review
+                  .reviewtitle
+              }
             </Text>
-            
-            {selectedAnswer === option && option === levelDummy.lessons[currentLessonIndex].contents.review.answer && (
-              <View className="bg-yellow-400 h-6 w-6 rounded-full items-center justify-center">
-                <Ionicons name="checkmark" size={18} color="white" />
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-        <SuccessModal isVisible={showSuccessModal} onContinue={handleContinue} />
+          </View>
 
-        
-      </View>
-   
-       
-       </>
+          <View className="space-y-4">
+            {levelDummy.lessons[currentLessonIndex].contents.review.choices.map(
+              (option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  className={`border rounded-full w-[250px] py-2 mb-3 px-6 items-center flex-row justify-between ${
+                    selectedAnswer === option
+                      ? option ===
+                        levelDummy.lessons[currentLessonIndex].contents.review
+                          .answer
+                        ? "bg-teal-500 border-teal-500"
+                        : "bg-white border-teal-500"
+                      : "bg-white border-gray-300"
+                  }`}
+                  onPress={() => handleSelectAnswer(option)}
+                >
+                  <Text
+                    className={`text-xl font-medium ${
+                      selectedAnswer === option &&
+                      option ===
+                        levelDummy.lessons[currentLessonIndex].contents.review
+                          .answer
+                        ? "text-white"
+                        : "text-teal-500"
+                    }`}
+                  >
+                    {option}
+                  </Text>
+
+                  {selectedAnswer === option &&
+                    option ===
+                      levelDummy.lessons[currentLessonIndex].contents.review
+                        .answer && (
+                      <View className="bg-yellow-400 h-6 w-6 rounded-full items-center justify-center">
+                        <Ionicons name="checkmark" size={18} color="white" />
+                      </View>
+                    )}
+                </TouchableOpacity>
+              )
+            )}
+            <SuccessModal
+              isVisible={showSuccessModal}
+              onContinue={handleContinue}
+            />
+          </View>
+        </>
       )}
 
+      <View className="w-full flex-row items-center justify-center mb-8 px-6 space-x-4">
+        <TouchableOpacity
+          className="bg-gray-300 px-6 py-3 rounded-full"
+          onPress={goToPreviousContent}
+          disabled={currentLessonIndex === 0 && currentContentIndex === 0}
+        >
+          <Text
+            className={`font-poppins-medium text-lg ${
+              currentLessonIndex === 0 && currentContentIndex === 0
+                ? "text-gray-500"
+                : "text-gray-700"
+            }`}
+          >
+            Previous
+          </Text>
+        </TouchableOpacity>
 
-      <View className="w-full items-center mb-8">
         <TouchableOpacity
           className="bg-secondary px-6 py-3 rounded-full"
           onPress={goToNextContent}

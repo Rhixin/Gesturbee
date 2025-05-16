@@ -15,9 +15,9 @@ import { useRouter } from "expo-router";
 import "../global.css";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { GlobalProvider } from "@/components/GlobalContext";
+import { GlobalProvider } from "@/context/GlobalContext";
+import { AuthProvider } from "@/context/AuthContext";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -42,12 +42,14 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DefaultTheme : DefaultTheme}>
       <GlobalProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="login" />
-          <Stack.Screen name="register" />
-          <Stack.Screen name="+not-found" />
-        </Stack>
+        <AuthProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="login" />
+            <Stack.Screen name="register" />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </AuthProvider>
       </GlobalProvider>
     </ThemeProvider>
   );
