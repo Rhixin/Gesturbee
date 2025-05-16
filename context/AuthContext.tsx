@@ -7,23 +7,23 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user on app start
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userResponse = await AuthService.getCurrentUser();
-        if (userResponse) {
-          setCurrentUser(userResponse.data);
-        }
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // TODO: getCurreent user api from gesturbee
+  //   useEffect(() => {
+  //     const loadUser = async () => {
+  //       try {
+  //         const userResponse = await AuthService.getCurrentUser();
+  //         if (userResponse) {
+  //           setCurrentUser(userResponse.data);
+  //         }
+  //       } catch (error) {
+  //         console.error("Failed to load user:", error);
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //     };
 
-    loadUser();
-  }, []);
+  //     loadUser();
+  //   }, []);
 
   const login = async (username, password) => {
     const user = await AuthService.login(username, password);
@@ -36,12 +36,20 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
+  const getCurrentUser = async () => {
+    // TODO: use api ni joshua
+    return currentUser;
+  };
+
   return (
     <AuthContext.Provider
       value={{
         currentUser,
+        setCurrentUser,
+        getCurrentUser,
         login,
         logout,
+        //TODO: isAuthenticated not done yet
         isAuthenticated: true,
         loading,
       }}

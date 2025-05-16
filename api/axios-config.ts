@@ -4,7 +4,7 @@ import AuthService from "./axios-auth";
 
 // Create axios instance with custom config
 const api = axios.create({
-  baseURL: "https://api.example.com",
+  baseURL: "https://localhost:7152/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -30,50 +30,22 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for handling token refresh
+// Response interceptor for handling unauthorized errors
 api.interceptors.response.use(
   (response) => {
     return response;
   },
   async (error) => {
-    const originalRequest = error.config;
+    // If error is 401 (Unauthorized), redirect to login
+    if (error.response?.status === 401) {
+      // Log the user out when token is invalid or expired
+      await AuthService.logout();
 
-    // If error is 401 and we haven't tried refreshing the token yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+      // You might want to add navigation to login page here
+      // This depends on your navigation setup
+      // If using expo-router, you might need to import and use the router here
 
-      try {
-        // Attempt to refresh the token
-        const refreshToken = await TokenService.getRefreshToken();
-        if (!refreshToken) {
-          // No refresh token, redirect to login
-          await AuthService.logout();
-          return Promise.reject(error);
-        }
-
-        // TODO: Backend ni Joshua diri para mokuha balik ug token
-        const response = await axios.post(
-          "https://api.example.com/auth/refresh",
-          {
-            refreshToken,
-          }
-        );
-
-        const { token, refreshToken: newRefreshToken } = response.data;
-
-        // Save the new tokens
-        await TokenService.saveToken(token);
-        await TokenService.saveRefreshToken(newRefreshToken);
-
-        // Update the authorization header and retry the original request
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-        return api(originalRequest);
-      } catch (refreshError) {
-        // If refresh fails, logout the user
-        await AuthService.logout();
-        return Promise.reject(refreshError);
-      }
+      // Or set a global auth state that triggers navigation elsewhere
     }
 
     return Promise.reject(error);

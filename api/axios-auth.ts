@@ -1,3 +1,5 @@
+// axios-auth.js
+
 import api from "./axios-config";
 import TokenService from "./axios-token";
 
@@ -9,16 +11,7 @@ const AuthService = {
         password,
       });
 
-      const { token, refreshToken, user } = response.data;
-
-      // Save tokens
-      await TokenService.saveToken(token);
-      await TokenService.saveRefreshToken(refreshToken);
-
-      // Set auth header
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-      return user;
+      console.log(response);
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -27,12 +20,8 @@ const AuthService = {
 
   logout: async () => {
     try {
-      // Optional: Call logout endpoint if your API has one
-      // await api.post('/auth/logout');
-
-      // Remove tokens
+      // Remove token
       await TokenService.removeToken();
-      await TokenService.removeRefreshToken();
 
       // Remove auth header
       delete api.defaults.headers.common["Authorization"];
@@ -42,26 +31,41 @@ const AuthService = {
   },
 
   register: async (userData) => {
-    return api.post("/auth/register", userData);
+    try {
+      // Make the API call to register endpoint
+      const response = await api.post("/auth/register", userData);
+
+      console.log("Succesful registration");
+    } catch (error) {
+      console.error("Registration error:", error);
+      throw error; // Re-throw the error so the component can handle it
+    }
+  },
+
+  // Other auth methods...
+  isAuthenticated: async () => {
+    const token = await TokenService.getToken();
+    return !!token;
   },
 
   getCurrentUser: async () => {
     try {
       const token = await TokenService.getToken();
+
       if (!token) {
         return null;
       }
 
-      return api.get("/auth/user");
+      // Make sure the authorization header is set
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      // TODO: getCurrent User api ni joshua
+      const response = await api.get("/user/profile");
+      return response.data;
     } catch (error) {
       console.error("Get current user error:", error);
       return null;
     }
-  },
-
-  isAuthenticated: async () => {
-    const token = await TokenService.getToken();
-    return !!token;
   },
 };
 

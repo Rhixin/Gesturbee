@@ -16,6 +16,10 @@ import { useGlobal } from "@/context/GlobalContext";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
+import { useAuth } from "@/context/AuthContext";
+import { handleFacebookAuthResponse } from "@/api/facebook";
+import AuthService from "@/api/axios-auth";
+import { useToast } from "@/context/ToastContext";
 
 // Ensure this is called OUTSIDE your component
 WebBrowser.maybeCompleteAuthSession();
@@ -26,6 +30,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const { setCurrentUser } = useAuth();
+  const { showToast } = useToast();
 
   // OAuth client IDs
   const WEB_CLIENT_ID =
@@ -34,9 +40,14 @@ const Login = () => {
     "971818626439-k11g0olpa2nkkjpgvjso66g715ist6b1.apps.googleusercontent.com";
   const ANDROID_CLIENT_ID =
     "971818626439-g1nnp0bek58q5sjd057m0cjf6ne4sjc2.apps.googleusercontent.com";
+
   const FB_APP_ID = "1014031907323169";
   const REDIRECT_URI = AuthSession.makeRedirectUri();
 
+  // GOOGLE OAuth
+  // TODO:
+
+  // FACEBOOK OAuth
   const [facebookRequest, facebookResponse, facebookPromptAsync] =
     AuthSession.useAuthRequest(
       {
@@ -51,54 +62,34 @@ const Login = () => {
     );
 
   useEffect(() => {
-    console.log("Redirect uri is: " + REDIRECT_URI);
-  });
-
-  // TODO: Handle Facebook auth response and then send token to backend
-  useEffect(() => {
-    const handleFacebookResponse = async () => {
-      if (facebookResponse?.type === "success") {
-        // Get the ID token
-        const { id_token } = facebookResponse.params;
-        console.log("Authentication successful!");
-        console.log("ID token received:", id_token);
-
-        // TODO: Send token to backend
-        setIsLoading(false);
-        router.push("/(auth)/home");
-      } else if (facebookResponse?.type === "error") {
-        console.error("Authentication error:", facebookResponse.error);
-      }
-    };
-
-    handleFacebookResponse();
+    handleFacebookAuthResponse(facebookResponse, setCurrentUser);
   }, [facebookResponse]);
 
-  // Handle Event Listener Google sign in
-  const handleFacebookSignIn = async () => {
+  const facebookLogInListener = async () => {
     try {
-      console.log("Starting Facebook Sign-In...");
       setIsLoading(true);
       await facebookPromptAsync();
+      router.replace("/(auth)/home");
+      showToast("Logged in successfully!", "success");
+      setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
-      console.error("Facebook Sign-In Error:", error);
+      showToast("Logged in failed!", "error");
     }
   };
 
   // TODO: Login Logic
-  const handleLogin = () => {
-    // if (!email || !password) {
-    //   console.log("Login Error", "Please enter both email and password");
-    //   return;
-    // }
-
-    setIsLoading(true);
-
-    setTimeout(() => {
+  const normalLoginListener = async () => {
+    try {
+      setIsLoading(true);
+      await AuthService.login(email, password);
+      router.replace("/(auth)/home");
+      showToast("Logged in successfully!", "success");
       setIsLoading(false);
-      router.push("/(auth)/home");
-    }, 1000);
+    } catch (error) {
+      setIsLoading(false);
+      showToast("Logged in failed!", "error");
+    }
   };
 
   if (isLoading) {
@@ -177,7 +168,7 @@ const Login = () => {
 
         {/* Login Button */}
         <TouchableOpacity
-          onPress={handleLogin}
+          onPress={normalLoginListener}
           className="bg-primary px-6 py-4 rounded-lg mx-auto w-full mt-4"
           activeOpacity={0.8}
         >
@@ -216,7 +207,7 @@ const Login = () => {
           <TouchableOpacity
             className="bg-transparent rounded-full"
             activeOpacity={0.8}
-            onPress={handleFacebookSignIn}
+            onPress={facebookLogInListener}
             disabled={!facebookRequest}
           >
             <Ionicons name="logo-facebook" size={36} color="#4267B2" />

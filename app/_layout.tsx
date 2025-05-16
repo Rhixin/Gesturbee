@@ -17,6 +17,7 @@ import "../global.css";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { GlobalProvider } from "@/context/GlobalContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { ToastProvider } from "@/context/ToastContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -43,12 +44,14 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DefaultTheme : DefaultTheme}>
       <GlobalProvider>
         <AuthProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="login" />
-            <Stack.Screen name="register" />
-            <Stack.Screen name="+not-found" />
-          </Stack>
+          <ToastProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="login" />
+              <Stack.Screen name="register" />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </ToastProvider>
         </AuthProvider>
       </GlobalProvider>
     </ThemeProvider>

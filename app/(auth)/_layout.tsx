@@ -1,29 +1,10 @@
 import { Tabs, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { ActivityIndicator, View } from "react-native";
 import Loading from "@/components/Loading";
 
 export default function TabLayout() {
-  const { isAuthenticated, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    // If not loading and not authenticated, redirect to login
-    if (!loading && !isAuthenticated) {
-      router.replace("/login");
-    }
-  }, [isAuthenticated, loading, router]);
-
-  if (loading) {
-    return <Loading></Loading>;
-  }
-
-  if (!isAuthenticated) {
-    router.replace("/login");
-  }
-
   return (
     <Tabs
       screenOptions={{

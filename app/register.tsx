@@ -10,14 +10,13 @@ import {
   ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
-
 import { Ionicons } from "@expo/vector-icons";
 import StepIndicator from "../components/StepIndicator";
 import CustomDropdown from "../components/GenderDropDown";
-
 import { useGlobal } from "@/context/GlobalContext";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import AuthService from "@/api/axios-auth";
 
 const Register = () => {
   const inputBaseClass = "flex-1 text-base bg-gray-100 min-h-[40px]";
@@ -39,6 +38,7 @@ const Register = () => {
     lastName: "",
     gender: "",
     birthday: "",
+    contactNumber: "",
     selectedRole: null,
   });
 
@@ -68,6 +68,7 @@ const Register = () => {
     useState(false);
   const [firstnameisFocused, firstnamesetIsFocused] = useState(false);
   const [lastnameisFocused, lastnamesetIsFocused] = useState(false);
+  const [contactNumberIsFocused, setContactNumberIsFocused] = useState(false);
   const [birthdayisFocused, birthdaysetIsFocused] = useState(false);
   const [genderisFocused, gendersetIsFocused] = useState(false);
 
@@ -96,8 +97,7 @@ const Register = () => {
   };
 
   const handleNext = () => {
-    if (currentStep === 1) {
-      // Validate step 1 fields
+    if (currentStep === 3) {
       const emailValidation = validateEmail(userForm.email);
       const passwordValidation = validatePassword(userForm.password);
       const confirmPasswordValidation = validateConfirmPassword(
@@ -116,7 +116,29 @@ const Register = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else if (currentStep == totalSteps) {
-      alert(JSON.stringify(userForm));
+      registerAccount();
+    }
+  };
+
+  const registerAccount = async () => {
+    const body = {
+      email: userForm.email,
+      password: userForm.password,
+      firstName: userForm.firstName,
+      lastName: userForm.lastName,
+      contactNumber: userForm.contactNumber,
+      gender: userForm.gender,
+      birthDate: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
+    };
+
+    console.log("Registering user:", JSON.stringify(body));
+
+    try {
+      await AuthService.register(body);
+      router.replace("/");
+    } catch (error) {
+      console.error("Registration failed:", error);
     }
   };
 
@@ -151,7 +173,7 @@ const Register = () => {
             />
 
             <Text className="text-2xl font-bold text-primary ">Sign Up</Text>
-            {currentStep === 1 && (
+            {currentStep === 3 && (
               <View className="mt-6">
                 <Text className="text-lg font-semibold text-titlegray mb-4">
                   Enter your account details
@@ -312,13 +334,9 @@ const Register = () => {
                   onPress={handleNext}
                   activeOpacity={0.8}
                 >
-                  <Text className="text-white text-lg font-semibold">Next</Text>
-                  <Ionicons
-                    name="arrow-forward"
-                    size={18}
-                    color="white"
-                    className="ml-2"
-                  />
+                  <Text className="text-white text-lg font-semibold">
+                    Register
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -407,10 +425,10 @@ const Register = () => {
               </View>
             )}
 
-            {currentStep === 3 && (
+            {currentStep === 1 && (
               <View className="mt-6">
                 <Text className="text-lg font-semibold text-titlegray mb-4">
-                  Enter your account details
+                  Enter your profile information
                 </Text>
 
                 <View className="mb-5">
@@ -461,6 +479,34 @@ const Register = () => {
                     placeholderTextColor="#888"
                     onFocus={() => lastnamesetIsFocused(true)}
                     onBlur={() => lastnamesetIsFocused(false)}
+                  />
+                </View>
+
+                <View className="mb-5">
+                  <Text className="text-sm font-medium text-subtitlegray mb-2">
+                    Contact Number
+                  </Text>
+                  <TextInput
+                    className={`border p-4 rounded-lg text-base bg-gray-100 ${
+                      contactNumberIsFocused
+                        ? "border-blue-700"
+                        : "border-gray-300"
+                    }`}
+                    value={userForm.contactNumber}
+                    onChangeText={(text) => {
+                      setUserForm((prev) => ({
+                        ...prev,
+                        contactNumber: text,
+                      }));
+                    }}
+                    style={{
+                      outlineStyle: "none",
+                    }}
+                    placeholder="Enter your contact number"
+                    placeholderTextColor="#888"
+                    keyboardType="phone-pad"
+                    onFocus={() => setContactNumberIsFocused(true)}
+                    onBlur={() => setContactNumberIsFocused(false)}
                   />
                 </View>
 
@@ -528,9 +574,13 @@ const Register = () => {
                   onPress={handleNext}
                   activeOpacity={0.8}
                 >
-                  <Text className="text-white text-lg font-semibold">
-                    Register
-                  </Text>
+                  <Text className="text-white text-lg font-semibold">Next</Text>
+                  <Ionicons
+                    name="arrow-forward"
+                    size={18}
+                    color="white"
+                    className="ml-2"
+                  />
                 </TouchableOpacity>
               </View>
             )}
