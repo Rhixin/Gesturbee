@@ -4,16 +4,31 @@ import api from "./axios-config";
 import TokenService from "./axios-token";
 
 const AuthService = {
-  login: async (username, password) => {
+  login: async (username, password, showToast, navigate) => {
     try {
       const response = await api.post("/auth/login", {
-        username,
-        password,
+        email: username,
+        password: password,
       });
 
       console.log(response);
+
+      showToast("Logged in successfully!", "success");
+      navigate("/(auth)/home");
     } catch (error) {
-      console.error("Login error:", error);
+      const message = error.response.data.responseType;
+      showToast(message, "error");
+    }
+  },
+
+  register: async (userData, showToast, navigate) => {
+    try {
+      const response = await api.post("/auth/register", userData);
+
+      showToast("Registered an account successfully!", "success");
+      navigate("/");
+    } catch (error) {
+      showToast(error, "error");
       throw error;
     }
   },
@@ -27,18 +42,6 @@ const AuthService = {
       delete api.defaults.headers.common["Authorization"];
     } catch (error) {
       console.error("Logout error:", error);
-    }
-  },
-
-  register: async (userData) => {
-    try {
-      // Make the API call to register endpoint
-      const response = await api.post("/auth/register", userData);
-
-      console.log("Succesful registration");
-    } catch (error) {
-      console.error("Registration error:", error);
-      throw error; // Re-throw the error so the component can handle it
     }
   },
 

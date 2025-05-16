@@ -3,8 +3,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import Loading from "@/components/Loading";
+import { useAuth } from "@/context/AuthContext";
 
 export default function TabLayout() {
+  const { currentUser } = useAuth();
+  useEffect(() => {
+    console.log(currentUser);
+  });
+
   return (
     <Tabs
       screenOptions={{

@@ -17,16 +17,18 @@ import { useGlobal } from "@/context/GlobalContext";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AuthService from "@/api/axios-auth";
+import { useToast } from "@/context/ToastContext";
 
 const Register = () => {
+  const { showToast } = useToast();
   const inputBaseClass = "flex-1 text-base bg-gray-100 min-h-[40px]";
   const passwordInputRef = useRef<TextInput>(null);
   const confirmPasswordInputRef = useRef<TextInput>(null);
 
   const router = useRouter();
 
-  const navigateToLogin = () => {
-    router.push("/login");
+  const navigate = (path) => {
+    router.push(path);
   };
 
   //User Form
@@ -116,11 +118,12 @@ const Register = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else if (currentStep == totalSteps) {
-      registerAccount();
+      normalRegisterListener();
     }
   };
 
-  const registerAccount = async () => {
+  // TODO: birthdate
+  const normalRegisterListener = async () => {
     const body = {
       email: userForm.email,
       password: userForm.password,
@@ -132,11 +135,8 @@ const Register = () => {
       lastLogin: new Date().toISOString(),
     };
 
-    console.log("Registering user:", JSON.stringify(body));
-
     try {
-      await AuthService.register(body);
-      router.replace("/");
+      await AuthService.register(body, showToast, navigate);
     } catch (error) {
       console.error("Registration failed:", error);
     }
@@ -591,7 +591,11 @@ const Register = () => {
                 style={{ textAlign: "center" }}
               >
                 Already have an account?{" "}
-                <TouchableOpacity onPress={navigateToLogin}>
+                <TouchableOpacity
+                  onPress={() => {
+                    navigate("/(auth)/home");
+                  }}
+                >
                   <Text
                     className="text-primary font-semibold text-sm"
                     style={{ textAlign: "center" }}

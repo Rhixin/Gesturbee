@@ -18,8 +18,11 @@ import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
 import { useAuth } from "@/context/AuthContext";
 import { handleFacebookAuthResponse } from "@/api/facebook";
+import { handleGoogleAuthResponse } from "@/api/google";
 import AuthService from "@/api/axios-auth";
 import { useToast } from "@/context/ToastContext";
+import api from "@/api/axios-config";
+import TokenService from "@/api/axios-token";
 
 // Ensure this is called OUTSIDE your component
 WebBrowser.maybeCompleteAuthSession();
@@ -32,10 +35,13 @@ const Login = () => {
   const router = useRouter();
   const { setCurrentUser } = useAuth();
   const { showToast } = useToast();
+  const navigate = (path) => {
+    router.push(path);
+  };
 
   // OAuth client IDs
   const WEB_CLIENT_ID =
-    "971818626439-g1nnp0bek58q5sjd057m0cjf6ne4sjc2.apps.googleusercontent.com";
+    "971818626439-jhdf8m930fkhjsah7u94bo68rr981apl.apps.googleusercontent.com";
   const IOS_CLIENT_ID =
     "971818626439-k11g0olpa2nkkjpgvjso66g715ist6b1.apps.googleusercontent.com";
   const ANDROID_CLIENT_ID =
@@ -44,10 +50,74 @@ const Login = () => {
   const FB_APP_ID = "1014031907323169";
   const REDIRECT_URI = AuthSession.makeRedirectUri();
 
-  // GOOGLE OAuth
-  // TODO:
+  // GOOGLE OAuth  ---------------------------------------------------
+  const [googleRequest, googleResponse, googlePromptAsync] =
+    Google.useAuthRequest({
+      clientId: WEB_CLIENT_ID,
+      iosClientId: IOS_CLIENT_ID,
+      androidClientId: ANDROID_CLIENT_ID,
+      webClientId: WEB_CLIENT_ID,
+      scopes: ["profile", "email"],
+      responseType: "id_token",
+    });
 
-  // FACEBOOK OAuth
+  // Handle Google auth response
+  useEffect(() => {
+    const handleGoogleAuthResponse = async () => {
+      if (googleResponse?.type === "success") {
+        try {
+          // 1. Get Google ID token
+          const googleToken = googleResponse.params.id_token;
+
+          // 2. Send Google token to backend
+          const response = await api.post("/auth/external-login/google", {
+            idToken: googleToken,
+          });
+
+          // 3. Backend responds with your app's tokens
+          const token = response.data.token;
+          const user = response.data.response.data;
+
+          // 4. Save the token to TokenService
+          await TokenService.saveToken(token);
+
+          // 5. Set Authorization header for future requests
+          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+          // 6. Update the user in AuthContext
+          setCurrentUser(user);
+
+          // // 7. Navigate to authenticated area
+          setIsLoading(false);
+          router.replace("/(auth)/home");
+          showToast("Logged in successfully!", "success");
+        } catch (error) {
+          console.error("Error during Google authentication:", error);
+          setIsLoading(false);
+          showToast("Google login failed. Please try again.", "error");
+        }
+      } else if (googleResponse?.type === "error") {
+        console.error("Authentication error:", googleResponse.error);
+        setIsLoading(false);
+        showToast("Authentication cancelled or failed.", "error");
+      }
+    };
+
+    handleGoogleAuthResponse();
+  }, [googleResponse]);
+
+  const googleLogInListener = async () => {
+    try {
+      setIsLoading(true);
+      await googlePromptAsync();
+      // Do not set loading to false here as it will be handled in the response handler
+    } catch (error) {
+      setIsLoading(false);
+      showToast("Google login failed!", "error");
+    }
+  };
+
+  // FACEBOOK OAuth ---------------------------------------------------
   const [facebookRequest, facebookResponse, facebookPromptAsync] =
     AuthSession.useAuthRequest(
       {
@@ -62,34 +132,65 @@ const Login = () => {
     );
 
   useEffect(() => {
-    handleFacebookAuthResponse(facebookResponse, setCurrentUser);
+    const handleFacebookResponse = async () => {
+      if (facebookResponse?.type === "success") {
+        try {
+          // 1. Get Facebook access token
+          const facebookAccessToken = facebookResponse.params.access_token;
+
+          // 2. Send Facebook token to joshua's api
+          const response = await api.post("/auth/external-login/facebook", {
+            accessToken: facebookAccessToken,
+          });
+
+          console.log(response);
+          // 3. Backend responds with your app's tokens
+          const token = response.data.token;
+          const user = response.data.response.data;
+
+          // 4. Save the token to TokenService
+          await TokenService.saveToken(token);
+
+          // 5. Set Authorization header for future requests
+          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+          // 6. Update the user in AuthContext
+          setCurrentUser(user);
+
+          // 7. Navigate to authenticated area
+          setIsLoading(false);
+          router.replace("/(auth)/home");
+          showToast("Logged in successfully!", "success");
+        } catch (error) {
+          console.error("Error during Facebook authentication:", error);
+          setIsLoading(false);
+          showToast("Facebook login failed!", "error");
+        }
+      } else if (facebookResponse?.type === "error") {
+        console.error("Authentication error:", facebookResponse.error);
+        setIsLoading(false);
+      }
+    };
+
+    handleFacebookResponse();
   }, [facebookResponse]);
 
   const facebookLogInListener = async () => {
     try {
       setIsLoading(true);
       await facebookPromptAsync();
-      router.replace("/(auth)/home");
-      showToast("Logged in successfully!", "success");
-      setIsLoading(false);
+      // Do not set loading to false here as it will be handled in the response handler
     } catch (error) {
       setIsLoading(false);
-      showToast("Logged in failed!", "error");
+      showToast("Facebook login failed!", "error");
     }
   };
 
-  // TODO: Login Logic
-  const normalLoginListener = async () => {
-    try {
-      setIsLoading(true);
-      await AuthService.login(email, password);
-      router.replace("/(auth)/home");
-      showToast("Logged in successfully!", "success");
-      setIsLoading(false);
-    } catch (error) {
-      setIsLoading(false);
-      showToast("Logged in failed!", "error");
-    }
+  // TODO: Normal Login Logic -------------------------------------------
+  const normalLogInListener = async () => {
+    setIsLoading(true);
+    await AuthService.login(email, password, showToast, navigate);
+    setIsLoading(false);
   };
 
   if (isLoading) {
@@ -168,7 +269,7 @@ const Login = () => {
 
         {/* Login Button */}
         <TouchableOpacity
-          onPress={normalLoginListener}
+          onPress={normalLogInListener}
           className="bg-primary px-6 py-4 rounded-lg mx-auto w-full mt-4"
           activeOpacity={0.8}
         >
@@ -199,6 +300,8 @@ const Login = () => {
           <TouchableOpacity
             className="bg-transparent rounded-full"
             activeOpacity={0.8}
+            onPress={googleLogInListener}
+            disabled={!googleRequest}
           >
             <Ionicons name="logo-google" size={36} color="#DB4437" />
           </TouchableOpacity>
