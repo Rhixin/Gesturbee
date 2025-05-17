@@ -45,9 +45,9 @@ export const LevelProvider: React.FC<{
 
   // TODO: initial query to get initial value sa level ni user
   useEffect(() => {
-    setUserSavedStage(2);
+    setUserSavedStage(1);
     setUserSavedLevel(1);
-    setUserSavedLesson(1);
+    setUserSavedLesson(2);
     setUserSavedTotalLesson(10);
   }, []);
 

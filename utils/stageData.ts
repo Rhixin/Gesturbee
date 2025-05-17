@@ -1,3 +1,5 @@
+import Stage1Level1 from "@/components/lessons/stage1/Stage1Level1";
+
 export interface Level {
   levelid: number;
   levelname: string;
