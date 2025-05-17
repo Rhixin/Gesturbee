@@ -9,25 +9,18 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import { getStageById } from "@/utils/stageData";
+import { useLevel } from "@/context/LevelContext";
 
 export default function Stage() {
   const { stageId } = useLocalSearchParams();
-
-  const stageDummy = {
-    stageId: 1,
-    name: "Alphabets",
-    levels: [
-      { levelid: 1, levelname: "A-C", percent: 40 },
-      { levelid: 2, levelname: "D-F", percent: 0 },
-      { levelid: 3, levelname: "G-I", percent: 0 },
-      { levelid: 4, levelname: "J-L", percent: 0 },
-      { levelid: 5, levelname: "M-O", percent: 0 },
-      { levelid: 6, levelname: "P-R", percent: 0 },
-      { levelid: 7, levelname: "S-U", percent: 0 },
-      { levelid: 8, levelname: "V-X", percent: 0 },
-      { levelid: 9, levelname: "Y-Z", percent: 0 },
-    ],
-  };
+  const {
+    userSavedStage,
+    userSavedLevel,
+    userSavedLesson,
+    userSavedTotalLesson,
+  } = useLevel();
+  const selectedStage = getStageById(Number(stageId));
 
   const router = useRouter();
 
@@ -53,7 +46,7 @@ export default function Stage() {
 
         <View className="rounded-2xl w-[100%]  p-4 items-center">
           <Text className="font-poppins-bold text-white text-3xl">
-            Stage {stageId + ":   " + stageDummy.name}
+            Stage {selectedStage.id + ":   " + selectedStage.title}
           </Text>
         </View>
       </SafeAreaView>
@@ -62,7 +55,7 @@ export default function Stage() {
         className="w-[90%] max-h-full pt-8 mb-28"
         showsVerticalScrollIndicator={false}
       >
-        {stageDummy.levels.map((item, index) => (
+        {selectedStage.levels.map((item, index) => (
           <TouchableOpacity
             key={index}
             className="bg-gray-200 rounded-2xl my-2 p-6 h-auto flex flex-row gap-4 "
@@ -75,7 +68,9 @@ export default function Stage() {
             >
               <Image
                 source={
-                  item.percent === 0
+                  selectedStage.id > userSavedStage ||
+                  (selectedStage.id === userSavedStage &&
+                    item.levelid > userSavedLevel)
                     ? require("@/assets/images/beehive locked.png")
                     : require("@/assets/images/beehive unlocked.png")
                 }
@@ -91,9 +86,25 @@ export default function Stage() {
               </Text>
               <View className="h-auto">
                 <ProgressBar
-                  percent={item.percent}
+                  percent={
+                    selectedStage.id < userSavedStage
+                      ? 100
+                      : selectedStage.id === userSavedStage
+                      ? item.levelid < userSavedLevel
+                        ? 100
+                        : item.levelid === userSavedLevel
+                        ? userSavedLesson === 0
+                          ? 0
+                          : (userSavedLesson / userSavedTotalLesson) * 100
+                        : 0
+                      : 0
+                  }
                   backgroundColor={
-                    item.percent === 0 ? "bg-tertiary" : "bg-white"
+                    selectedStage.id > userSavedStage ||
+                    (selectedStage.id === userSavedStage &&
+                      item.levelid > userSavedLevel)
+                      ? "bg-tertiary"
+                      : "bg-white"
                   }
                   fillColor="bg-secondary"
                 ></ProgressBar>

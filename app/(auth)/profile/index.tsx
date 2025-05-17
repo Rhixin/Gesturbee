@@ -6,6 +6,9 @@ import ChangePassword from "@/components/ChangePassword";
 import EditPersonalInformation from "@/components/EditPersonalInformation";
 import Settings from "@/components/Settings";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
+import { useRouter } from "expo-router";
+import AuthService from "@/api/axios-auth";
 
 export default function Profile() {
   const { currentUser } = useAuth();
@@ -13,6 +16,11 @@ export default function Profile() {
   const [chosenProfileTab, setChosenProfileTab] = useState(null);
   const trophyCount = 5;
   const fireCount = 9;
+  const router = useRouter();
+  const { showToast } = useToast();
+  const navigate = (path) => {
+    router.push(path);
+  };
 
   function handleModal(component) {
     setChosenProfileTab(component);
@@ -23,6 +31,11 @@ export default function Profile() {
     alert("Edit Profile Picture pressed!");
     // upload functionality here.
   }
+
+  // TODO: Normal Login Logic -------------------------------------------
+  const normalLogOutListener = async () => {
+    await AuthService.logout(showToast, navigate);
+  };
 
   return (
     <>
@@ -142,7 +155,7 @@ export default function Profile() {
         <View className="w-[90%] mt-10 self-center">
           <Pressable
             className="bg-red-500 rounded-xl py-4 px-4 shadow"
-            onPress={() => {}}
+            onPress={normalLogOutListener}
           >
             <View className="flex-row items-center justify-center">
               <Ionicons name="log-out-outline" size={20} color="white" />

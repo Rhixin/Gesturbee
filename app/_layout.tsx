@@ -8,16 +8,13 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-
 import "../global.css";
-
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { GlobalProvider } from "@/context/GlobalContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
+import { ASLRecognitionProvider } from "@/context/ASLRecognitionContext";
+import { LevelProvider } from "@/context/LevelContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -45,12 +42,14 @@ export default function RootLayout() {
       <GlobalProvider>
         <AuthProvider>
           <ToastProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="login" />
-              <Stack.Screen name="register" />
-              <Stack.Screen name="+not-found" />
-            </Stack>
+            <LevelProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="login" />
+                <Stack.Screen name="register" />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </LevelProvider>
           </ToastProvider>
         </AuthProvider>
       </GlobalProvider>

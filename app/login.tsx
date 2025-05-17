@@ -6,8 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
-  Platform,
 } from "react-native";
 import { useRouter, Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,8 +15,6 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
 import { useAuth } from "@/context/AuthContext";
-import { handleFacebookAuthResponse } from "@/api/facebook";
-import { handleGoogleAuthResponse } from "@/api/google";
 import AuthService from "@/api/axios-auth";
 import { useToast } from "@/context/ToastContext";
 import api from "@/api/axios-config";
@@ -88,7 +84,6 @@ const Login = () => {
           setCurrentUser(user);
 
           // // 7. Navigate to authenticated area
-          setIsLoading(false);
           router.replace("/(auth)/home");
           showToast("Logged in successfully!", "success");
         } catch (error) {
@@ -110,7 +105,7 @@ const Login = () => {
     try {
       setIsLoading(true);
       await googlePromptAsync();
-      // Do not set loading to false here as it will be handled in the response handler
+      setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
       showToast("Google login failed!", "error");
@@ -158,7 +153,6 @@ const Login = () => {
           setCurrentUser(user);
 
           // 7. Navigate to authenticated area
-          setIsLoading(false);
           router.replace("/(auth)/home");
           showToast("Logged in successfully!", "success");
         } catch (error) {
@@ -179,7 +173,7 @@ const Login = () => {
     try {
       setIsLoading(true);
       await facebookPromptAsync();
-      // Do not set loading to false here as it will be handled in the response handler
+      setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
       showToast("Facebook login failed!", "error");
@@ -193,9 +187,9 @@ const Login = () => {
     setIsLoading(false);
   };
 
-  if (isLoading) {
-    return <Loading />;
-  }
+  // if (isLoading) {
+  //   return <Loading />;
+  // }
 
   return (
     <View className="bg-primary h-[100vh] flex ">
@@ -270,12 +264,24 @@ const Login = () => {
         {/* Login Button */}
         <TouchableOpacity
           onPress={normalLogInListener}
-          className="bg-primary px-6 py-4 rounded-lg mx-auto w-full mt-4"
+          className={`px-6 py-4 rounded-lg mx-auto w-full mt-4 ${
+            isLoading ? "bg-gray-600" : "bg-primary"
+          }`}
           activeOpacity={0.8}
+          disabled={isLoading}
         >
-          <Text className="text-white font-poppins-bold text-center">
-            Log in
-          </Text>
+          {isLoading ? (
+            <View className="flex-row justify-center items-center space-x-2">
+              <ActivityIndicator size="small" color="#fff" />
+              <Text className="text-white font-poppins-bold">
+                Logging in...
+              </Text>
+            </View>
+          ) : (
+            <Text className="text-white font-poppins-bold text-center">
+              Log in
+            </Text>
+          )}
         </TouchableOpacity>
 
         {/* Sign Up */}

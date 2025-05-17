@@ -4,28 +4,26 @@ import SuccessModal from "@/components/SuccessModal";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, SafeAreaView, TouchableOpacity } from "react-native";
 import { Video, ResizeMode } from "expo-av";
-import { WebView } from "react-native-webview";
-import { getGesturbeeCamera } from "@/utils/getGesturbeeCamera";
 import { StatusBar } from "expo-status-bar";
-
-import { Feather } from "@expo/vector-icons";
-import CameraBuffer from "@/components/CameraBuffer";
+import { getLevelByStageIdByLevelId } from "@/utils/stageData";
 
 export default function Level() {
-  const { levelId } = useLocalSearchParams();
+  const { stageId, levelId } = useLocalSearchParams();
+  const currentLevel = getLevelByStageIdByLevelId(
+    Number(stageId),
+    Number(levelId)
+  );
+
+  console.log(currentLevel);
+
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [status, setStatus] = React.useState({});
   const [webViewError, setWebViewError] = useState(null);
   const [isWebViewReady, setIsWebViewReady] = useState(false);
+  const [prediction, setPrediction] = useState(null);
 
   const videoRef = useRef(null);
   const webViewRef = useRef(null);
@@ -166,6 +164,22 @@ export default function Level() {
     setIsWebViewReady(false);
   };
 
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      if (event.data?.type === "prediction") {
+        console.log("📩 Received prediction from iframe:", event.data.data);
+
+        setPrediction(event.data.data.prediction);
+      }
+    }
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
+
   return (
     <View className="bg-white h-[100vh] items-center">
       <StatusBar style="light" />
@@ -263,11 +277,32 @@ export default function Level() {
             }
           </Text>
 
-          <CameraBuffer></CameraBuffer>
+          {/* <CameraBuffer></CameraBuffer> */}
 
-          {/* <WebView
-            source={{ uri: "https://gesturbee-app-model.vercel.app/" }}
-          /> */}
+          {/* <View className="flex-1 w-full bg-black">
+            <WebView
+              source={{ uri: "https://gesturbee-app-model.vercel.app/" }}
+              onMessage={(event) => {
+                const data = JSON.parse(event.nativeEvent.data);
+                console.log("📩 Received from WebView:", data);
+              }}
+              javaScriptEnabled={true}
+              className="flex-1 bg-transparent"
+            />
+          </View> */}
+
+          <View className="flex-1 w-full">
+            <iframe
+              src="https://gesturbee-app-model.vercel.app/"
+              style={{ width: "100vw", height: "100vh", border: "none" }}
+              title="Web App"
+              allow="camera; microphone"
+            />
+          </View>
+
+          <Text className="text-black text-2xl font-poppins-medium ml-2 mt-6">
+            {prediction}
+          </Text>
         </View>
       )}
 

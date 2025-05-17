@@ -10,19 +10,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TouchableOpacity } from "react-native";
+import { stageData } from "@/utils/stageData";
+import { useLevel } from "@/context/LevelContext";
 
 export default function Home() {
   const scrollViewRef = useRef<RNScrollView>(null);
-
-  const dummyData = [
-    { id: 5, level: 5, title: "Interpreting a Song", type: 1 },
-    { id: 4, level: 4, title: "Simple Phrases", type: 1 },
-    { id: 3, level: 3, title: "Common Words", type: 1 },
-    { id: 2, level: 2, title: "Numbers", type: 0 },
-    { id: 1, level: 1, title: "Alphabets", type: 0 },
-  ];
-
   const router = useRouter();
+
+  // TODO: API ni joshua change pani
+  const { userSavedStage } = useLevel();
 
   const navigateToStage = (id: number) => {
     router.push(`/home/stage/${id}`);
@@ -36,7 +32,7 @@ export default function Home() {
       }}
     >
       <SafeAreaView className="pt-10">
-        {dummyData.map((item, index) => (
+        {stageData.map((item, index) => (
           <TouchableOpacity
             key={index}
             onPress={() => navigateToStage(item.id)}
@@ -44,13 +40,13 @@ export default function Home() {
           >
             <View
               className={`w-full flex ${
-                item.level % 2 === 0 ? "items-start" : "items-end"
+                item.stage % 2 === 0 ? "items-start" : "items-end"
               }`}
             >
               <View className="flex items-center justify-center min-w-[250px]">
                 <View className="bg-primary px-4 py-2 rounded-lg">
                   <Text className="font-poppins-bold text-white text-lg">
-                    {item.level}
+                    {item.stage}
                   </Text>
                 </View>
 
@@ -61,7 +57,7 @@ export default function Home() {
                 </View>
 
                 <View>
-                  {item.type ? (
+                  {item.stage > userSavedStage ? (
                     <Image
                       source={require("@/assets/images/beehive locked.png")}
                       className="max-w-[180px] max-h-[180px]"

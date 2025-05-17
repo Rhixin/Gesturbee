@@ -33,19 +33,21 @@ const AuthService = {
     }
   },
 
-  logout: async () => {
+  logout: async (showToast, navigate) => {
     try {
       // Remove token
       await TokenService.removeToken();
 
       // Remove auth header
       delete api.defaults.headers.common["Authorization"];
+
+      showToast("Logged out successfully!", "success");
+      navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
   },
 
-  // Other auth methods...
   isAuthenticated: async () => {
     const token = await TokenService.getToken();
     return !!token;
