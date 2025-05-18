@@ -33,7 +33,6 @@ export default function Level() {
   const [currentLessonTitle, setCurrentLessonTitle] = useState("");
   const [totalLessons, setTotalLessons] = useState(0);
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
-  const [percent, setPercent] = useState(0);
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
@@ -97,7 +96,7 @@ export default function Level() {
         <View className="w-full flex items-center mb-4">
           <View className="items-center flex justify-center w-[70%]">
             <ProgressBar
-              percent={percent}
+              percent={(currentLessonIndex / totalLessons) * 100}
               backgroundColor="bg-white"
               fillColor="bg-darkhoney"
             />
@@ -132,8 +131,7 @@ export default function Level() {
           </TouchableOpacity>
         )}
 
-        {highestLessonIndex === totalLessons ||
-        currentLessonIndex === totalLessons ? (
+        {currentLessonIndex === totalLessons ? (
           <TouchableOpacity
             className="bg-secondary px-6 py-3 rounded-full"
             onPress={levelComplete}
