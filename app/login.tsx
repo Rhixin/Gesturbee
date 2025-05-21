@@ -26,6 +26,7 @@ const Login = () => {
       router.push("/(auth)/home");
     }, 1000);
   };
+  
 
   if (isLoading) {
     return <Loading></Loading>;

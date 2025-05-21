@@ -1,4 +1,5 @@
 import Beehive from "@/components/Beehive";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +18,12 @@ export default function Quizzes() {
     { id: 4, title: "Quiz 4: R-Z", class: "ASL04", progress: 60 },
   ];
 
+  const router = useRouter();
+  
+  const navigateToQuiz = (id: number) => {
+    router.push(`/quizzes/${id}`);
+  };
+
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
@@ -33,6 +40,7 @@ export default function Quizzes() {
             key={item.id}
             className="bg-white rounded-lg p-4 mx-4 mt-4 flex-row shadow-sm border border-gray-200"
             activeOpacity={0.9}
+            
           >
             <View className="items-center justify-center">
               <Beehive percentage={progress} isGeneral={false}></Beehive>
@@ -54,7 +62,7 @@ export default function Quizzes() {
                 </Text>
               </View>
 
-              <TouchableOpacity className="bg-yellow-400 py-2 px-6 rounded-full self-start mb-2 w-full">
+              <TouchableOpacity className="bg-yellow-400 py-2 px-6 rounded-full self-start mb-2 w-full" onPress={() => navigateToQuiz(item.id)}>
                 <Text className="font-poppins-medium text-white text-center text-sm">
                   Continue Progress
                 </Text>

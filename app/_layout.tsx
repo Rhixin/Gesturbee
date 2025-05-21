@@ -7,21 +7,21 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
-
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-
-import "../global.css";
+import { useEffect, useState } from "react";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { GlobalProvider } from "@/components/GlobalContext";
+import AnimatedSplashScreen from "@/components/SplashScreen"; // <-- your custom animated splash
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+import "../global.css";
+
+// Prevent Expo splash from auto-hiding until we say so
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [showSplash, setShowSplash] = useState(true);
+
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     Poppins: require("../assets/fonts/Poppins-Regular.ttf"),
@@ -37,6 +37,10 @@ export default function RootLayout() {
 
   if (!loaded) {
     return null;
+  }
+
+  if (showSplash) {
+    return <AnimatedSplashScreen onFinish={() => setShowSplash(false)} />;
   }
 
   return (
