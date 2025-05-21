@@ -19,6 +19,7 @@ import AuthService from "@/api/axios-auth";
 import { useToast } from "@/context/ToastContext";
 import api from "@/api/axios-config";
 import TokenService from "@/api/axios-token";
+import { makeRedirectUri } from "expo-auth-session";
 
 // Ensure this is called OUTSIDE your component
 WebBrowser.maybeCompleteAuthSession();
@@ -44,7 +45,9 @@ const Login = () => {
     "971818626439-g1nnp0bek58q5sjd057m0cjf6ne4sjc2.apps.googleusercontent.com";
 
   const FB_APP_ID = "1014031907323169";
-  const REDIRECT_URI = AuthSession.makeRedirectUri();
+  const REDIRECT_URI = makeRedirectUri();
+  const FACEBOOK_REDIRECT_URI = "https://zmsgfpa-zian17-8081.exp.direct";
+  const GOOGLE_REDIRECT_URI = "https://zmsgfpa-zian17-8081.exp.direct";
 
   // GOOGLE OAuth  ---------------------------------------------------
   const [googleRequest, googleResponse, googlePromptAsync] =
@@ -55,6 +58,7 @@ const Login = () => {
       webClientId: WEB_CLIENT_ID,
       scopes: ["profile", "email"],
       responseType: "id_token",
+      redirectUri: GOOGLE_REDIRECT_URI,
     });
 
   // Handle Google auth response
