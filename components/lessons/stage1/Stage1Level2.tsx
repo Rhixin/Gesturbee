@@ -4,6 +4,7 @@ import { View } from "react-native";
 import VideoLesson from "../VideoLesson";
 import ExecuteLesson from "../ExecuteLesson";
 import MultipleChoiceLesson from "../MultipleChoiceLesson";
+import { useLocalSearchParams } from "expo-router";
 
 export default function Stage1Level2({
   videoRef,
@@ -39,18 +40,20 @@ export default function Stage1Level2({
     "2Can you perform I?",
     "2Can you perform J?",
   ];
-
+  const { stageId, levelId } = useLocalSearchParams();
   const { userSavedStage, userSavedLevel, userSavedLesson } = useLevel();
 
   // Initializing values based on current data
   useEffect(() => {
-    if (userSavedStage == 1 && userSavedLevel == 2) {
+    if (Number(stageId) == 1 && Number(levelId) == 2) {
       setCurrentLessonIndex(userSavedLesson);
       setTotalLessons(MAX_LESSONS);
       setCurrentLessonTitle(LESSON_TITLES[currentLessonIndex - 1]);
     } else {
       setCurrentLessonIndex(1);
     }
+
+    console.log(userSavedStage + " " + userSavedLevel + " " + userSavedLesson);
   }, []);
 
   // Updating titles when navigating

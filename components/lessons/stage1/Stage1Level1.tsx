@@ -4,6 +4,8 @@ import { View } from "react-native";
 import VideoLesson from "../VideoLesson";
 import ExecuteLesson from "../ExecuteLesson";
 import MultipleChoiceLesson from "../MultipleChoiceLesson";
+import { useLocalSearchParams } from "expo-router";
+import SpellingLesson from "../SpellingLesson";
 
 export default function Stage1Level1({
   videoRef,
@@ -39,12 +41,12 @@ export default function Stage1Level1({
     "Can you perform I?",
     "Can you perform J?",
   ];
-
+  const { stageId, levelId } = useLocalSearchParams();
   const { userSavedStage, userSavedLevel, userSavedLesson } = useLevel();
 
   // Initializing values based on current data
   useEffect(() => {
-    if (userSavedStage == 1 && userSavedLevel == 1) {
+    if (Number(stageId) == 1 && Number(levelId) == 1) {
       setCurrentLessonIndex(userSavedLesson);
       setTotalLessons(MAX_LESSONS);
       setCurrentLessonTitle(LESSON_TITLES[currentLessonIndex - 1]);
@@ -62,7 +64,7 @@ export default function Stage1Level1({
     <>
       {currentLessonIndex === 1 && (
         <VideoLesson
-          title={"A"}
+          title={"This is 'A'"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
@@ -91,13 +93,12 @@ export default function Stage1Level1({
       )}
 
       {currentLessonIndex === 4 && (
-        <VideoLesson
-          title={"A"}
-          videoRef={videoRef}
-          setStatus={setStatus}
+        <SpellingLesson
+          title={"Can you fill in the missing letters?"}
+          correctWord={["A", "W", "A", "R", "D"]}
+          questionWord={["_", "W", "_", "R", "D"]}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
-        ></VideoLesson>
+        ></SpellingLesson>
       )}
 
       {currentLessonIndex === 5 && (

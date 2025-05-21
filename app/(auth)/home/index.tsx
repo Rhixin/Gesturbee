@@ -17,11 +17,18 @@ export default function Home() {
   const scrollViewRef = useRef<RNScrollView>(null);
   const router = useRouter();
 
-  // TODO: API ni joshua change pani
   const { userSavedStage } = useLevel();
 
   const navigateToStage = (id: number) => {
     router.push(`/home/stage/${id}`);
+  };
+
+  const isStageLocked = (stageNumber) => {
+    if (stageNumber > userSavedStage) {
+      return true;
+    }
+
+    return false;
   };
 
   return (
@@ -37,6 +44,7 @@ export default function Home() {
             key={index}
             onPress={() => navigateToStage(item.id)}
             activeOpacity={0.7}
+            disabled={isStageLocked(item.id)}
           >
             <View
               className={`w-full flex ${

@@ -32,6 +32,14 @@ export default function Stage() {
     router.back();
   };
 
+  const isLevelLocked = (levelNumber) => {
+    if (levelNumber > userSavedLevel) {
+      return true;
+    }
+
+    return false;
+  };
+
   return (
     <View className="bg-white h-[100vh] items-center">
       <SafeAreaView className=" bg-primary rounded-b-3xl w-full">
@@ -61,6 +69,7 @@ export default function Stage() {
             className="bg-gray-200 rounded-2xl my-2 p-6 h-auto flex flex-row gap-4 "
             activeOpacity={0.8}
             onPress={() => navigateToLevel(item.levelid)}
+            disabled={isLevelLocked(item.levelid)}
           >
             <View
               key={item.levelid}

@@ -107,7 +107,7 @@ export default function MultipleChoiceLesson({
         </Text>
       </View>
 
-      <View className="space-y-4 items-center mb-4">
+      <View className="space-y-4 items-center mb-4 w-full">
         {choices.map((option, index) => {
           const isSelected = selectedAnswer === option;
           const isCorrect = option === correctAnswer;
@@ -144,6 +144,7 @@ export default function MultipleChoiceLesson({
         <SuccessModal
           isVisible={showSuccessModal}
           onContinue={handleContinueAndReset}
+          message={"Your answer is correct!"}
         />
       </View>
     </>

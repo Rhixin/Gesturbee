@@ -94,8 +94,6 @@ export default function ExecuteLesson({
                 userSavedTotalLesson
               );
             }
-          } else {
-            // Show modal u did it
           }
 
           setShowSuccessModal(true);
@@ -146,6 +144,7 @@ export default function ExecuteLesson({
       <SuccessModal
         isVisible={showSuccessModal}
         onContinue={handleContinueAndReset}
+        message={"You executed it perfectly!"}
       />
     </View>
   );
