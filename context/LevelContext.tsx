@@ -47,7 +47,7 @@ export const LevelProvider: React.FC<{
   useEffect(() => {
     setUserSavedStage(1);
     setUserSavedLevel(1);
-    setUserSavedLesson(5);
+    setUserSavedLesson(1);
     setUserSavedTotalLesson(10);
   }, []);
 

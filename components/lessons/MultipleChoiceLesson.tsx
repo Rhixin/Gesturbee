@@ -3,72 +3,111 @@ import { ResizeMode, Video } from "expo-av";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import SuccessModal from "@/components/SuccessModal";
+import { useLocalSearchParams } from "expo-router";
+import { useLevel } from "@/context/LevelContext";
 
 export default function MultipleChoiceLesson({
   title,
   videoSource,
   choices,
   correctAnswer,
-  handleContinue,
   videoRef,
   setStatus,
+  currentLessonIndex,
 }: {
   title: string;
   videoSource: any;
   choices: string[];
   correctAnswer: string;
-  handleContinue: () => void;
   videoRef: React.MutableRefObject<any>;
   setStatus: React.Dispatch<React.SetStateAction<any>>;
+  currentLessonIndex: number;
 }) {
+  const {
+    userSavedStage,
+    userSavedLevel,
+    userSavedLesson,
+    userSavedTotalLesson,
+    updateLevel,
+  } = useLevel();
+  const { stageId, levelId } = useLocalSearchParams();
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  // Handle mo next cya bisag humana ani nga level
+  const isThisLessonAlreadyDone = () => {
+    if (
+      Number(stageId) == userSavedStage &&
+      Number(levelId) == userSavedLevel &&
+      currentLessonIndex == userSavedLesson
+    ) {
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSelectAnswer = (option: string) => {
     setSelectedAnswer(option);
+
     if (option === correctAnswer) {
+      if (!isThisLessonAlreadyDone()) {
+        // Update Database
+        if (userSavedLesson === userSavedTotalLesson) {
+          updateLevel(userSavedStage, userSavedLevel + 1, 1, 10);
+        } else {
+          updateLevel(
+            userSavedStage,
+            userSavedLevel,
+            userSavedLesson + 1,
+            userSavedTotalLesson
+          );
+        }
+      } else {
+        // Show modal u did it
+      }
+
       setShowSuccessModal(true);
     }
   };
 
   const handleContinueAndReset = () => {
     setShowSuccessModal(false);
-    setSelectedAnswer("");
-    handleContinue();
   };
 
   return (
     <>
-      <View className="mx-4 my-4">
-        <View className="w-full bg-gray-300 rounded-lg overflow-hidden aspect-video items-center justify-center">
-          <Video
-            ref={videoRef}
-            source={videoSource}
-            useNativeControls
-            resizeMode={ResizeMode.COVER}
-            shouldPlay
-            isLooping
-            onPlaybackStatusUpdate={(status) => setStatus(() => status)}
-            onEnd={async () => {
-              if (videoRef.current) {
-                await videoRef.current.setStatusAsync({
-                  shouldPlay: true,
-                  positionMillis: 0,
-                });
-              }
-            }}
-            style={{ width: "100%", height: "100%", aspectRatio: 16 / 9 }}
-          />
-        </View>
-      </View>
+      <Video
+        ref={videoRef}
+        source={videoSource}
+        useNativeControls
+        resizeMode={ResizeMode.COVER}
+        shouldPlay
+        isLooping
+        onPlaybackStatusUpdate={(status) => setStatus(status)}
+        onEnd={async () => {
+          if (videoRef?.current) {
+            await videoRef.current.setStatusAsync({
+              shouldPlay: true,
+              positionMillis: 0,
+            });
+          }
+        }}
+        style={{
+          marginTop: 30,
+          width: "40%",
+          height: "25%",
+          aspectRatio: 16 / 9,
+        }}
+      />
 
-      <View className="mb-4">
+      <View className="my-4">
         <Text className="text-2xl text-gray-800 font-semibold text-center">
           {title}
         </Text>
       </View>
 
-      <View className="space-y-4 items-center">
+      <View className="space-y-4 items-center mb-4">
         {choices.map((option, index) => {
           const isSelected = selectedAnswer === option;
           const isCorrect = option === correctAnswer;

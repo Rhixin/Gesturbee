@@ -5,7 +5,7 @@ import VideoLesson from "../VideoLesson";
 import ExecuteLesson from "../ExecuteLesson";
 import MultipleChoiceLesson from "../MultipleChoiceLesson";
 
-export default function Stage1Level1({
+export default function Stage1Level2({
   videoRef,
   setStatus,
   currentLessonIndex,
@@ -28,23 +28,23 @@ export default function Stage1Level1({
 }) {
   const MAX_LESSONS = 10;
   const LESSON_TITLES = [
-    "Starting off with the basics",
-    "How well can you remember?",
-    "It's your turn!",
-    "Can you perform D?",
-    "Can you perform E?",
-    "Can you perform F?",
-    "Can you perform G?",
-    "Can you perform H?",
-    "Can you perform I?",
-    "Can you perform J?",
+    "2Starting off with the basics",
+    "2How well can you remember?",
+    "2It's your turn!",
+    "2Can you perform D?",
+    "2Can you perform E?",
+    "2Can you perform F?",
+    "2Can you perform G?",
+    "2Can you perform H?",
+    "2Can you perform I?",
+    "2Can you perform J?",
   ];
 
   const { userSavedStage, userSavedLevel, userSavedLesson } = useLevel();
 
   // Initializing values based on current data
   useEffect(() => {
-    if (userSavedStage == 1 && userSavedLevel == 1) {
+    if (userSavedStage == 1 && userSavedLevel == 2) {
       setCurrentLessonIndex(userSavedLesson);
       setTotalLessons(MAX_LESSONS);
       setCurrentLessonTitle(LESSON_TITLES[currentLessonIndex - 1]);
