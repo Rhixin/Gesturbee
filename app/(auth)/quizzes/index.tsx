@@ -5,6 +5,8 @@ import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CreateQuizModal from "@/components/CreateMultipleChoice"; 
 import CreateActionQuizModal from "@/components/CreateExecution";
+import QuizDetails from "@/components/QuizDetails";
+
 
 export default function Quizzes() {
   const progress = 70;
@@ -38,6 +40,8 @@ export default function Quizzes() {
   
   
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+
 
   const [nextQuizId, setNextQuizId] = useState(1);
 
@@ -161,14 +165,18 @@ export default function Quizzes() {
                 )}
               </View>
 
-              <TouchableOpacity className="bg-yellow-400 py-2 px-6 rounded-full self-start mb-2 w-full">
-                <Text className="font-poppins-medium text-white text-center text-sm">
-                 View Quiz
-                </Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-yellow-400 py-2 px-6 rounded-full self-start mb-2 w-full"
+              onPress={() => setSelectedQuiz(item)}
+            >
+              <Text className="font-poppins-medium text-white text-center text-sm">
+                View Quiz
+              </Text>
+            </TouchableOpacity>
+            
             </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+                    ))}
       </ScrollView>
 
       {/* Create Quiz Modal */}
@@ -184,6 +192,13 @@ export default function Quizzes() {
         setModalVisible={setCreateExecutionVisible}
         addNewQuiz={addNewQuiz}
       />
+
+      <QuizDetails
+        visible={selectedQuiz !== null}
+        quiz={selectedQuiz}
+        onClose={() => setSelectedQuiz(null)}
+      />
+
     </View>
   );
 }

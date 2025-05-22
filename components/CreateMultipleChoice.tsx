@@ -208,7 +208,7 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
       onRequestClose={() => setModalVisible(false)}
     >
       <SafeAreaView style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", flex: 1 }} className="justify-center items-center px-4">
-        <View className="bg-white w-[80%] rounded-2xl p-6" style={{ maxHeight: '90%', minHeight: '80%' }}>
+        <View className="bg-white w-[80%] rounded-2xl p-6" style={{ maxHeight: '90%', minHeight: '85%' }}>
           <Text className="text-3xl font-semibold text-titlegray mb-2">Create Quiz</Text>
           <Text className="text-lg text-subtitlegray mb-4">Create a multiple choice quiz for your students!</Text>
           <View style={{ flex: 1 }}>
@@ -253,6 +253,26 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
                   <Text className="text-blue-600 font-medium">+ Add Question</Text>
                 </TouchableOpacity>
               </View>
+
+              <View className="flex-row justify-center mb-4">
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {questions.map((_, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => navigateToQuestion(index)}
+                        className={`w-10 h-10 rounded-full mx-1 items-center justify-center ${
+                          index === currentQuestionIndex ? 'bg-primary' : 'bg-gray-200'
+                        }`}
+                      >
+                        <Text className={`text-sm font-medium ${
+                          index === currentQuestionIndex ? 'text-white' : 'text-gray-600'
+                        }`}>
+                          {index + 1}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
 
 
             
