@@ -31,7 +31,6 @@ export default function Quizzes() {
     id: number;
     title: string;
     type: string;
-    progress: number;
     questions: QuizQuestion[];
     description: string;
     createdAt: string;
@@ -136,10 +135,6 @@ export default function Quizzes() {
             <View className="items-center justify-center">
               <Beehive percentage={item.progress || progress} isGeneral={false}></Beehive>
               <View className="items-center mt-2">
-                <Text className="text-[10px] text-gray-500">Progress</Text>
-                <Text className="text-[20px] text-green-500 font-bold">
-                  {item.progress || progress}%
-                </Text>
               </View>
             </View>
 
@@ -173,7 +168,7 @@ export default function Quizzes() {
                 View Quiz
               </Text>
             </TouchableOpacity>
-            
+
             </View>
             </TouchableOpacity>
                     ))}
