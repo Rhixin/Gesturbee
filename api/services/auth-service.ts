@@ -1,17 +1,15 @@
-// axios-auth.js
-
-import api from "./axios-config";
-import TokenService from "./axios-token";
+import api from "../axios-config";
+import TokenService from "./token-service";
 
 const AuthService = {
   login: async (username, password, showToast, navigate) => {
     try {
-      // const response = await api.post("/auth/login", {
-      //   email: username,
-      //   password: password,
-      // });
+      const response = await api.post("/auth/login", {
+        email: username,
+        password: password,
+      });
 
-      // console.log(response);
+      console.log(response);
 
       showToast("Logged in successfully!", "success");
       navigate("/(auth)/home");

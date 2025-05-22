@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   TextInput,
@@ -7,16 +7,19 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-
 import AddStudentModal from "@/components/AddStudentModal";
 import NotificationButton from "@/components/NotificationButton";
 import AssignActivityModal from "@/components/AssignActivityModal";
 import RemoveStudentModal from "@/components/RemoveStudentModal";
 import ActivitiesTab from "@/components/ActivitiesTab";
+import { useToast } from "@/context/ToastContext";
+import ClassRoomService from "@/api/services/classroom-service";
+import { navigate } from "expo-router/build/global-state/routing";
 
 const Classroom = () => {
   const { id, classroomName } = useLocalSearchParams();
@@ -29,6 +32,10 @@ const Classroom = () => {
     setActiveTab(tab);
   };
 
+  const navigate = (path) => {
+    router.push(path);
+  };
+
   //modals
   const [addStudentModalVisible, setAddStudentModalVisible] = useState(false);
   const [removeStudentModalVisible, setRemoveStudentModalVisible] =
@@ -37,10 +44,33 @@ const Classroom = () => {
     useState(false);
 
   //for student tab
-  const [students, setStudents] = useState([
-    { id: "1", name: "John Doe", email: "johndoe@gmail.com" },
-    { id: "2", name: "Jane Doe", email: "janedoe@gmail.com" },
-  ]);
+  const { showToast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [students, setStudents] = useState([]);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setIsLoading(true);
+        const response = await ClassRoomService.getAllStudentsInThisClass(
+          id,
+          showToast
+        );
+
+        const students = response.data.data;
+        const studentsProfile = students.map((item) => item.profile);
+
+        setStudents(studentsProfile);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch students:", error);
+        showToast("Failed to load students", "error");
+        setIsLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
 
   //adding student
   const handleAddStudents = (newStudents) => {
@@ -54,17 +84,30 @@ const Classroom = () => {
   //removing student
   const [selectedStudentId, setSelectedStudentId] = useState(null);
 
-  const handleRemoveStudent = (studentId) => {
+  const showRemoveStudentModal = (studentId) => {
     setSelectedStudentId(studentId);
     setRemoveStudentModalVisible(true);
   };
 
-  const handleRemoveStudentConfirmed = () => {
-    const updatedStudents = students.filter(
-      (student) => student.id !== selectedStudentId
-    );
-    setStudents(updatedStudents);
-    setRemoveStudentModalVisible(false);
+  const handleRemoveStudentConfirmed = async (studentId) => {
+    try {
+      setIsLoading(true);
+
+      const response = await ClassRoomService.removeStudent(
+        studentId,
+        id,
+        showToast,
+        navigate
+      );
+
+      console.log(response);
+      setIsLoading(false);
+      setRemoveStudentModalVisible(false);
+    } catch (error) {
+      console.error("Failed to fetch students:", error);
+      showToast("Failed to load students", "error");
+      setIsLoading(false);
+    }
   };
 
   // const navigateToStudent = (studentId) => {
@@ -75,6 +118,31 @@ const Classroom = () => {
   const [selectedActivity, setSelectedActivity] = useState("");
 
   const renderStudents = () => {
+    if (isLoading) {
+      return (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#FBBC05" />
+          <Text className="mt-4 text-secondary font-poppins-medium">
+            Loading your students...
+          </Text>
+        </View>
+      );
+    }
+
+    if (students.length === 0) {
+      return (
+        <View className="flex-1 justify-center items-center px-6">
+          <Ionicons name="school-outline" size={48} color="#00BFAF" />
+          <Text className="mt-4 text-gray-800 font-poppins-medium text-center text-lg">
+            You don't have any students yet
+          </Text>
+          <Text className="mt-2 text-gray-600 text-center">
+            Add students to get started
+          </Text>
+        </View>
+      );
+    }
+
     return (
       <ScrollView className="w-full">
         {students.map((student) => (
@@ -90,15 +158,15 @@ const Classroom = () => {
               </View>
               <View>
                 <Text className="text-base font-poppins-medium text-gray-800">
-                  {student.name}
+                  {student.firstName + " " + student.lastName}
                 </Text>
-                <Text className="text-sm text-gray-500 font-poppins">
+                {/* <Text className="text-sm text-gray-500 font-poppins">
                   {student.email}
-                </Text>
+                </Text> */}
               </View>
             </View>
             <TouchableOpacity
-              onPress={() => handleRemoveStudent(student.id, student.name)}
+              onPress={() => showRemoveStudentModal(student.id)}
             >
               <Ionicons name="person-remove" size={20} color="#F2A800" />
             </TouchableOpacity>

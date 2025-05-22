@@ -16,8 +16,8 @@ import CustomDropdown from "../components/GenderDropDown";
 import { useGlobal } from "@/context/GlobalContext";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import AuthService from "@/api/axios-auth";
 import { useToast } from "@/context/ToastContext";
+import AuthService from "@/api/services/auth-service";
 
 const Register = () => {
   const { showToast } = useToast();
