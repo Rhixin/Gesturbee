@@ -23,6 +23,16 @@ const ClassRoomService = {
       showToast(message, "error");
     }
   },
+  getClassroom: async (classId, showToast) => {
+    try {
+      const response = await api.get(`/e-classroom/class/${classId}`);
+
+      return response;
+    } catch (error) {
+      const message = error.response?.data?.responseType;
+      showToast(message, "error");
+    }
+  },
   getAllTeacherClasses: async (teacherId, showToast) => {
     try {
       const response = await api.get(

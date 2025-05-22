@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -54,12 +55,8 @@ const Classes = () => {
   }, [currentUser?.id]);
 
   const router = useRouter();
-  const navigateToClassroom = (id: number, classroomName: string) => {
-    const classData = classes.find((cls) => cls.id === id);
-    router.push({
-      pathname: "/classes/classroom/[id]",
-      params: { ...classData, id, classroomName },
-    });
+  const navigateToClassroom = (id: number) => {
+    router.push(`/classes/classroom/${id}`);
   };
 
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -78,12 +75,28 @@ const Classes = () => {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#FBBC05" />
-          <Text className="mt-4 text-secondary font-poppins-medium">
-            Loading your classes...
-          </Text>
-        </View>
+        <ScrollView
+          contentContainerStyle={{
+            paddingHorizontal: 24,
+            paddingTop: 20,
+            paddingBottom: 20,
+          }}
+          className="w-full"
+        >
+          {[...Array(5)].map((_, index) => (
+            <View
+              key={index}
+              className="bg-gray-200 rounded-xl p-6 mb-4 animate-pulse"
+            >
+              <View className="w-2/3 h-6 bg-gray-300 rounded mb-3" />
+              <View className="flex-row items-center mb-4">
+                <View className="w-4 h-4 bg-gray-300 rounded-full" />
+                <View className="ml-2 w-1/3 h-4 bg-gray-300 rounded" />
+              </View>
+              <View className="w-24 h-8 bg-gray-300 rounded self-end" />
+            </View>
+          ))}
+        </ScrollView>
       );
     }
 
@@ -179,7 +192,7 @@ const Classes = () => {
 
             <TouchableOpacity
               className="bg-yellow-400 px-4 py-2 rounded-md self-end"
-              onPress={() => navigateToClassroom(item.id, item.className)}
+              onPress={() => navigateToClassroom(item.id)}
             >
               <Text className="text-white font-semibold">View Class</Text>
             </TouchableOpacity>
