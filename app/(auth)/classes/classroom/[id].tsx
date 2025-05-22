@@ -19,6 +19,18 @@ import RemoveStudentModal from "@/components/RemoveStudentModal";
 import ActivitiesTab from "@/components/ActivitiesTab";
 
 const Classroom = () => {
+
+  const getScoreColor = (score) => {
+    if (score >= 90) return "text-green-600";
+    if (score >= 80) return "text-blue-600"; 
+    if (score >= 70) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const getStatusColor = (status) => {
+    return status === "completed" ? "text-green-600" : "text-orange-500";
+  };
+  
   const { id, classroomName } = useLocalSearchParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("Students");
@@ -74,6 +86,51 @@ const Classroom = () => {
   //selecting activity
   const [selectedActivity, setSelectedActivity] = useState("");
 
+  //for grades data
+  const activitiesWithGrades = [
+    {
+      id: "1",
+      name: "Math Quiz 1",
+      type: "Quiz",
+      totalStudents: students.length,
+      completed: 2,
+      averageScore: 85,
+      dueDate: "2024-01-15",
+      grades: [
+        { studentId: "1", studentName: "John Doe", score: 90, status: "completed" },
+        { studentId: "2", studentName: "Jane Doe", score: 80, status: "completed" }
+      ]
+    },
+    {
+      id: "2", 
+      name: "Reading Assignment",
+      type: "Assignment",
+      totalStudents: students.length,
+      completed: 1,
+      averageScore: 92,
+      dueDate: "2024-01-20",
+      grades: [
+        { studentId: "1", studentName: "John Doe", score: 92, status: "completed" },
+        { studentId: "2", studentName: "Jane Doe", score: null, status: "not submitted" }
+      ]
+    },
+    {
+      id: "3",
+      name: "Science Project",
+      type: "Project", 
+      totalStudents: students.length,
+      completed: 0,
+      averageScore: null,
+      dueDate: "2024-01-25",
+      grades: [
+        { studentId: "1", studentName: "John Doe", score: null, status: "not submitted" },
+        { studentId: "2", studentName: "Jane Doe", score: null, status: "not submitted" }
+      ]
+    }
+  ];
+
+  
+
   const renderStudents = () => {
     return (
       <ScrollView className="w-full">
@@ -110,19 +167,104 @@ const Classroom = () => {
 
   const renderGrades = () => {
     return (
-      <View className="flex-1 p-4">
-        <TouchableOpacity className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100 flex-row items-center justify-between">
-          <View className="flex-row items-center">
+      <ScrollView className="flex-1 p-4">
+        {/* Overall Class Summary */}
+        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100">
+          <View className="flex-row items-center mb-3">
             <View className="w-10 h-10 bg-blue-100 rounded-full items-center justify-center mr-3">
-              <Ionicons name="bar-chart" size={20} color="#0080FF" />
+              <Ionicons name="analytics" size={20} color="#0080FF" />
             </View>
-            <Text className="text-lg font-poppins-medium text-gray-800">
-              Progress Report
+            <Text className="text-lg font-poppins-bold text-gray-800">
+              Class Overview
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#00BFAF" />
-        </TouchableOpacity>
-      </View>
+          
+          <View className="flex-row justify-between">
+            <View className="items-center">
+              <Text className="text-2xl font-poppins-bold text-blue-600">
+                {students.length}
+              </Text>
+              <Text className="text-sm text-gray-600 font-poppins">Students</Text>
+            </View>
+            <View className="items-center">
+              <Text className="text-2xl font-poppins-bold text-green-600">
+                {activitiesWithGrades.length}
+              </Text>
+              <Text className="text-sm text-gray-600 font-poppins">Activities</Text>
+            </View>
+            <View className="items-center">
+              <Text className="text-2xl font-poppins-bold text-orange-600">
+                {activitiesWithGrades.reduce((acc, activity) => acc + (activity.totalStudents - activity.completed), 0)}
+              </Text>
+              <Text className="text-sm text-gray-600 font-poppins">Pending</Text>
+            </View>
+          </View>
+        </View>
+  
+        {/* Activities with Grades */}
+        <Text className="text-xl font-poppins-bold text-gray-800 mb-3">
+          Activity Grades
+        </Text>
+  
+        {activitiesWithGrades.map((activity) => (
+          <View key={activity.id} className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100">
+            {/* Activity Header */}
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-1">
+                <Text className="text-lg font-poppins-medium text-gray-800">
+                  {activity.name}
+                </Text>
+                <Text className="text-sm text-gray-500 font-poppins">
+                  {activity.type} • Due: {new Date(activity.dueDate).toLocaleDateString()}
+                </Text>
+              </View>
+              <View className="items-end">
+                <Text className="text-sm font-poppins-medium text-gray-600">
+                  {activity.completed}/{activity.totalStudents} completed
+                </Text>
+                {activity.averageScore && (
+                  <Text className={`text-lg font-poppins-bold ${getScoreColor(activity.averageScore)}`}>
+                    Avg: {activity.averageScore}%
+                  </Text>
+                )}
+              </View>
+            </View>
+  
+            {/* Progress Bar */}
+            <View className="bg-gray-200 rounded-full h-2 mb-3">
+              <View 
+                className="bg-blue-500 h-2 rounded-full" 
+                style={{ width: `${(activity.completed / activity.totalStudents) * 100}%` }}
+              />
+            </View>
+  
+            {/* Student Grades */}
+            <View className="border-t border-gray-100 pt-3">
+              {activity.grades.map((grade) => (
+                <View key={grade.studentId} className="flex-row items-center justify-between py-2">
+                  <Text className="text-base font-poppins text-gray-700">
+                    {grade.studentName}
+                  </Text>
+                  <View className="flex-row items-center">
+                    {grade.score !== null ? (
+                      <Text className={`text-base font-poppins-medium mr-2 ${getScoreColor(grade.score)}`}>
+                        {grade.score}%
+                      </Text>
+                    ) : (
+                      <Text className="text-base font-poppins mr-2 text-gray-400">
+                        --
+                      </Text>
+                    )}
+                    <Text className={`text-sm font-poppins ${getStatusColor(grade.status)}`}>
+                      {grade.status}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        ))}
+      </ScrollView>
     );
   };
 
