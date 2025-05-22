@@ -70,12 +70,7 @@ export default function Quizzes() {
     setNextQuizId(prev => prev + 1);
   };
 
-  // Close dropdown when clicking outside (you might want to add this functionality)
-  const handleOutsidePress = () => {
-    if (dropdownVisible) {
-      setDropdownVisible(false);
-    }
-  };
+  
 
   return (
     <View className="flex-1 bg-white">
