@@ -25,7 +25,7 @@ const NotificationsButton = ({
   const { showToast } = useToast();
 
   const [pendingRequests, setPendingRequests] = useState(
-    enrollmentRequestsProfile
+    enrollmentRequestsProfile || []
   );
 
   // Apis here
@@ -33,7 +33,7 @@ const NotificationsButton = ({
     // Set loading state for this specific request
     setLoadingStates((prev) => ({
       ...prev,
-      [studentId]: { accept, reject: !accept },
+      [studentId]: { accept: accept === true, reject: accept === false },
     }));
 
     try {
@@ -144,9 +144,14 @@ const NotificationsButton = ({
               <View>
                 {filteredRequests.length > 0 ? (
                   filteredRequests.map((item) => {
-                    const isThisRequestLoading = loadingStates[item.id];
-                    const isAcceptLoading = isThisRequestLoading?.accept;
-                    const isRejectLoading = isThisRequestLoading?.reject;
+                    const requestLoadingState = loadingStates[item.id];
+                    const isThisRequestLoading = Boolean(requestLoadingState);
+                    const isAcceptLoading = Boolean(
+                      requestLoadingState?.accept
+                    );
+                    const isRejectLoading = Boolean(
+                      requestLoadingState?.reject
+                    );
 
                     return (
                       <View
