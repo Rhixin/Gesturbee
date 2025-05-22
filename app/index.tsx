@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 // import LottieView from "lottie-react-native";
 import { useState, useEffect } from "react";
 import { useGlobal } from "@/context/GlobalContext";
+import React from "react";
 
 export default function LandingPage() {
   const router = useRouter();

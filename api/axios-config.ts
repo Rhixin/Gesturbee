@@ -1,10 +1,9 @@
 import axios from "axios";
-import TokenService from "./axios-token";
-import AuthService from "./axios-auth";
+import TokenService from "./services/token-service";
 
 // Create axios instance with custom config
 const api = axios.create({
-  baseURL: "https://localhost:7152/api",
+  baseURL: "https://gesturbee-backend.onrender.com/api/",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

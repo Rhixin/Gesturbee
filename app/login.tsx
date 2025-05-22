@@ -15,11 +15,13 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
 import { useAuth } from "@/context/AuthContext";
-import AuthService from "@/api/axios-auth";
+
 import { useToast } from "@/context/ToastContext";
 import api from "@/api/axios-config";
-import TokenService from "@/api/axios-token";
+
 import { makeRedirectUri } from "expo-auth-session";
+import TokenService from "@/api/services/token-service";
+import AuthService from "@/api/services/auth-service";
 
 // Ensure this is called OUTSIDE your component
 WebBrowser.maybeCompleteAuthSession();
@@ -58,7 +60,6 @@ const Login = () => {
       webClientId: WEB_CLIENT_ID,
       scopes: ["profile", "email"],
       responseType: "id_token",
-      redirectUri: GOOGLE_REDIRECT_URI,
     });
 
   // Handle Google auth response
@@ -134,6 +135,7 @@ const Login = () => {
     const handleFacebookResponse = async () => {
       if (facebookResponse?.type === "success") {
         try {
+          setIsLoading(true);
           // 1. Get Facebook access token
           const facebookAccessToken = facebookResponse.params.access_token;
 
@@ -157,6 +159,7 @@ const Login = () => {
           setCurrentUser(user);
 
           // 7. Navigate to authenticated area
+          setIsLoading(false);
           router.replace("/(auth)/home");
           showToast("Logged in successfully!", "success");
         } catch (error) {
@@ -184,10 +187,24 @@ const Login = () => {
     }
   };
 
-  // TODO: Normal Login Logic -------------------------------------------
+  // Normal Login Logic -------------------------------------------
   const normalLogInListener = async () => {
     setIsLoading(true);
-    await AuthService.login(email, password, showToast, navigate);
+    const response = await AuthService.login(
+      email,
+      password,
+      showToast,
+      navigate
+    );
+
+    const token = response.data.token;
+    const user = response.data.response.data;
+
+    await TokenService.saveToken(token);
+
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    setCurrentUser(user);
     setIsLoading(false);
   };
 

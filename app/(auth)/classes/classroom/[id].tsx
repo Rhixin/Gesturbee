@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   TextInput,
@@ -7,22 +7,23 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-
 import AddStudentModal from "@/components/AddStudentModal";
 import NotificationButton from "@/components/NotificationButton";
 import AssignActivityModal from "@/components/AssignActivityModal";
 import RemoveStudentModal from "@/components/RemoveStudentModal";
 import ActivitiesTab from "@/components/ActivitiesTab";
+import { useToast } from "@/context/ToastContext";
+import ClassRoomService from "@/api/services/classroom-service";
 
 const Classroom = () => {
-
   const getScoreColor = (score) => {
     if (score >= 90) return "text-green-600";
-    if (score >= 80) return "text-blue-600"; 
+    if (score >= 80) return "text-blue-600";
     if (score >= 70) return "text-yellow-600";
     return "text-red-600";
   };
@@ -30,8 +31,8 @@ const Classroom = () => {
   const getStatusColor = (status) => {
     return status === "completed" ? "text-green-600" : "text-orange-500";
   };
-  
-  const { id, classroomName } = useLocalSearchParams();
+
+  const { id } = useLocalSearchParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("Students");
 
@@ -41,6 +42,10 @@ const Classroom = () => {
     setActiveTab(tab);
   };
 
+  const navigate = (path) => {
+    router.push(path);
+  };
+
   //modals
   const [addStudentModalVisible, setAddStudentModalVisible] = useState(false);
   const [removeStudentModalVisible, setRemoveStudentModalVisible] =
@@ -48,14 +53,127 @@ const Classroom = () => {
   const [assignActivityModalVisible, setAssignActivityModalVisible] =
     useState(false);
 
-  //for student tab
-  const [students, setStudents] = useState([
-    { id: "1", name: "John Doe", email: "johndoe@gmail.com" },
-    { id: "2", name: "Jane Doe", email: "janedoe@gmail.com" },
-  ]);
+  // helpers
+  const { showToast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // data needed before rendering
+  const [students, setStudents] = useState(null);
+  const [classroomDetails, setClassroomDetails] = useState(null);
+  const [enrollmentRequests, setEnrollmentRequests] = useState(null);
+  const [allUsers, setAllUsers] = useState(null);
+
+  // apis
+  const fetchClassroom = async () => {
+    try {
+      const response = await ClassRoomService.getClassroom(id, showToast);
+      const classroomDetails = response?.data.data;
+      setClassroomDetails(classroomDetails);
+      return classroomDetails;
+    } catch (error) {
+      console.error("Failed to fetch classroom:", error);
+      throw error;
+    }
+  };
+
+  const fetchStudents = async () => {
+    try {
+      const response = await ClassRoomService.getAllStudentsInThisClass(
+        id,
+        showToast
+      );
+      const students = response?.data.data;
+      const studentsProfile = students.map((item) => item.profile);
+      setStudents(studentsProfile);
+      return studentsProfile;
+    } catch (error) {
+      console.error("Failed to fetch students:", error);
+      throw error;
+    }
+  };
+
+  const fetchEnrollmentRequests = async (classId) => {
+    try {
+      const response = await ClassRoomService.getAllEnrollmentRequests(classId);
+      const enrollementRequests = response?.data.data;
+      const enrollementRequestsProfile = enrollementRequests.map(
+        (item) => item.profile
+      );
+      setEnrollmentRequests(enrollementRequestsProfile);
+      return enrollementRequestsProfile;
+    } catch (error) {
+      showToast("Failed to remove student", "error");
+    }
+  };
+
+  const fetchAllUsers = async () => {
+    try {
+      const response = await ClassRoomService.getAllUsers();
+      const users = response?.data.data;
+      const allUserProfiles = users.map((item) => item.profile);
+
+      setAllUsers(allUserProfiles);
+      return users;
+    } catch (error) {
+      console.error("Failed to fetch students:", error);
+      throw error;
+    }
+  };
+
+  const loadData = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Fetch both classroom details and students concurrently
+      const [
+        classroomData,
+        studentsData,
+        enrollmentRequestsData,
+        allUsersData,
+      ] = await Promise.all([
+        fetchClassroom(),
+        fetchStudents(),
+        fetchEnrollmentRequests(id),
+        fetchAllUsers(),
+      ]);
+
+      // Check if all data sets were loaded successfully
+      if (
+        !classroomData ||
+        studentsData === undefined ||
+        !enrollmentRequestsData ||
+        !allUsersData
+      ) {
+        throw new Error("Failed to load required data");
+      }
+    } catch (error) {
+      console.error("Error loading classroom data:", error);
+      setError("Failed to load classroom data");
+      showToast("Failed to load classroom data", "error");
+      router.back();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      loadData();
+    } else {
+      setError("Invalid classroom ID");
+      router.back();
+    }
+  }, [id]);
 
   //adding student
   const handleAddStudents = (newStudents) => {
+    if (!students) {
+      setStudents(newStudents);
+      return;
+    }
+
     const newUniqueStudents = newStudents.filter(
       (newStudent) =>
         !students.some((existing) => existing.id === newStudent.id)
@@ -66,22 +184,10 @@ const Classroom = () => {
   //removing student
   const [selectedStudentId, setSelectedStudentId] = useState(null);
 
-  const handleRemoveStudent = (studentId) => {
+  const showRemoveStudentModal = (studentId) => {
     setSelectedStudentId(studentId);
     setRemoveStudentModalVisible(true);
   };
-
-  const handleRemoveStudentConfirmed = () => {
-    const updatedStudents = students.filter(
-      (student) => student.id !== selectedStudentId
-    );
-    setStudents(updatedStudents);
-    setRemoveStudentModalVisible(false);
-  };
-
-  // const navigateToStudent = (studentId) => {
-  //   router.push(`/students/${studentId}`);
-  // };
 
   //selecting activity
   const [selectedActivity, setSelectedActivity] = useState("");
@@ -92,54 +198,113 @@ const Classroom = () => {
       id: "1",
       name: "Math Quiz 1",
       type: "Quiz",
-      totalStudents: students.length,
+      totalStudents: students?.length ?? 5,
       completed: 2,
       averageScore: 85,
       dueDate: "2024-01-15",
       grades: [
-        { studentId: "1", studentName: "John Doe", score: 90, status: "completed" },
-        { studentId: "2", studentName: "Jane Doe", score: 80, status: "completed" }
-      ]
+        {
+          studentId: "1",
+          studentName: "John Doe",
+          score: 90,
+          status: "completed",
+        },
+        {
+          studentId: "2",
+          studentName: "Jane Doe",
+          score: 80,
+          status: "completed",
+        },
+      ],
     },
     {
-      id: "2", 
+      id: "2",
       name: "Reading Assignment",
       type: "Assignment",
-      totalStudents: students.length,
+      totalStudents: students?.length ?? 5,
       completed: 1,
       averageScore: 92,
       dueDate: "2024-01-20",
       grades: [
-        { studentId: "1", studentName: "John Doe", score: 92, status: "completed" },
-        { studentId: "2", studentName: "Jane Doe", score: null, status: "not submitted" }
-      ]
+        {
+          studentId: "1",
+          studentName: "John Doe",
+          score: 92,
+          status: "completed",
+        },
+        {
+          studentId: "2",
+          studentName: "Jane Doe",
+          score: null,
+          status: "not submitted",
+        },
+      ],
     },
     {
       id: "3",
       name: "Science Project",
-      type: "Project", 
-      totalStudents: students.length,
+      type: "Project",
+      totalStudents: students?.length ?? 5,
       completed: 0,
       averageScore: null,
       dueDate: "2024-01-25",
       grades: [
-        { studentId: "1", studentName: "John Doe", score: null, status: "not submitted" },
-        { studentId: "2", studentName: "Jane Doe", score: null, status: "not submitted" }
-      ]
-    }
+        {
+          studentId: "1",
+          studentName: "John Doe",
+          score: null,
+          status: "not submitted",
+        },
+        {
+          studentId: "2",
+          studentName: "Jane Doe",
+          score: null,
+          status: "not submitted",
+        },
+      ],
+    },
   ];
 
-  
-
   const renderStudents = () => {
+    if (isLoading) {
+      return (
+        <ScrollView className="w-full">
+          {[...Array(5)].map((_, index) => (
+            <View
+              key={index}
+              className="flex-row items-center justify-between bg-gray-200 mx-4 my-2 rounded-xl shadow-sm p-4 mb-4 animate-pulse"
+            >
+              <View className="flex-row items-center">
+                <View className="w-12 h-12 rounded-full bg-gray-300 mr-4" />
+                <View className="w-32 h-4 bg-gray-300 rounded" />
+              </View>
+              <View className="w-6 h-6 bg-gray-300 rounded" />
+            </View>
+          ))}
+        </ScrollView>
+      );
+    }
+
+    if (!students || students.length === 0) {
+      return (
+        <View className="flex-1 justify-center items-center px-6">
+          <Ionicons name="school-outline" size={48} color="#00BFAF" />
+          <Text className="mt-4 text-gray-800 font-poppins-medium text-center text-lg">
+            You don't have any students yet
+          </Text>
+          <Text className="mt-2 text-gray-600 text-center">
+            Add students to get started
+          </Text>
+        </View>
+      );
+    }
+
     return (
       <ScrollView className="w-full">
         {students.map((student) => (
           <View
             key={student.id}
-            // className="flex-row items-center justify-between p-4 mx-4 my-2 bg-white rounded-xl shadow-sm border border-gray-100"
             className="flex-row items-center justify-between bg-gray-100 mx-4 my-2 rounded-xl shadow-sm border border-gray-100 p-4 mb-4"
-            // onPress={() => navigateToStudent(student.id)}
           >
             <View className="flex-row items-center">
               <View className="w-12 h-12 rounded-full bg-gray-200 mr-4 justify-center items-center">
@@ -147,15 +312,12 @@ const Classroom = () => {
               </View>
               <View>
                 <Text className="text-base font-poppins-medium text-gray-800">
-                  {student.name}
-                </Text>
-                <Text className="text-sm text-gray-500 font-poppins">
-                  {student.email}
+                  {student.firstName + " " + student.lastName}
                 </Text>
               </View>
             </View>
             <TouchableOpacity
-              onPress={() => handleRemoveStudent(student.id, student.name)}
+              onPress={() => showRemoveStudentModal(student.id)}
             >
               <Ionicons name="person-remove" size={20} color="#F2A800" />
             </TouchableOpacity>
@@ -178,36 +340,49 @@ const Classroom = () => {
               Class Overview
             </Text>
           </View>
-          
+
           <View className="flex-row justify-between">
             <View className="items-center">
               <Text className="text-2xl font-poppins-bold text-blue-600">
                 {students.length}
               </Text>
-              <Text className="text-sm text-gray-600 font-poppins">Students</Text>
+              <Text className="text-sm text-gray-600 font-poppins">
+                Students
+              </Text>
             </View>
             <View className="items-center">
               <Text className="text-2xl font-poppins-bold text-green-600">
                 {activitiesWithGrades.length}
               </Text>
-              <Text className="text-sm text-gray-600 font-poppins">Activities</Text>
+              <Text className="text-sm text-gray-600 font-poppins">
+                Activities
+              </Text>
             </View>
             <View className="items-center">
               <Text className="text-2xl font-poppins-bold text-orange-600">
-                {activitiesWithGrades.reduce((acc, activity) => acc + (activity.totalStudents - activity.completed), 0)}
+                {activitiesWithGrades.reduce(
+                  (acc, activity) =>
+                    acc + (activity.totalStudents - activity.completed),
+                  0
+                )}
               </Text>
-              <Text className="text-sm text-gray-600 font-poppins">Pending</Text>
+              <Text className="text-sm text-gray-600 font-poppins">
+                Pending
+              </Text>
             </View>
           </View>
         </View>
-  
+
         {/* Activities with Grades */}
         <Text className="text-xl font-poppins-bold text-gray-800 mb-3">
           Activity Grades
         </Text>
-  
+
         {activitiesWithGrades.map((activity) => (
-          <View key={activity.id} className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100">
+          <View
+            key={activity.id}
+            className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100"
+          >
             {/* Activity Header */}
             <View className="flex-row items-center justify-between mb-3">
               <View className="flex-1">
@@ -215,7 +390,8 @@ const Classroom = () => {
                   {activity.name}
                 </Text>
                 <Text className="text-sm text-gray-500 font-poppins">
-                  {activity.type} • Due: {new Date(activity.dueDate).toLocaleDateString()}
+                  {activity.type} • Due:{" "}
+                  {new Date(activity.dueDate).toLocaleDateString()}
                 </Text>
               </View>
               <View className="items-end">
@@ -223,31 +399,46 @@ const Classroom = () => {
                   {activity.completed}/{activity.totalStudents} completed
                 </Text>
                 {activity.averageScore && (
-                  <Text className={`text-lg font-poppins-bold ${getScoreColor(activity.averageScore)}`}>
+                  <Text
+                    className={`text-lg font-poppins-bold ${getScoreColor(
+                      activity.averageScore
+                    )}`}
+                  >
                     Avg: {activity.averageScore}%
                   </Text>
                 )}
               </View>
             </View>
-  
+
             {/* Progress Bar */}
             <View className="bg-gray-200 rounded-full h-2 mb-3">
-              <View 
-                className="bg-blue-500 h-2 rounded-full" 
-                style={{ width: `${(activity.completed / activity.totalStudents) * 100}%` }}
+              <View
+                className="bg-blue-500 h-2 rounded-full"
+                style={{
+                  width: `${
+                    (activity.completed / activity.totalStudents) * 100
+                  }%`,
+                }}
               />
             </View>
-  
+
             {/* Student Grades */}
             <View className="border-t border-gray-100 pt-3">
               {activity.grades.map((grade) => (
-                <View key={grade.studentId} className="flex-row items-center justify-between py-2">
+                <View
+                  key={grade.studentId}
+                  className="flex-row items-center justify-between py-2"
+                >
                   <Text className="text-base font-poppins text-gray-700">
                     {grade.studentName}
                   </Text>
                   <View className="flex-row items-center">
                     {grade.score !== null ? (
-                      <Text className={`text-base font-poppins-medium mr-2 ${getScoreColor(grade.score)}`}>
+                      <Text
+                        className={`text-base font-poppins-medium mr-2 ${getScoreColor(
+                          grade.score
+                        )}`}
+                      >
                         {grade.score}%
                       </Text>
                     ) : (
@@ -255,7 +446,11 @@ const Classroom = () => {
                         --
                       </Text>
                     )}
-                    <Text className={`text-sm font-poppins ${getStatusColor(grade.status)}`}>
+                    <Text
+                      className={`text-sm font-poppins ${getStatusColor(
+                        grade.status
+                      )}`}
+                    >
                       {grade.status}
                     </Text>
                   </View>
@@ -281,6 +476,39 @@ const Classroom = () => {
     }
   };
 
+  // // Loading state
+  // if (isLoading) {
+  //   return (
+  //     <View className="flex-1 justify-center items-center bg-gray-50">
+  //       <ActivityIndicator size="large" color="#FBBC05" />
+  //       <Text className="mt-4 text-secondary font-poppins-medium">
+  //         Loading classroom data...
+  //       </Text>
+  //     </View>
+  //   );
+  // }
+
+  // Error state
+  if (error) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-50 px-6">
+        <Ionicons name="alert-circle-outline" size={48} color="#f87171" />
+        <Text className="mt-4 text-gray-800 font-poppins-medium text-center">
+          {error}
+        </Text>
+        <Text className="mt-2 text-gray-600 text-center">
+          Returning to previous screen...
+        </Text>
+        <TouchableOpacity
+          className="mt-6 bg-primary px-6 py-3 rounded-lg"
+          onPress={() => router.back()}
+        >
+          <Text className="text-white font-poppins-medium">Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -296,13 +524,26 @@ const Classroom = () => {
           </TouchableOpacity>
 
           <View className="bg-white rounded-2xl py-3 flex-1 justify-center">
-            <Text className="text-xl font-poppins-bold text-center text-secondary">
-              {classroomName}
-            </Text>
+            {isLoading ? (
+              <View className="h-6 w-32 bg-gray-300 self-center rounded-md animate-pulse" />
+            ) : (
+              <Text className="text-xl font-poppins-bold text-center text-secondary">
+                {classroomDetails?.className}
+              </Text>
+            )}
           </View>
 
           <View className="flex-row items-center ml-4">
-            <NotificationButton handleAcceptRequest={handleAddStudents} />
+            {isLoading ? (
+              <View className="w-10 h-10 rounded-full bg-gray-300 animate-pulse" />
+            ) : (
+              <NotificationButton
+                handleAcceptRequest={handleAddStudents}
+                enrollmentRequestsProfile={enrollmentRequests}
+                classId={id}
+                loadData={loadData}
+              />
+            )}
 
             <TouchableOpacity
               accessibilityLabel="Settings"
@@ -345,7 +586,6 @@ const Classroom = () => {
             className="absolute bottom-4 right-4 p-4"
             style={{ zIndex: 10 }}
           >
-            {/* <View className="absolute bottom-4 right-1 p-4"> */}
             <TouchableOpacity
               className="bg-primary flex-row items-center rounded-full px-4 py-2 shadow-md"
               accessibilityLabel="Add student"
@@ -373,7 +613,7 @@ const Classroom = () => {
               accessibilityLabel="Assign Activity"
               accessibilityRole="button"
               onPress={() => {
-                setAssignActivityModalVisible(true); // Open the modal for assigning activity
+                setAssignActivityModalVisible(true);
               }}
             >
               <Text className="text-white mr-2 font-poppins-medium">
@@ -393,18 +633,25 @@ const Classroom = () => {
         setModalVisible={setAssignActivityModalVisible}
       />
 
-      <AddStudentModal
-        modalVisible={addStudentModalVisible}
-        setModalVisible={setAddStudentModalVisible}
-        onAddStudents={handleAddStudents}
-      />
+      {!isLoading && (
+        <AddStudentModal
+          modalVisible={addStudentModalVisible}
+          setModalVisible={setAddStudentModalVisible}
+          onAddStudents={handleAddStudents}
+          allUsers={allUsers}
+          studentsAlreadyAdded={students}
+          loadData={loadData}
+          classId={id}
+        />
+      )}
 
       <RemoveStudentModal
         modalVisible={removeStudentModalVisible}
         setModalVisible={setRemoveStudentModalVisible}
         studentId={selectedStudentId}
-        students={students}
-        onConfirm={handleRemoveStudentConfirmed}
+        students={students || []}
+        loadData={loadData}
+        classId={id}
       />
     </View>
   );

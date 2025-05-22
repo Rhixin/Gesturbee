@@ -57,19 +57,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="playground"
-        options={{
-          title: "Playground",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "person-circle" : "person-circle-outline"}
-              size={24}
-              color={color}
-            />
-          ),
-        }}
-      />
+
       <Tabs.Screen
         name="profile"
         options={{

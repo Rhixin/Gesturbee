@@ -8,7 +8,7 @@ import Settings from "@/components/Settings";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import { useRouter } from "expo-router";
-import AuthService from "@/api/axios-auth";
+import AuthService from "@/api/services/auth-service";
 
 export default function Profile() {
   const { currentUser } = useAuth();
