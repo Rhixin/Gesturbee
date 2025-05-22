@@ -8,18 +8,49 @@ import {
   Image,
   ScrollView,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
+import ClassRoomService from "@/api/services/classroom-service";
+import { useToast } from "@/context/ToastContext";
 
 const RemoveStudentModal = ({
   modalVisible,
   setModalVisible,
   studentId,
   students,
-  onConfirm,
+  loadData,
+  classId,
 }) => {
+  const { showToast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchRemoveStudent = async () => {
+    setIsLoading(true);
+    try {
+      const response = await ClassRoomService.removeStudent(
+        studentId,
+        classId,
+        showToast
+      );
+
+      setModalVisible(false);
+      loadData();
+    } catch (error) {
+      console.error("Failed to remove student:", error);
+      showToast("Failed to remove student", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (isLoading) return; // Prevent closing during loading
+    setModalVisible(false);
+  };
+
   const student = students.find((s) => s.id === studentId);
 
   if (!student) return null;
@@ -29,7 +60,11 @@ const RemoveStudentModal = ({
       animationType="slide"
       transparent={true}
       visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)}
+      onRequestClose={() => {
+        if (!isLoading) {
+          setModalVisible(false);
+        }
+      }}
     >
       <View
         style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
@@ -40,7 +75,11 @@ const RemoveStudentModal = ({
             Are you sure you want to remove this student?
           </Text>
 
-          <View className="flex-row items-center mb-4">
+          <View
+            className={`flex-row items-center mb-4 ${
+              isLoading ? "opacity-50" : ""
+            }`}
+          >
             <View className="w-12 h-12 rounded-full bg-gray-200 mr-4 justify-center items-center">
               <Ionicons name="person" size={24} color="#999" />
             </View>
@@ -48,32 +87,50 @@ const RemoveStudentModal = ({
               <Text className="text-base font-poppins-medium text-gray-800">
                 {student.firstName + " " + student.lastName}
               </Text>
-              {/* <Text className="text-sm text-gray-500 font-poppins">
-                {student.email}
-              </Text> */}
             </View>
           </View>
 
-          <Text className="text-lg text-subtitlegray mb-2">
+          <Text
+            className={`text-lg text-subtitlegray mb-2 ${
+              isLoading ? "opacity-50" : ""
+            }`}
+          >
             This action cannot be undone.
           </Text>
 
-          <View className="flex-row justify-end py-2">
+          <View className="flex-row justify-end py-2 items-center">
             <TouchableOpacity
-              onPress={() => setModalVisible(false)}
+              onPress={handleCancel}
               className="px-4 py-2"
+              disabled={isLoading}
             >
-              <Text className="text-black font-semibold text-base">Cancel</Text>
+              <Text
+                className={`text-black font-semibold text-base ${
+                  isLoading ? "opacity-50" : ""
+                }`}
+              >
+                Cancel
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => {
-                onConfirm(studentId);
-              }}
-              className="px-4 py-2"
+              onPress={fetchRemoveStudent}
+              className="px-4 py-2 flex-row items-center"
+              disabled={isLoading}
             >
-              <Text className="text-red-500 font-semibold text-base">
-                Remove
+              {isLoading && (
+                <ActivityIndicator
+                  size="small"
+                  color="#ef4444"
+                  style={{ marginRight: 8 }}
+                />
+              )}
+              <Text
+                className={`font-semibold text-base ${
+                  isLoading ? "text-gray-400" : "text-red-500"
+                }`}
+              >
+                {isLoading ? "Removing..." : "Remove"}
               </Text>
             </TouchableOpacity>
           </View>

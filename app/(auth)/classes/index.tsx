@@ -23,36 +23,37 @@ const Classes = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Apis
+  const fetchClasses = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    //console.log(currentUser.id);
+
+    try {
+      const response = await ClassRoomService.getAllTeacherClasses(
+        currentUser.id,
+        showToast
+      );
+
+      const classes = response.data.data;
+      setClasses(classes);
+    } catch (error) {
+      console.error("Failed to fetch classes:", error);
+      setError("Failed to load classes. Please try again later.");
+      showToast("Failed to load classes", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchClasses = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      //console.log(currentUser.id);
-
-      try {
-        const response = await ClassRoomService.getAllTeacherClasses(
-          currentUser.id,
-          showToast
-        );
-
-        const classes = response.data.data;
-        setClasses(classes);
-      } catch (error) {
-        console.error("Failed to fetch classes:", error);
-        setError("Failed to load classes. Please try again later.");
-        showToast("Failed to load classes", "error");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     if (currentUser?.id) {
       fetchClasses();
     } else {
       setIsLoading(false);
     }
-  }, [currentUser?.id]);
+  }, []);
 
   const router = useRouter();
   const navigateToClassroom = (id: number) => {
@@ -279,6 +280,8 @@ const Classes = () => {
       <JoinClassModal
         modalVisible={joinClassModalVisible}
         setModalVisible={setJoinClassModalVisible}
+        studentId={currentUser.id}
+        loadData={fetchClasses}
       />
     </View>
   );

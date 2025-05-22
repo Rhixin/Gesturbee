@@ -55,15 +55,83 @@ const ClassRoomService = {
       showToast(message, "error");
     }
   },
-  removeStudent: async (studentId, classId, showToast, navigate) => {
+  getAllUsers: async () => {
     try {
-      const response = await api.post("/e-classroom/class/remove-student", {
-        studentId: studentId,
-        classId: classId,
-      });
+      const response = await api.get(`/e-classroom/user/all`);
+
+      return response;
+    } catch (error) {
+      const message = error.response?.data?.responseType;
+    }
+  },
+  getAllEnrollmentRequests: async (classId) => {
+    try {
+      const response = await api.post(
+        `/e-classroom/class/${classId}/enrollments-requests`
+      );
+
+      return response;
+    } catch (error) {
+      const message = error.response?.data?.responseType;
+    }
+  },
+  removeStudent: async (studentId, classId, showToast) => {
+    try {
+      const response = await api.post(
+        `/e-classroom/class/${classId}/remove-student/${studentId}`
+      );
 
       showToast("Successfully removed a student!", "success");
-      navigate(`/(auth)/classes/classroom/${classId}`);
+    } catch (error) {
+      const message = error.response?.data?.responseType;
+      showToast(message, "error");
+    }
+  },
+  acceptOrRejectEnrollmentRequest: async (
+    studentId,
+    classId,
+    accept,
+    showToast
+  ) => {
+    try {
+      const response = await api.post("/e-classroom/class/process-enrollment", {
+        studentId: studentId,
+        classId: classId,
+        accept: accept,
+      });
+
+      if (accept) {
+        showToast("Successfully accepted student!", "success");
+      } else {
+        showToast("Successfully rejected a student!", "success");
+      }
+    } catch (error) {
+      const message = error.response?.data?.responseType;
+      showToast(message, "error");
+    }
+  },
+  addStudent: async (studentId, classId, showToast) => {
+    try {
+      const response = await api.post(
+        `/e-classroom/class/${classId}/add-student/${studentId}`
+      );
+
+      showToast("Successfully added a student!", "success");
+      return response;
+    } catch (error) {
+      const message = error.response?.data?.responseType;
+      showToast(message, "error");
+    }
+  },
+  joinClass: async (classId, studentId, showToast) => {
+    try {
+      console.log("Class: " + classId + " Student: " + studentId);
+      const response = await api.post(
+        `/e-classroom/class/${classId}/request-enrollment/${studentId}`
+      );
+
+      showToast("Successfully requested to join the class!", "success");
+      return response;
     } catch (error) {
       const message = error.response?.data?.responseType;
       showToast(message, "error");

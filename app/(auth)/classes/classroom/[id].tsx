@@ -50,6 +50,8 @@ const Classroom = () => {
   // data needed before rendering
   const [students, setStudents] = useState(null);
   const [classroomDetails, setClassroomDetails] = useState(null);
+  const [enrollmentRequests, setEnrollmentRequests] = useState(null);
+  const [allUsers, setAllUsers] = useState(null);
 
   // apis
   const fetchClassroom = async () => {
@@ -80,49 +82,72 @@ const Classroom = () => {
     }
   };
 
-  const fetchRemoveStudent = async (studentId) => {
+  const fetchEnrollmentRequests = async (classId) => {
     try {
-      const response = await ClassRoomService.removeStudent(
-        studentId,
-        id,
-        showToast,
-        navigate
+      const response = await ClassRoomService.getAllEnrollmentRequests(classId);
+      const enrollementRequests = response?.data.data;
+      const enrollementRequestsProfile = enrollementRequests.map(
+        (item) => item.profile
       );
-      setRemoveStudentModalVisible(false);
-      // Refresh students list after removal
-      await fetchStudents();
+      setEnrollmentRequests(enrollementRequestsProfile);
+      return enrollementRequestsProfile;
     } catch (error) {
       showToast("Failed to remove student", "error");
     }
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      setError(null);
+  const fetchAllUsers = async () => {
+    try {
+      const response = await ClassRoomService.getAllUsers();
+      const users = response?.data.data;
+      const allUserProfiles = users.map((item) => item.profile);
 
-      try {
-        // Fetch both classroom details and students concurrently
-        const [classroomData, studentsData] = await Promise.all([
-          fetchClassroom(),
-          fetchStudents(),
-        ]);
+      setAllUsers(allUserProfiles);
+      return users;
+    } catch (error) {
+      console.error("Failed to fetch students:", error);
+      throw error;
+    }
+  };
 
-        // Check if both data sets were loaded successfully
-        if (!classroomData || studentsData === undefined) {
-          throw new Error("Failed to load required data");
-        }
-      } catch (error) {
-        console.error("Error loading classroom data:", error);
-        setError("Failed to load classroom data");
-        showToast("Failed to load classroom data", "error");
+  const loadData = async () => {
+    setIsLoading(true);
+    setError(null);
 
-        router.back();
-      } finally {
-        setIsLoading(false);
+    try {
+      // Fetch both classroom details and students concurrently
+      const [
+        classroomData,
+        studentsData,
+        enrollmentRequestsData,
+        allUsersData,
+      ] = await Promise.all([
+        fetchClassroom(),
+        fetchStudents(),
+        fetchEnrollmentRequests(id),
+        fetchAllUsers(),
+      ]);
+
+      // Check if all data sets were loaded successfully
+      if (
+        !classroomData ||
+        studentsData === undefined ||
+        !enrollmentRequestsData ||
+        !allUsersData
+      ) {
+        throw new Error("Failed to load required data");
       }
-    };
+    } catch (error) {
+      console.error("Error loading classroom data:", error);
+      setError("Failed to load classroom data");
+      showToast("Failed to load classroom data", "error");
+      router.back();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (id) {
       loadData();
     } else {
@@ -307,7 +332,16 @@ const Classroom = () => {
           </View>
 
           <View className="flex-row items-center ml-4">
-            <NotificationButton handleAcceptRequest={handleAddStudents} />
+            {isLoading ? (
+              <View className="w-10 h-10 rounded-full bg-gray-300 animate-pulse" />
+            ) : (
+              <NotificationButton
+                handleAcceptRequest={handleAddStudents}
+                enrollmentRequestsProfile={enrollmentRequests}
+                classId={id}
+                loadData={loadData}
+              />
+            )}
 
             <TouchableOpacity
               accessibilityLabel="Settings"
@@ -397,18 +431,25 @@ const Classroom = () => {
         setModalVisible={setAssignActivityModalVisible}
       />
 
-      <AddStudentModal
-        modalVisible={addStudentModalVisible}
-        setModalVisible={setAddStudentModalVisible}
-        onAddStudents={handleAddStudents}
-      />
+      {!isLoading && (
+        <AddStudentModal
+          modalVisible={addStudentModalVisible}
+          setModalVisible={setAddStudentModalVisible}
+          onAddStudents={handleAddStudents}
+          allUsers={allUsers}
+          studentsAlreadyAdded={students}
+          loadData={loadData}
+          classId={id}
+        />
+      )}
 
       <RemoveStudentModal
         modalVisible={removeStudentModalVisible}
         setModalVisible={setRemoveStudentModalVisible}
         studentId={selectedStudentId}
         students={students || []}
-        onConfirm={fetchRemoveStudent}
+        loadData={loadData}
+        classId={id}
       />
     </View>
   );
