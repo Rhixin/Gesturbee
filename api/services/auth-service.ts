@@ -9,10 +9,10 @@ const AuthService = {
         password: password,
       });
 
-      console.log(response);
-
       showToast("Logged in successfully!", "success");
       navigate("/(auth)/home");
+
+      return response;
     } catch (error) {
       const message = error.response.data.responseType;
       showToast(message, "error");

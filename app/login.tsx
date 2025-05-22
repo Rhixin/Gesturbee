@@ -187,10 +187,24 @@ const Login = () => {
     }
   };
 
-  // TODO: Normal Login Logic -------------------------------------------
+  // Normal Login Logic -------------------------------------------
   const normalLogInListener = async () => {
     setIsLoading(true);
-    await AuthService.login(email, password, showToast, navigate);
+    const response = await AuthService.login(
+      email,
+      password,
+      showToast,
+      navigate
+    );
+
+    const token = response.data.token;
+    const user = response.data.response.data;
+
+    await TokenService.saveToken(token);
+
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    setCurrentUser(user);
     setIsLoading(false);
   };
 
