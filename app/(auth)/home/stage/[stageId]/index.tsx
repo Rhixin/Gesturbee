@@ -91,7 +91,7 @@ export default function Stage() {
             </View>
             <View className="flex-1 flex-col justify-between">
               <Text className="text-tertiary font-poppins-bold text-xl">
-                {"Level: " + (index + 1) + ": " + item.levelname}
+                {"Level " + (index + 1) + ": " + item.levelname}
               </Text>
               <View className="h-auto">
                 <ProgressBar

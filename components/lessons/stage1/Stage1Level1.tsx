@@ -28,18 +28,20 @@ export default function Stage1Level1({
   setCurrentLessonTitle: React.Dispatch<React.SetStateAction<string>>;
   goToNextLesson: () => void;
 }) {
-  const MAX_LESSONS = 10;
+  const MAX_LESSONS = 12;
   const LESSON_TITLES = [
     "Starting off with the basics",
     "How well can you remember?",
     "It's your turn!",
-    "Can you perform D?",
-    "Can you perform E?",
-    "Can you perform F?",
-    "Can you perform G?",
-    "Can you perform H?",
-    "Can you perform I?",
-    "Can you perform J?",
+    "What is the answer?",
+    "Let's move on to the next letter",
+    "Can you still remember?",
+    "Now you try.",
+    "Let's test your signing skills",
+    "Let's proceed to the next letter",
+    "Now you try.",
+    "What letter is this?",
+    "Can you answer this?",
   ];
   const { stageId, levelId } = useLocalSearchParams();
   const { userSavedStage, userSavedLevel, userSavedLesson } = useLevel();
@@ -103,7 +105,7 @@ export default function Stage1Level1({
 
       {currentLessonIndex === 5 && (
         <VideoLesson
-          title={"A"}
+          title={"This is 'B'"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
@@ -112,38 +114,37 @@ export default function Stage1Level1({
       )}
 
       {currentLessonIndex === 6 && (
-        <VideoLesson
-          title={"A"}
+        <MultipleChoiceLesson
+          title={"What sign language is this?"}
+          videoSource={require("@/assets/videos/a.mp4")}
+          choices={["A", "B", "C", "D"]}
+          correctAnswer={"B"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
-        ></VideoLesson>
+        ></MultipleChoiceLesson>
       )}
 
       {currentLessonIndex === 7 && (
-        <VideoLesson
-          title={"A"}
-          videoRef={videoRef}
-          setStatus={setStatus}
+        <ExecuteLesson
+          title={"Execute B"}
+          correctAnswer={"B"}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
-        ></VideoLesson>
+        ></ExecuteLesson>
       )}
 
       {currentLessonIndex === 8 && (
-        <VideoLesson
-          title={"A"}
-          videoRef={videoRef}
-          setStatus={setStatus}
+        <SpellingLesson
+          title={"Can you fill in the missing letters?"}
+          correctWord={["B", "E", "A", "R"]}
+          questionWord={["_", "E", "_", "R"]}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
-        ></VideoLesson>
+        ></SpellingLesson>
       )}
 
       {currentLessonIndex === 9 && (
         <VideoLesson
-          title={"A"}
+          title={"This is 'C'"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
@@ -152,13 +153,31 @@ export default function Stage1Level1({
       )}
 
       {currentLessonIndex === 10 && (
-        <VideoLesson
-          title={"A"}
+        <ExecuteLesson
+          title={"Execute C"}
+          correctAnswer={"C"}
+          currentLessonIndex={currentLessonIndex}
+        ></ExecuteLesson>
+      )}
+       {currentLessonIndex === 11 && (
+         <MultipleChoiceLesson
+          title={"What sign language is this?"}
+          videoSource={require("@/assets/videos/a.mp4")}
+          choices={["A", "B", "C", "D"]}
+          correctAnswer={"C"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
-        ></VideoLesson>
+        ></MultipleChoiceLesson>
+      )}
+
+      {currentLessonIndex === 12 && (
+        <SpellingLesson
+          title={"Fill in the missing letters."}
+          correctWord={["C", "A", "B", "I", "N"]}
+          questionWord={["_", "_", "_", "I", "N"]}
+          currentLessonIndex={currentLessonIndex}
+        ></SpellingLesson>
       )}
     </>
   );
