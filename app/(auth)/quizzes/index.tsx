@@ -1,7 +1,10 @@
 import Beehive from "@/components/Beehive";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import CreateQuizModal from "@/components/CreateMultipleChoice"; 
+import CreateActionQuizModal from "@/components/CreateExecution";
 
 export default function Quizzes() {
   const progress = 70;
@@ -10,36 +13,128 @@ export default function Quizzes() {
     return require("@/assets/images/progress70.png");
   };
 
-  const dummyData = [
-    { id: 1, title: "Quiz 1: A-E", class: "ASL01", progress: 20 },
-    { id: 2, title: "Quiz 2: F-K", class: "ASL02", progress: 30 },
-    { id: 3, title: "Quiz 3: L-Q", class: "ASL03", progress: 80 },
-    { id: 4, title: "Quiz 4: R-Z", class: "ASL04", progress: 60 },
-  ];
+  type QuizQuestion = {
+    id: number;
+    question: string;
+    choices: {
+      A: string;
+      B: string;
+      C: string;
+      D: string;
+    };
+    correctAnswer: 'A' | 'B' | 'C' | 'D';
+  };
+  
+  type Quiz = {
+    id: number;
+    title: string;
+    type: string;
+    progress: number;
+    questions: QuizQuestion[];
+    description: string;
+    createdAt: string;
+    questionCount: number;
+  };
+  
+  
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+
+  const [nextQuizId, setNextQuizId] = useState(1);
+
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  const [createMultipleChoiceVisible, setCreateMultipleChoiceVisible] = useState(false);
+  const [createExecutionVisible, setCreateExecutionVisible] = useState(false);
+
+  
+  const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
+
+  
+
+  // Function to handle adding new quiz
+  const addNewQuiz = (newQuiz) => {
+    const quizWithId = {
+      id: nextQuizId,
+      title: newQuiz.title,
+      type: newQuiz.type || "General", 
+      progress: 0,
+      questions: newQuiz.questions,
+      description: newQuiz.description,
+      createdAt: newQuiz.createdAt,
+      questionCount: newQuiz.questions?.length || 0 // Track number of questions
+    };
+    setQuizzes([...quizzes, quizWithId]);
+    setNextQuizId(prev => prev + 1);
+  };
+
+  // Close dropdown when clicking outside (you might want to add this functionality)
+  const handleOutsidePress = () => {
+    if (dropdownVisible) {
+      setDropdownVisible(false);
+    }
+  };
 
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <SafeAreaView className="px-6 pt-10 flex-row justify-between items-center z-50 bg-white  shadow-sm">
-        <Text className="text-3xl font-poppins-bold  text-titlegray">
+      <SafeAreaView className="px-6 pt-10 flex-row justify-between items-center z-50 bg-white shadow-sm">
+        <Text className="text-3xl font-poppins-bold text-titlegray">
           Quizzes
         </Text>
+
+        <View className="relative">
+          <TouchableOpacity
+            onPress={toggleDropdown}
+            className="bg-secondary w-11 h-11 rounded-full items-center justify-center"
+          >
+            <Ionicons name="add" size={32} color="white" />
+          </TouchableOpacity>
+
+          {dropdownVisible && (
+            <View className="absolute top-12 right-0 bg-white shadow-md min-w-[150px] rounded-md z-50 border border-gray-100">
+              <TouchableOpacity
+                className="px-4 py-3 flex-row items-center border-b border-gray-100"
+                onPress={() => {
+                  setCreateMultipleChoiceVisible(true);
+                  setDropdownVisible(false);
+                }}>
+                <Ionicons name="list-outline" size={20} color="#00BFAF" />
+                <Text className="ml-2 text-gray-700 font-medium">
+                  Multiple Choice
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="px-4 py-3 flex-row items-center"
+                onPress={() => {
+                  setCreateExecutionVisible(true);
+                  setDropdownVisible(false);
+                }}
+              >
+                <Ionicons name="play-outline" size={20} color="#00BFAF" />
+                <Text className="ml-2 text-gray-700 font-medium">
+                  Execution Type
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </SafeAreaView>
 
       {/* Content */}
       <ScrollView contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}>
-        {dummyData.map((item) => (
+        {quizzes.map((item) => (
           <TouchableOpacity
             key={item.id}
             className="bg-white rounded-lg p-4 mx-4 mt-4 flex-row shadow-sm border border-gray-200"
             activeOpacity={0.9}
           >
             <View className="items-center justify-center">
-              <Beehive percentage={progress} isGeneral={false}></Beehive>
+              <Beehive percentage={item.progress || progress} isGeneral={false}></Beehive>
               <View className="items-center mt-2">
                 <Text className="text-[10px] text-gray-500">Progress</Text>
                 <Text className="text-[20px] text-green-500 font-bold">
-                  {progress}%
+                  {item.progress || progress}%
                 </Text>
               </View>
             </View>
@@ -49,20 +144,46 @@ export default function Quizzes() {
                 <Text className="text-lg font-poppins-medium mb-1">
                   {item.title}
                 </Text>
-                <Text className="text-sm text-gray-700 font-poppins-medium mb-2">
-                  Class: {item.class}
+                <Text className="text-sm text-gray-700 font-poppins-medium mb-1">
+                  Type: {item.type}
                 </Text>
+                {/* Show question count for newly created quizzes */}
+                {item.questionCount && (
+                  <Text className="text-xs text-gray-500 mb-2">
+                    {item.questionCount} question{item.questionCount !== 1 ? 's' : ''}
+                  </Text>
+                )}
+                {/* Show description if available */}
+                {item.description && (
+                  <Text className="text-xs text-gray-600 mb-2" numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                )}
               </View>
 
               <TouchableOpacity className="bg-yellow-400 py-2 px-6 rounded-full self-start mb-2 w-full">
                 <Text className="font-poppins-medium text-white text-center text-sm">
-                  Continue Progress
+                 View Quiz
                 </Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* Create Quiz Modal */}
+      <CreateQuizModal
+        modalVisible={createMultipleChoiceVisible}
+        setModalVisible={setCreateMultipleChoiceVisible}
+        addNewQuiz={addNewQuiz}
+      />
+
+
+      <CreateActionQuizModal
+        modalVisible={createExecutionVisible}
+        setModalVisible={setCreateExecutionVisible}
+        addNewQuiz={addNewQuiz}
+      />
     </View>
   );
 }
