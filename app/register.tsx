@@ -1,3 +1,9 @@
+// new update:
+// fixed birthday,
+// can't click to the next sa step indicator but maka previous click
+// should use the next button for next step
+
+
 import React, { useRef, useState } from "react";
 import {
   View,
@@ -8,9 +14,12 @@ import {
   Image,
   KeyboardAvoidingView,
   ScrollView,
+  Keyboard,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Modal, Pressable} from "react-native";
+
 import StepIndicator from "../components/StepIndicator";
 import CustomDropdown from "../components/GenderDropDown";
 import { useGlobal } from "@/context/GlobalContext";
@@ -62,6 +71,8 @@ const Register = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [firstNameError, setFirstNameError] = useState("");
+  const [lastNameError, setLastNameError] = useState("");
 
   //Focus states
   const [emailisFocused, emailsetIsFocused] = useState(false);
@@ -77,6 +88,19 @@ const Register = () => {
   //birthday
   const [showPicker, setShowPicker] = useState(false);
   const [birthdayDate, setBirthdayDate] = useState(new Date());
+
+  const handleBirthdayPress = () => {
+    Keyboard.dismiss();
+    setTimeout(() => {
+      setShowPicker(true);
+    }, 100);
+  };
+
+  const handleStepChange = (targetStep) => {
+    if (targetStep <= currentStep) {
+      setCurrentStep(targetStep);
+    }
+  };
 
   const validateEmail = (email: string | undefined) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -98,7 +122,76 @@ const Register = () => {
     return "";
   };
 
+  const validateFirstName = (firstName: string | undefined) => {
+    if (!firstName || firstName.trim() === "") return "First name is required";
+    return "";
+  };
+
+  const validateLastName = (lastName: string | undefined) => {
+    if (!lastName || lastName.trim() === "") return "Last name is required";
+    return "";
+  };
+
+  // Check if current step is valid
+  const isCurrentStepValid = () => {
+    if (currentStep === 1) {
+      return userForm.firstName.trim() && 
+             userForm.lastName.trim() && 
+             userForm.contactNumber.trim() && 
+             userForm.gender && 
+             userForm.birthday;
+    }
+    
+    if (currentStep === 2) {
+      return userForm.selectedRole;
+    }
+    
+    if (currentStep === 3) {
+      return userForm.email.trim() && 
+             userForm.password && 
+             userForm.confirmPassword &&
+             !validateEmail(userForm.email) &&
+             !validatePassword(userForm.password) &&
+             !validateConfirmPassword(userForm.confirmPassword);
+    }
+    
+    return false;
+  };
+
   const handleNext = () => {
+    if (currentStep === 1) {
+      const firstNameValidation = validateFirstName(userForm.firstName);
+      const lastNameValidation = validateLastName(userForm.lastName);
+
+      setFirstNameError(firstNameValidation);
+      setLastNameError(lastNameValidation);
+
+      // Check if all required fields in step 1 are filled
+      if (firstNameValidation || lastNameValidation || 
+          !userForm.firstName.trim() || !userForm.lastName.trim() ||
+          !userForm.contactNumber.trim() || !userForm.gender || !userForm.birthday) {
+        
+        if (!userForm.contactNumber.trim()) {
+          showToast("Contact number is required", "error");
+        }
+        if (!userForm.gender) {
+          showToast("Please select your gender", "error");
+        }
+        if (!userForm.birthday) {
+          showToast("Please select your birthday", "error");
+        }
+        return;
+      }
+    }
+
+    if (currentStep === 2) {
+      // Check if role is selected
+      if (!userForm.selectedRole) {
+        showToast("Please select your role (Teacher or Student)", "error");
+        return;
+      }
+    }
+
     if (currentStep === 3) {
       const emailValidation = validateEmail(userForm.email);
       const passwordValidation = validatePassword(userForm.password);
@@ -113,6 +206,9 @@ const Register = () => {
       if (emailValidation || passwordValidation || confirmPasswordValidation) {
         return;
       }
+
+      normalRegisterListener(); 
+      return;
     }
 
     if (currentStep < totalSteps) {
@@ -121,6 +217,8 @@ const Register = () => {
       normalRegisterListener();
     }
   };
+
+
 
   // TODO: birthdate
   const normalRegisterListener = async () => {
@@ -146,33 +244,38 @@ const Register = () => {
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
     >
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View className="bg-primary h-[100vh] flex">
-          {/* Top Message */}
-          <View className="min-h-[100px] flex flex-row items-center justify-start gap-6 px-6 mt-20">
-            <Text className="text-white font-poppins-bold text-3xl">
-              Register
-            </Text>
+      <View className="bg-primary flex-1">
+        <View className="min-h-[100px] flex flex-row items-center justify-start gap-6 px-6 mt-20">
+          <Text className="text-white font-poppins-bold text-3xl">
+            Register
+          </Text>
+          <Image
+            source={require("../assets/images/Bee.png")}
+            style={{ width: 70, height: 70, resizeMode: "contain" }}
+          />
+        </View>
 
-            <Image
-              source={require("../assets/images/Bee.png")}
-              style={{ width: 70, height: 70, resizeMode: "contain" }}
-            />
-          </View>
-
-          {/* White Container */}
-          <View className="bg-white h-[80vh] w-full rounded-t-3xl flex-1 p-6">
+        <View className="bg-white flex-1 w-full rounded-t-3xl">
+          <ScrollView
+            contentContainerStyle={{ 
+              flexGrow: 1, 
+              paddingHorizontal: 24, 
+              paddingVertical: 24,
+              paddingBottom: 40 
+            }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <StepIndicator
-              currentStep={currentStep}
-              setCurrentStep={setCurrentStep}
-              totalSteps={totalSteps}
-            />
+            currentStep={currentStep}
+            setCurrentStep={handleStepChange}
+            totalSteps={totalSteps}
+          />
 
-            <Text className="text-2xl font-bold text-primary ">Sign Up</Text>
+            <Text className="text-2xl font-bold text-primary">Sign Up</Text>
+            
             {currentStep === 3 && (
               <View className="mt-6">
                 <Text className="text-lg font-semibold text-titlegray mb-4">
@@ -330,14 +433,13 @@ const Register = () => {
                 </View>
 
                 <TouchableOpacity
-                  className="bg-teal-500 p-4 rounded-lg flex-row justify-center items-center"
-                  onPress={handleNext}
-                  activeOpacity={0.8}
-                >
-                  <Text className="text-white text-lg font-semibold">
-                    Register
-                  </Text>
-                </TouchableOpacity>
+                className="bg-primary py-3 rounded-lg mt-6"
+                onPress={handleNext}
+              >
+                <Text className="text-white text-center text-lg font-semibold">
+                  {currentStep === totalSteps ? "Register" : "Next"}
+                </Text>
+              </TouchableOpacity>
               </View>
             )}
 
@@ -372,8 +474,7 @@ const Register = () => {
                           : "text-gray-600"
                       }`}
                     >
-                      {" "}
-                      Teacher{" "}
+                      Teacher
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -403,16 +504,20 @@ const Register = () => {
                           : "text-gray-600"
                       }`}
                     >
-                      {" "}
-                      Student{" "}
+                      Student
                     </Text>
                   </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="bg-teal-500 p-4 rounded-lg flex-row justify-center items-center"
-                  onPress={handleNext}
-                  activeOpacity={0.8}
+                  className={`p-4 rounded-lg flex-row justify-center items-center mb-6 ${
+                    isCurrentStepValid() 
+                      ? "bg-teal-500" 
+                      : "bg-gray-400"
+                  }`}
+                  onPress={isCurrentStepValid() ? handleNext : undefined}
+                  activeOpacity={isCurrentStepValid() ? 0.8 : 1}
+                  disabled={!isCurrentStepValid()}
                 >
                   <Text className="text-white text-lg font-semibold">Next</Text>
                   <Ionicons
@@ -435,79 +540,115 @@ const Register = () => {
                   <Text className="text-sm font-medium text-subtitlegray mb-2">
                     First Name
                   </Text>
+                  <View
+                    className={`border rounded-lg bg-gray-100 px-4 py-1 ${
+                      firstNameError
+                        ? "border-red-500"
+                        : firstnameisFocused
+                        ? "border-blue-700"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    <TextInput
+                      className={"text-base bg-gray-100 w-full min-h-[40px]"}
+                      value={userForm.firstName}
+                      style={{
+                        outlineStyle: "none",
+                        textAlignVertical: "center",
+                      }}
+                      onChangeText={(text) => {
+                        setUserForm((prev: any) => ({
+                          ...prev,
+                          firstName: text,
+                        }));
+                        setFirstNameError("");
+                      }}
+                      placeholder="Enter your first name"
+                      placeholderTextColor="#888"
+                      onFocus={() => firstnamesetIsFocused(true)}
+                      onBlur={() => firstnamesetIsFocused(false)}
+                    />
+                  </View>
 
-                  <TextInput
-                    className={`border p-4 rounded-lg text-base bg-gray-100 ${
-                      firstnameisFocused ? "border-blue-700" : "border-gray-300"
-                    } `}
-                    value={userForm.firstName}
-                    onChangeText={(text) => {
-                      setUserForm((prev: any) => ({
-                        ...prev,
-                        firstName: text,
-                      }));
-                    }}
-                    style={{
-                      outlineStyle: "none",
-                    }}
-                    placeholder="Enter your first name"
-                    placeholderTextColor="#888"
-                    onFocus={() => firstnamesetIsFocused(true)}
-                    onBlur={() => firstnamesetIsFocused(false)}
-                  />
+                  {firstNameError ? (
+                    <Text className="text-red-500 text-sm mt-1 ml-1">
+                      {firstNameError}
+                    </Text>
+                  ) : null}
                 </View>
 
                 <View className="mb-5">
                   <Text className="text-sm font-medium text-subtitlegray mb-2">
                     Last Name
                   </Text>
-                  <TextInput
-                    className={`border p-4 rounded-lg text-base bg-gray-100 ${
-                      lastnameisFocused ? "border-blue-700" : "border-gray-300"
-                    } `}
-                    value={userForm.lastName}
-                    onChangeText={(text) => {
-                      setUserForm((prev: any) => ({
-                        ...prev,
-                        lastName: text,
-                      }));
-                    }}
-                    style={{
-                      outlineStyle: "none",
-                    }}
-                    placeholder="Enter your last name"
-                    placeholderTextColor="#888"
-                    onFocus={() => lastnamesetIsFocused(true)}
-                    onBlur={() => lastnamesetIsFocused(false)}
-                  />
+                  <View
+                    className={`border rounded-lg bg-gray-100 px-4 py-1 ${
+                      lastNameError
+                        ? "border-red-500"
+                        : lastnameisFocused
+                        ? "border-blue-700"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    <TextInput
+                      className={"text-base bg-gray-100 w-full min-h-[40px]"}
+                      value={userForm.lastName}
+                      style={{
+                        outlineStyle: "none",
+                        textAlignVertical: "center",
+                      }}
+                      onChangeText={(text) => {
+                        setUserForm((prev: any) => ({
+                          ...prev,
+                          lastName: text,
+                        }));
+                        setLastNameError("");
+                      }}
+                      placeholder="Enter your last name"
+                      placeholderTextColor="#888"
+                      onFocus={() => lastnamesetIsFocused(true)}
+                      onBlur={() => lastnamesetIsFocused(false)}
+                    />
+                  </View>
+
+                  {lastNameError ? (
+                    <Text className="text-red-500 text-sm mt-1 ml-1">
+                      {lastNameError}
+                    </Text>
+                  ) : null}
                 </View>
 
                 <View className="mb-5">
                   <Text className="text-sm font-medium text-subtitlegray mb-2">
                     Contact Number
                   </Text>
-                  <TextInput
-                    className={`border p-4 rounded-lg text-base bg-gray-100 ${
+                  <View
+                    className={`border rounded-lg bg-gray-100 px-4 py-1 ${
                       contactNumberIsFocused
                         ? "border-blue-700"
                         : "border-gray-300"
                     }`}
-                    value={userForm.contactNumber}
-                    onChangeText={(text) => {
-                      setUserForm((prev) => ({
-                        ...prev,
-                        contactNumber: text,
-                      }));
-                    }}
-                    style={{
-                      outlineStyle: "none",
-                    }}
-                    placeholder="Enter your contact number"
-                    placeholderTextColor="#888"
-                    keyboardType="phone-pad"
-                    onFocus={() => setContactNumberIsFocused(true)}
-                    onBlur={() => setContactNumberIsFocused(false)}
-                  />
+                  >
+                    <TextInput
+                      className={"text-base bg-gray-100 w-full min-h-[40px]"}
+                      value={userForm.contactNumber}
+                      style={{
+                        outlineStyle: "none",
+                        textAlignVertical: "center",
+                      }}
+                      onChangeText={(text) => {
+                        setUserForm((prev) => ({
+                          ...prev,
+                          contactNumber: text,
+                        }));
+                      }}
+                      placeholder="Enter your contact number"
+                      placeholderTextColor="#888"
+                      keyboardType="phone-pad"
+                      onFocus={() => setContactNumberIsFocused(true)}
+                      onBlur={() => setContactNumberIsFocused(false)}
+                    />
+                  </View>
                 </View>
 
                 <CustomDropdown
@@ -523,41 +664,77 @@ const Register = () => {
                   }}
                 />
 
-                <View className="mb-5">
-                  <Text className="text-sm font-medium text-subtitlegray mb-2">
-                    Birthday
+              <View className="mb-5">
+                <Text className="text-sm font-medium text-subtitlegray mb-2">
+                  Birthday
+                </Text>
+                <TouchableOpacity
+                  onPress={handleBirthdayPress}
+                  className={`border p-4 rounded-lg text-base bg-gray-100 ${
+                    birthdayisFocused ? "border-blue-700" : "border-gray-300"
+                  }`}
+                  onFocus={() => birthdaysetIsFocused(true)}
+                  onBlur={() => birthdaysetIsFocused(false)}
+                >
+                  <Text className="text-base text-gray-700">
+                    {userForm.birthday
+                      ? new Date(userForm.birthday).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })
+                      : "Select your birthday"}
                   </Text>
-                  <TouchableOpacity
-                    onPress={() => setShowPicker(true)}
-                    className={`border p-4 rounded-lg text-base bg-gray-100 ${
-                      birthdayisFocused ? "border-blue-700" : "border-gray-300"
-                    }`}
-                    onFocus={() => birthdaysetIsFocused(true)}
-                    onBlur={() => birthdaysetIsFocused(false)}
-                  >
-                    <Text className="text-base text-gray-700">
-                      {userForm.birthday
-                        ? new Date(userForm.birthday).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            }
-                          )
-                        : "Select your birthday"}
-                    </Text>
-                  </TouchableOpacity>
+                </TouchableOpacity>
 
-                  {showPicker && (
+                {Platform.OS === "ios" ? (
+                  <Modal
+                    transparent
+                    visible={showPicker}
+                    animationType="slide"
+                    onRequestClose={() => setShowPicker(false)}
+                  >
+                    <Pressable
+                      style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.3)" }}
+                      onPress={() => setShowPicker(false)} 
+                    >
+                      <Pressable
+                        onPress={() => {}}
+                        style={{
+                          backgroundColor: "white",
+                          marginHorizontal: 20,
+                          borderRadius: 10,
+                          padding: 10,
+                        }}
+                      >
+                        <DateTimePicker
+                          value={birthdayDate}
+                          mode="date"
+                          display="spinner"
+                          maximumDate={new Date()}
+                          onChange={(event, selectedDate) => {
+                            if (event.type === "set" && selectedDate) {
+                              setBirthdayDate(selectedDate);
+                              setUserForm((prev: any) => ({
+                                ...prev,
+                                birthday: selectedDate.toISOString(),
+                              }));
+                            }
+                          }}
+                        />
+                      </Pressable>
+                    </Pressable>
+                  </Modal>
+                ) : (
+                  showPicker && (
                     <DateTimePicker
                       value={birthdayDate}
                       mode="date"
                       display="spinner"
                       maximumDate={new Date()}
                       onChange={(event, selectedDate) => {
-                        setShowPicker(Platform.OS === "ios");
-                        if (selectedDate) {
+                        setShowPicker(false); 
+                        if (event.type === "set" && selectedDate) {
                           setBirthdayDate(selectedDate);
                           setUserForm((prev: any) => ({
                             ...prev,
@@ -566,13 +743,20 @@ const Register = () => {
                         }
                       }}
                     />
-                  )}
-                </View>
+                  )
+                )}
+
+              </View>
 
                 <TouchableOpacity
-                  className="bg-teal-500 p-4 rounded-lg flex-row justify-center items-center"
-                  onPress={handleNext}
-                  activeOpacity={0.8}
+                  className={`p-4 rounded-lg flex-row justify-center items-center mb-6 ${
+                    isCurrentStepValid() 
+                      ? "bg-teal-500" 
+                      : "bg-gray-400"
+                  }`}
+                  onPress={isCurrentStepValid() ? handleNext : undefined}
+                  activeOpacity={isCurrentStepValid() ? 0.8 : 1}
+                  disabled={!isCurrentStepValid()}
                 >
                   <Text className="text-white text-lg font-semibold">Next</Text>
                   <Ionicons
@@ -605,9 +789,9 @@ const Register = () => {
                 </TouchableOpacity>
               </Text>
             </View>
-          </View>
+          </ScrollView>
         </View>
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 };
