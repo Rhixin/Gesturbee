@@ -1,7 +1,9 @@
+import { useAuth } from "@/context/AuthContext";
 import { useLevel } from "@/context/LevelContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Video, ResizeMode } from "expo-av";
 import { useLocalSearchParams } from "expo-router";
+import React from "react";
 import { useEffect } from "react";
 import { TouchableOpacity, View, Text } from "react-native";
 
@@ -26,7 +28,7 @@ export default function VideoLesson({
     updateLevel,
   } = useLevel();
   const { stageId, levelId } = useLocalSearchParams();
-
+  const { currentUser } = useAuth();
   // Handle mo next cya bisag humana ani nga level
   const isThisLessonAlreadyDone = () => {
     if (
@@ -45,13 +47,22 @@ export default function VideoLesson({
     if (!isThisLessonAlreadyDone()) {
       // Update Database
       if (userSavedLesson === userSavedTotalLesson) {
-        updateLevel(userSavedStage, userSavedLevel + 1, 1, 10);
+        updateLevel(
+          currentUser.id,
+          userSavedStage,
+          userSavedLevel + 1,
+          1,
+          12,
+          true
+        );
       } else {
         updateLevel(
+          currentUser.id,
           userSavedStage,
           userSavedLevel,
           userSavedLesson + 1,
-          userSavedTotalLesson
+          userSavedTotalLesson,
+          false
         );
       }
     } else {

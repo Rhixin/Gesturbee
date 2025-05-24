@@ -31,11 +31,7 @@ const AddStudentModal = ({
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
-  const [validUsersToAdd, setValidUsersToAdd] = useState(
-    allUsers?.filter(
-      (user) => !studentsAlreadyAdded?.some((s) => s.id === user.id)
-    ) || []
-  );
+  const [validUsersToAdd, setValidUsersToAdd] = useState(allUsers);
 
   // Apis here
   const fetchAddStudent = async (studentId, classId) => {

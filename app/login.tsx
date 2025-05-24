@@ -15,6 +15,7 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
 import { useAuth } from "@/context/AuthContext";
+import { useLevel } from "@/context/LevelContext";
 
 import { useToast } from "@/context/ToastContext";
 import api from "@/api/axios-config";
@@ -22,6 +23,7 @@ import api from "@/api/axios-config";
 import { makeRedirectUri } from "expo-auth-session";
 import TokenService from "@/api/services/token-service";
 import AuthService from "@/api/services/auth-service";
+import RoadmapService from "@/api/services/roadmap-service";
 
 // Ensure this is called OUTSIDE your component
 WebBrowser.maybeCompleteAuthSession();
@@ -33,7 +35,9 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const router = useRouter();
   const { setCurrentUser } = useAuth();
+  const { initializeLevel } = useLevel();
   const { showToast } = useToast();
+
   const navigate = (path) => {
     router.push(path);
   };
@@ -48,8 +52,6 @@ const Login = () => {
 
   const FB_APP_ID = "1014031907323169";
   const REDIRECT_URI = makeRedirectUri();
-  const FACEBOOK_REDIRECT_URI = "https://zmsgfpa-zian17-8081.exp.direct";
-  const GOOGLE_REDIRECT_URI = "https://zmsgfpa-zian17-8081.exp.direct";
 
   // GOOGLE OAuth  ---------------------------------------------------
   const [googleRequest, googleResponse, googlePromptAsync] =
@@ -62,35 +64,69 @@ const Login = () => {
       responseType: "id_token",
     });
 
+  // Sequential API calls function
+  const handleSuccessfulAuth = async (user, token) => {
+    try {
+      // Save token and set auth header
+      await TokenService.saveToken(token);
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      // Set user in context
+      setCurrentUser(user);
+
+      // Fetch user progress - this MUST succeed before navigation
+      const progressResponse = await fetchCurrentRoadmapProgress(user.id);
+
+      // Only proceed if progress data was successfully fetched
+      if (progressResponse) {
+        const { stage, level } = progressResponse.data.data;
+        initializeLevel(user.id, stage, level);
+      } else {
+        throw new Error("Failed to load user progress data");
+      }
+
+      // Navigate to home only after everything succeeds
+      setIsLoading(false);
+      router.replace("/(auth)/home");
+      showToast("Logged in successfully!", "success");
+    } catch (error) {
+      console.error("Error in authentication flow:", error);
+      setIsLoading(false);
+
+      // Clear any saved data on failure
+      await TokenService.removeToken();
+      delete api.defaults.headers.common["Authorization"];
+      setCurrentUser(null);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed. Please try again.";
+      showToast(errorMessage, "error");
+    }
+  };
+
   // Handle Google auth response
   useEffect(() => {
     const handleGoogleAuthResponse = async () => {
       if (googleResponse?.type === "success") {
         try {
-          // 1. Get Google ID token
+          setIsLoading(true);
+
+          // Get Google ID token
           const googleToken = googleResponse.params.id_token;
 
-          // 2. Send Google token to backend
+          // Send Google token to backend
           const response = await api.post("/auth/external-login/google", {
             idToken: googleToken,
           });
 
-          // 3. Backend responds with your app's tokens
+          // Backend responds with your app's tokens
           const token = response.data.token;
           const user = response.data.response.data;
 
-          // 4. Save the token to TokenService
-          await TokenService.saveToken(token);
-
-          // 5. Set Authorization header for future requests
-          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-          // 6. Update the user in AuthContext
-          setCurrentUser(user);
-
-          // // 7. Navigate to authenticated area
-          router.replace("/(auth)/home");
-          showToast("Logged in successfully!", "success");
+          // Handle sequential auth flow
+          await handleSuccessfulAuth(user, token);
         } catch (error) {
           console.error("Error during Google authentication:", error);
           setIsLoading(false);
@@ -110,7 +146,6 @@ const Login = () => {
     try {
       setIsLoading(true);
       await googlePromptAsync();
-      setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
       showToast("Google login failed!", "error");
@@ -136,32 +171,21 @@ const Login = () => {
       if (facebookResponse?.type === "success") {
         try {
           setIsLoading(true);
-          // 1. Get Facebook access token
+
+          // Get Facebook access token
           const facebookAccessToken = facebookResponse.params.access_token;
 
-          // 2. Send Facebook token to joshua's api
+          // Send Facebook token to backend
           const response = await api.post("/auth/external-login/facebook", {
             accessToken: facebookAccessToken,
           });
 
-          console.log(response);
-          // 3. Backend responds with your app's tokens
+          // Backend responds with your app's tokens
           const token = response.data.token;
           const user = response.data.response.data;
 
-          // 4. Save the token to TokenService
-          await TokenService.saveToken(token);
-
-          // 5. Set Authorization header for future requests
-          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-          // 6. Update the user in AuthContext
-          setCurrentUser(user);
-
-          // 7. Navigate to authenticated area
-          setIsLoading(false);
-          router.replace("/(auth)/home");
-          showToast("Logged in successfully!", "success");
+          // Handle sequential auth flow
+          await handleSuccessfulAuth(user, token);
         } catch (error) {
           console.error("Error during Facebook authentication:", error);
           setIsLoading(false);
@@ -180,7 +204,6 @@ const Login = () => {
     try {
       setIsLoading(true);
       await facebookPromptAsync();
-      setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
       showToast("Facebook login failed!", "error");
@@ -189,28 +212,37 @@ const Login = () => {
 
   // Normal Login Logic -------------------------------------------
   const normalLogInListener = async () => {
-    setIsLoading(true);
-    const response = await AuthService.login(
-      email,
-      password,
-      showToast,
-      navigate
-    );
+    try {
+      setIsLoading(true);
 
-    const token = response.data.token;
-    const user = response.data.response.data;
+      const response = await AuthService.login(
+        email,
+        password,
+        showToast,
+        navigate
+      );
 
-    await TokenService.saveToken(token);
+      const token = response.data.token;
+      const user = response.data.response.data;
 
-    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-    setCurrentUser(user);
-    setIsLoading(false);
+      await handleSuccessfulAuth(user, token);
+    } catch (error) {
+      console.error("Error during normal login:", error);
+      setIsLoading(false);
+    }
   };
 
-  // if (isLoading) {
-  //   return <Loading />;
-  // }
+  // Fetch user progress API
+  const fetchCurrentRoadmapProgress = async (userId) => {
+    try {
+      const response = await RoadmapService.getLevel(userId);
+      console.log("ROADMAP PROGRESS:", response);
+      return response;
+    } catch (error) {
+      console.error("Failed to fetch roadmap progress:", error);
+      throw error; // Re-throw to be caught by the calling function
+    }
+  };
 
   return (
     <View className="bg-primary h-[100vh] flex ">
@@ -242,6 +274,7 @@ const Login = () => {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              editable={!isLoading}
             />
           </View>
         </View>
@@ -261,15 +294,17 @@ const Login = () => {
               value={password}
               onChangeText={setPassword}
               autoCapitalize="none"
+              editable={!isLoading}
             />
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}
               activeOpacity={0.8}
+              disabled={isLoading}
             >
               <Ionicons
                 name={showPassword ? "eye-off" : "eye"}
                 size={24}
-                color="#6B7280"
+                color={isLoading ? "#D1D5DB" : "#6B7280"}
               />
             </TouchableOpacity>
           </View>
@@ -286,7 +321,7 @@ const Login = () => {
         <TouchableOpacity
           onPress={normalLogInListener}
           className={`px-6 py-4 rounded-lg mx-auto w-full mt-4 ${
-            isLoading ? "bg-gray-600" : "bg-primary"
+            isLoading ? "bg-gray-400" : "bg-primary"
           }`}
           activeOpacity={0.8}
           disabled={isLoading}
@@ -294,7 +329,7 @@ const Login = () => {
           {isLoading ? (
             <View className="flex-row justify-center items-center space-x-2">
               <ActivityIndicator size="small" color="#fff" />
-              <Text className="text-white font-poppins-bold">
+              <Text className="text-white font-poppins-bold text-center ml-2">
                 Logging in...
               </Text>
             </View>
@@ -325,20 +360,24 @@ const Login = () => {
         <View className="flex flex-row justify-center space-x-6 mt-10 gap-8">
           {/* Google Icon */}
           <TouchableOpacity
-            className="bg-transparent rounded-full"
+            className={`bg-transparent rounded-full ${
+              isLoading ? "opacity-50" : "opacity-100"
+            }`}
             activeOpacity={0.8}
             onPress={googleLogInListener}
-            disabled={!googleRequest}
+            disabled={!googleRequest || isLoading}
           >
             <Ionicons name="logo-google" size={36} color="#DB4437" />
           </TouchableOpacity>
 
           {/* Facebook Icon */}
           <TouchableOpacity
-            className="bg-transparent rounded-full"
+            className={`bg-transparent rounded-full ${
+              isLoading ? "opacity-50" : "opacity-100"
+            }`}
             activeOpacity={0.8}
             onPress={facebookLogInListener}
-            disabled={!facebookRequest}
+            disabled={!facebookRequest || isLoading}
           >
             <Ionicons name="logo-facebook" size={36} color="#4267B2" />
           </TouchableOpacity>

@@ -1,5 +1,4 @@
 import api from "../axios-config";
-import { navigate } from "expo-router/build/global-state/routing";
 
 const ClassRoomService = {
   createClassroom: async (
@@ -26,8 +25,7 @@ const ClassRoomService = {
   getClassroom: async (classId, showToast) => {
     try {
       const response = await api.get(`/e-classroom/class/${classId}`);
-
-      return response;
+      return response.data.data;
     } catch (error) {
       const message = error.response?.data?.responseType;
       showToast(message, "error");
@@ -48,8 +46,9 @@ const ClassRoomService = {
   getAllStudentsInThisClass: async (classId, showToast) => {
     try {
       const response = await api.get(`/e-classroom/class/${classId}/students`);
-
-      return response;
+      const data = response.data.data;
+      const users = data.map((item) => item.profile);
+      return users;
     } catch (error) {
       const message = error.response?.data?.responseType;
       showToast(message, "error");
@@ -64,13 +63,32 @@ const ClassRoomService = {
       const message = error.response?.data?.responseType;
     }
   },
+  getAllUsersNotEnrolled: async (classId) => {
+    try {
+      const response = await api.get(
+        `/e-classroom/class/${classId}/users-not-enrolled`
+      );
+
+      const users = response?.data.data;
+      const allUserProfiles = users.map((item) => item.profile);
+
+      return allUserProfiles;
+    } catch (error) {
+      const message = error.response?.data?.responseType;
+    }
+  },
   getAllEnrollmentRequests: async (classId) => {
     try {
       const response = await api.post(
         `/e-classroom/class/${classId}/enrollments-requests`
       );
 
-      return response;
+      const enrollementRequests = response?.data.data;
+      const enrollementRequestsProfile = enrollementRequests.map(
+        (item) => item.profile
+      );
+
+      return enrollementRequestsProfile;
     } catch (error) {
       const message = error.response?.data?.responseType;
     }
