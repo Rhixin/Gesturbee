@@ -8,6 +8,7 @@ import {
   Image,
   KeyboardAvoidingView,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,6 +22,7 @@ import AuthService from "@/api/services/auth-service";
 
 const Register = () => {
   const { showToast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const inputBaseClass = "flex-1 text-base bg-gray-100 min-h-[40px]";
   const passwordInputRef = useRef<TextInput>(null);
   const confirmPasswordInputRef = useRef<TextInput>(null);
@@ -124,6 +126,7 @@ const Register = () => {
 
   // TODO: birthdate
   const normalRegisterListener = async () => {
+    setIsLoading(true);
     const body = {
       email: userForm.email,
       password: userForm.password,
@@ -139,6 +142,8 @@ const Register = () => {
       await AuthService.register(body, showToast, navigate);
     } catch (error) {
       console.error("Registration failed:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -329,15 +334,29 @@ const Register = () => {
                   ) : null}
                 </View>
 
-                <TouchableOpacity
-                  className="bg-teal-500 p-4 rounded-lg flex-row justify-center items-center"
-                  onPress={handleNext}
-                  activeOpacity={0.8}
-                >
-                  <Text className="text-white text-lg font-semibold">
-                    Register
-                  </Text>
-                </TouchableOpacity>
+                {isLoading ? (
+                  <TouchableOpacity
+                    className="bg-teal-500 p-4 rounded-lg flex-row justify-center items-center"
+                    onPress={handleNext}
+                    activeOpacity={0.8}
+                  >
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text className="text-white text-lg font-semibold">
+                      Registering..
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    className="bg-teal-500 p-4 rounded-lg flex-row justify-center items-center"
+                    onPress={handleNext}
+                    activeOpacity={0.8}
+                    disabled={isLoading}
+                  >
+                    <Text className="text-white text-lg font-semibold">
+                      Register
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
 

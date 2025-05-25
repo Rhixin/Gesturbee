@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,23 +9,14 @@ import {
 } from "react-native";
 import { useRouter, Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import Loading from "@/components/Loading";
 import { useGlobal } from "@/context/GlobalContext";
 import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
-import * as AuthSession from "expo-auth-session";
 import { useAuth } from "@/context/AuthContext";
 import { useLevel } from "@/context/LevelContext";
-
 import { useToast } from "@/context/ToastContext";
-import api from "@/api/axios-config";
-
-import { makeRedirectUri } from "expo-auth-session";
-import TokenService from "@/api/services/token-service";
 import AuthService from "@/api/services/auth-service";
-import RoadmapService from "@/api/services/roadmap-service";
+import { useFacebookAuth, useGoogleAuth } from "@/hooks/useOAuth";
 
-// Ensure this is called OUTSIDE your component
 WebBrowser.maybeCompleteAuthSession();
 
 const Login = () => {
@@ -33,6 +24,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
   const router = useRouter();
   const { setCurrentUser } = useAuth();
   const { initializeLevel } = useLevel();
@@ -42,205 +34,90 @@ const Login = () => {
     router.push(path);
   };
 
-  // OAuth client IDs
-  const WEB_CLIENT_ID =
-    "971818626439-jhdf8m930fkhjsah7u94bo68rr981apl.apps.googleusercontent.com";
-  const IOS_CLIENT_ID =
-    "971818626439-k11g0olpa2nkkjpgvjso66g715ist6b1.apps.googleusercontent.com";
-  const ANDROID_CLIENT_ID =
-    "971818626439-g1nnp0bek58q5sjd057m0cjf6ne4sjc2.apps.googleusercontent.com";
+  const validateForm = () => {
+    const newErrors = {};
 
-  const FB_APP_ID = "1014031907323169";
-  const REDIRECT_URI = makeRedirectUri();
-
-  // GOOGLE OAuth  ---------------------------------------------------
-  const [googleRequest, googleResponse, googlePromptAsync] =
-    Google.useAuthRequest({
-      clientId: WEB_CLIENT_ID,
-      iosClientId: IOS_CLIENT_ID,
-      androidClientId: ANDROID_CLIENT_ID,
-      webClientId: WEB_CLIENT_ID,
-      scopes: ["profile", "email"],
-      responseType: "id_token",
-    });
-
-  // Sequential API calls function
-  const handleSuccessfulAuth = async (user, token) => {
-    try {
-      // Save token and set auth header
-      await TokenService.saveToken(token);
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-      // Set user in context
-      setCurrentUser(user);
-
-      // Fetch user progress - this MUST succeed before navigation
-      const progressResponse = await fetchCurrentRoadmapProgress(user.id);
-
-      // Only proceed if progress data was successfully fetched
-      if (progressResponse) {
-        const { stage, level } = progressResponse.data.data;
-        initializeLevel(user.id, stage, level);
-      } else {
-        throw new Error("Failed to load user progress data");
-      }
-
-      // Navigate to home only after everything succeeds
-      setIsLoading(false);
-      router.replace("/(auth)/home");
-      showToast("Logged in successfully!", "success");
-    } catch (error) {
-      console.error("Error in authentication flow:", error);
-      setIsLoading(false);
-
-      // Clear any saved data on failure
-      await TokenService.removeToken();
-      delete api.defaults.headers.common["Authorization"];
-      setCurrentUser(null);
-
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Login failed. Please try again.";
-      showToast(errorMessage, "error");
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!email.includes("@")) {
+      newErrors.email = "Email must contain @";
     }
+
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  // Handle Google auth response
-  useEffect(() => {
-    const handleGoogleAuthResponse = async () => {
-      if (googleResponse?.type === "success") {
-        try {
-          setIsLoading(true);
-
-          // Get Google ID token
-          const googleToken = googleResponse.params.id_token;
-
-          // Send Google token to backend
-          const response = await api.post("/auth/external-login/google", {
-            idToken: googleToken,
-          });
-
-          // Backend responds with your app's tokens
-          const token = response.data.token;
-          const user = response.data.response.data;
-
-          // Handle sequential auth flow
-          await handleSuccessfulAuth(user, token);
-        } catch (error) {
-          console.error("Error during Google authentication:", error);
-          setIsLoading(false);
-          showToast("Google login failed. Please try again.", "error");
-        }
-      } else if (googleResponse?.type === "error") {
-        console.error("Authentication error:", googleResponse.error);
-        setIsLoading(false);
-        showToast("Authentication cancelled or failed.", "error");
-      }
-    };
-
-    handleGoogleAuthResponse();
-  }, [googleResponse]);
-
-  const googleLogInListener = async () => {
-    try {
-      setIsLoading(true);
-      await googlePromptAsync();
-    } catch (error) {
-      setIsLoading(false);
-      showToast("Google login failed!", "error");
-    }
-  };
-
-  // FACEBOOK OAuth ---------------------------------------------------
-  const [facebookRequest, facebookResponse, facebookPromptAsync] =
-    AuthSession.useAuthRequest(
-      {
-        clientId: FB_APP_ID,
-        scopes: ["public_profile", "email"],
-        responseType: AuthSession.ResponseType.Token,
-        redirectUri: REDIRECT_URI,
-      },
-      {
-        authorizationEndpoint: "https://www.facebook.com/v12.0/dialog/oauth",
-      }
+  const handleAuthSuccess = async (user, token) => {
+    await AuthService.handleSuccessfulAuth(
+      user,
+      token,
+      setCurrentUser,
+      initializeLevel,
+      router,
+      showToast
     );
 
-  useEffect(() => {
-    const handleFacebookResponse = async () => {
-      if (facebookResponse?.type === "success") {
-        try {
-          setIsLoading(true);
-
-          // Get Facebook access token
-          const facebookAccessToken = facebookResponse.params.access_token;
-
-          // Send Facebook token to backend
-          const response = await api.post("/auth/external-login/facebook", {
-            accessToken: facebookAccessToken,
-          });
-
-          // Backend responds with your app's tokens
-          const token = response.data.token;
-          const user = response.data.response.data;
-
-          // Handle sequential auth flow
-          await handleSuccessfulAuth(user, token);
-        } catch (error) {
-          console.error("Error during Facebook authentication:", error);
-          setIsLoading(false);
-          showToast("Facebook login failed!", "error");
-        }
-      } else if (facebookResponse?.type === "error") {
-        console.error("Authentication error:", facebookResponse.error);
-        setIsLoading(false);
-      }
-    };
-
-    handleFacebookResponse();
-  }, [facebookResponse]);
-
-  const facebookLogInListener = async () => {
-    try {
-      setIsLoading(true);
-      await facebookPromptAsync();
-    } catch (error) {
-      setIsLoading(false);
-      showToast("Facebook login failed!", "error");
-    }
+    setIsLoading(false);
   };
 
-  // Normal Login Logic -------------------------------------------
+  const handleAuthError = (message) => {
+    showToast(message, "error");
+    setIsLoading(false);
+  };
+
+  const { googleRequest, promptGoogleAuth } = useGoogleAuth(
+    handleAuthSuccess,
+    handleAuthError,
+    setIsLoading
+  );
+
+  const { facebookRequest, promptFacebookAuth } = useFacebookAuth(
+    handleAuthSuccess,
+    handleAuthError,
+    setIsLoading
+  );
+
   const normalLogInListener = async () => {
-    try {
-      setIsLoading(true);
+    setErrors({});
 
-      const response = await AuthService.login(
-        email,
-        password,
-        showToast,
-        navigate
-      );
+    if (!validateForm()) {
+      return;
+    }
 
+    setIsLoading(true);
+
+    const response = await AuthService.login(
+      email,
+      password,
+      showToast,
+      navigate
+    );
+
+    if (response) {
       const token = response.data.token;
       const user = response.data.response.data;
 
-      await handleSuccessfulAuth(user, token);
-    } catch (error) {
-      console.error("Error during normal login:", error);
-      setIsLoading(false);
+      await handleAuthSuccess(user, token);
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleEmailChange = (text) => {
+    setEmail(text);
+    if (errors.email) {
+      setErrors((prev) => ({ ...prev, email: null }));
     }
   };
 
-  // Fetch user progress API
-  const fetchCurrentRoadmapProgress = async (userId) => {
-    try {
-      const response = await RoadmapService.getLevel(userId);
-      console.log("ROADMAP PROGRESS:", response);
-      return response;
-    } catch (error) {
-      console.error("Failed to fetch roadmap progress:", error);
-      throw error; // Re-throw to be caught by the calling function
+  const handlePasswordChange = (text) => {
+    setPassword(text);
+    if (errors.password) {
+      setErrors((prev) => ({ ...prev, password: null }));
     }
   };
 
@@ -265,18 +142,27 @@ const Login = () => {
           <Text className="text-subtitlegray font-poppins-semibold mb-2">
             Email
           </Text>
-          <View className="border p-1 px-4 rounded-lg bg-gray-100 border-gray-300">
+          <View
+            className={`border p-1 px-4 rounded-lg bg-gray-100 ${
+              errors.email ? "border-red-500" : "border-gray-300"
+            }`}
+          >
             <TextInput
               className="min-h-[40px] text-base text-black"
               placeholder="Enter your email"
               placeholderTextColor="#9CA3AF"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={handleEmailChange}
               keyboardType="email-address"
               autoCapitalize="none"
               editable={!isLoading}
             />
           </View>
+          {errors.email && (
+            <Text className="text-red-500 font-poppins text-sm mt-1">
+              {errors.email}
+            </Text>
+          )}
         </View>
 
         {/* Password Label & Input */}
@@ -285,14 +171,18 @@ const Login = () => {
             Password
           </Text>
 
-          <View className="border p-1 px-4 rounded-lg flex-row items-center justify-between bg-gray-100 border-gray-300">
+          <View
+            className={`border p-1 px-4 rounded-lg flex-row items-center justify-between bg-gray-100 ${
+              errors.password ? "border-red-500" : "border-gray-300"
+            }`}
+          >
             <TextInput
               className="min-h-[40px] text-base text-black flex-1 pr-2"
               placeholder="Enter your password"
               placeholderTextColor="#9CA3AF"
               secureTextEntry={!showPassword}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={handlePasswordChange}
               autoCapitalize="none"
               editable={!isLoading}
             />
@@ -308,6 +198,11 @@ const Login = () => {
               />
             </TouchableOpacity>
           </View>
+          {errors.password && (
+            <Text className="text-red-500 font-poppins text-sm mt-1">
+              {errors.password}
+            </Text>
+          )}
         </View>
 
         {/* Forget Password */}
@@ -364,7 +259,7 @@ const Login = () => {
               isLoading ? "opacity-50" : "opacity-100"
             }`}
             activeOpacity={0.8}
-            onPress={googleLogInListener}
+            onPress={promptGoogleAuth}
             disabled={!googleRequest || isLoading}
           >
             <Ionicons name="logo-google" size={36} color="#DB4437" />
@@ -376,7 +271,7 @@ const Login = () => {
               isLoading ? "opacity-50" : "opacity-100"
             }`}
             activeOpacity={0.8}
-            onPress={facebookLogInListener}
+            onPress={promptFacebookAuth}
             disabled={!facebookRequest || isLoading}
           >
             <Ionicons name="logo-facebook" size={36} color="#4267B2" />
