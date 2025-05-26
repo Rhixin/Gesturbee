@@ -5,6 +5,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 import SuccessModal from "../SuccessModal";
 import { useAuth } from "@/context/AuthContext";
+import React from "react";
 
 export default function ExecuteLesson({
   title,
@@ -21,6 +22,7 @@ export default function ExecuteLesson({
     userSavedLesson,
     userSavedTotalLesson,
     updateLevel,
+    setShowLevelCompleteModal,
   } = useLevel();
   const { stageId, levelId } = useLocalSearchParams();
   const { currentUser } = useAuth();
@@ -95,6 +97,8 @@ export default function ExecuteLesson({
                 12,
                 true
               );
+
+              setShowLevelCompleteModal(true);
             } else {
               updateLevel(
                 currentUser.id,

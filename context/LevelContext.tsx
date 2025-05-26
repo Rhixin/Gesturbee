@@ -7,6 +7,8 @@ type LevelContextType = {
   userSavedLesson: number;
   userSavedTotalLesson: number;
   isLoadingLevel: boolean;
+  showLevelCompleteModal: boolean;
+  setShowLevelCompleteModal: (value: boolean) => void;
   updateLevel: (
     userId: number,
     stage: number,
@@ -25,6 +27,8 @@ const LevelContext = createContext<LevelContextType>({
   userSavedLesson: 1,
   userSavedTotalLesson: 1,
   isLoadingLevel: false,
+  showLevelCompleteModal: false,
+  setShowLevelCompleteModal: () => {},
   updateLevel: () => {},
   initializeLevel: () => {},
 });
@@ -49,6 +53,7 @@ export const LevelProvider: React.FC<{
   const [userSavedTotalLesson, setUserSavedTotalLesson] =
     useState(initialTotalLessons);
   const [isLoadingLevel, setIsLoadingLevel] = useState(false);
+  const [showLevelCompleteModal, setShowLevelCompleteModal] = useState(false);
 
   const updateLevel = async (
     userId: number,
@@ -116,6 +121,8 @@ export const LevelProvider: React.FC<{
         userSavedLesson,
         userSavedTotalLesson,
         isLoadingLevel,
+        showLevelCompleteModal,
+        setShowLevelCompleteModal,
         updateLevel,
         initializeLevel,
       }}
