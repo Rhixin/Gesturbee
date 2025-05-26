@@ -70,14 +70,14 @@ export default function Stage1Level1({
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/s.mp4")}
         ></VideoLesson>
       )}
 
       {currentLessonIndex === 2 && (
         <MultipleChoiceLesson
           title={"What sign language is this?"}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/s.mp4")}
           choices={["Q", "R", "S", "T"]}
           correctAnswer={"S"}
           videoRef={videoRef}
@@ -109,14 +109,14 @@ export default function Stage1Level1({
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/t.mp4")}
         ></VideoLesson>
       )}
 
       {currentLessonIndex === 6 && (
         <MultipleChoiceLesson
           title={"What sign language is this?"}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/t.mp4")}
           choices={["S", "T", "U", "V"]}
           correctAnswer={"T"}
           videoRef={videoRef}
@@ -148,7 +148,7 @@ export default function Stage1Level1({
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/u.mp4")}
         ></VideoLesson>
       )}
 
@@ -162,7 +162,7 @@ export default function Stage1Level1({
        {currentLessonIndex === 11 && (
          <MultipleChoiceLesson
           title={"What sign language is this?"}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/u.mp4")}
           choices={["S", "T", "U", "V"]}
           correctAnswer={"U"}
           videoRef={videoRef}
