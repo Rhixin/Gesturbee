@@ -488,40 +488,84 @@ const ActivitiesTab = ({ isTeacher }) => {
     const getStatusColor = (status) => {
       switch (status) {
         case "Completed":
-          return "bg-green-100 text-green-500";
+          return {
+            backgroundColor: '#dcfce7', 
+            color: '#22c55e',           
+          };
         case "In Progress":
-          return "bg-yellow-100 text-yellow-700";
+          return {
+            backgroundColor: '#fef9c3', // Tailwind's yellow-100
+            color: '#a16207',           // Tailwind's yellow-700
+          };
         case "Not Started":
-          return "bg-gray-100 text-gray-700";
         default:
-          return "bg-gray-100 text-gray-700";
+          return {
+            backgroundColor: '#f3f4f6', // Tailwind's gray-100
+            color: '#374151',           // Tailwind's gray-700
+          };
       }
     };
 
-    const getScoreColor = (score) => {
-      if (score >= 80) return "text-green-600";
-      if (score >= 60) return "text-yellow-600";
-      if (score > 0) return "text-red-600";
-      return "text-gray-400";
+    const getScoreStyle = (score) => {
+      if (score >= 80) return { backgroundColor: '#dcfce7', color: '#16a34a' }; // green
+      if (score >= 60) return { backgroundColor: '#fef9c3', color: '#ca8a04' }; // yellow
+      if (score > 0) return { backgroundColor: '#fee2e2', color: '#dc2626' };   // red
+      return { backgroundColor: '#f3f4f6', color: '#9ca3af' };                  // gray
+    };
+    
+    // Helper function to get the percentage for Beehive component
+    const getActivityPercentage = (activity) => {
+      if (activity.status === "Completed" && activity.score !== null) {
+        return activity.score;
+      } else if (activity.status === "In Progress") {
+        return 10; //default ni for the inprogress
+      } else {
+        return 0; // Not started
+      }
     };
 
     const getActionButton = () => {
       switch (activity.status) {
         case "Completed":
           return (
-            <TouchableOpacity className="bg-secondary px-4 py-2 rounded-full">
-              <Text className="text-white font-medium">View Results</Text>
-            </TouchableOpacity>
+            <TouchableOpacity
+            style={{
+              backgroundColor: '#16a34a',
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+            }}
+          >
+            <Text style={{ color: '#ffffff', fontWeight: '500' }}>View Results</Text>
+          </TouchableOpacity>
+          
           );
         case "In Progress":
           return (
-            <TouchableOpacity className="bg-orange-500 px-4 py-2 rounded-full">
-              <Text className="text-white font-medium">Continue</Text>
-            </TouchableOpacity>
+            <TouchableOpacity
+            style={{
+              backgroundColor: '#FBBC05', 
+              paddingHorizontal: 16,      
+              paddingVertical: 8,         
+              borderRadius: 9999,         
+            }}>
+            <Text style={{
+                color: '#ffffff',         
+                fontWeight: '500',       
+              }}>
+              Continue
+            </Text>
+          </TouchableOpacity>
           );
         case "Not Started":
           return (
-            <TouchableOpacity className="bg-green-500 px-4 py-2 rounded-full">
+            <TouchableOpacity
+            style={{
+              backgroundColor: '#2563eb', 
+              paddingHorizontal: 16,      
+              paddingVertical: 8,         
+              borderRadius: 9999,         
+            }}>
               <Text className="text-white font-medium">Start Activity</Text>
             </TouchableOpacity>
           );
@@ -546,26 +590,40 @@ const ActivitiesTab = ({ isTeacher }) => {
             
             {/* Status Badge */}
             <View
-              className={`px-3 py-1 rounded-full self-start ${getStatusColor(
-                activity.status
-              )}`}
-            >
+              className={`px-3 py-1 rounded-full self-start}`}   
+              style={getStatusColor(activity.status)}>
               <Text className="text-xs font-medium">{activity.status}</Text>
             </View>
+          </View>
+
+          {/* Beehive Progress Indicator */}
+          <View className="items-center ml-4">
+            <Beehive percentage={getActivityPercentage(activity)} isGeneral={false} />
+            <Text className="text-xs text-gray-600 mt-1">Score</Text>
+            <Text
+              style={{ 
+                color: getActivityPercentage(activity) < 50 ? "#e70606" : "#149304",
+                fontSize: 12,
+                fontWeight: 'bold'
+              }}
+            >
+              {getActivityPercentage(activity)}%
+            </Text>
           </View>
         </View>
 
         <View className="flex-row justify-between items-center mt-4">
           {/* Performance Stats */}
           <View className="flex-row space-x-6">
-            {activity.score !== null && (
+            {/* {activity.score !== null && (
               <View className="items-center"  style={{ marginRight: 20}}>
-                <Text className={`text-lg  font-bold ${getScoreColor(activity.score)}`}  style={{ marginLeft: 2}}>
-                  {activity.score}%
-                </Text>
+                <Text style={[{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 9999 }, getScoreStyle(activity.score)]}>
+  {activity.score}%
+</Text>
+
                 <Text className="text-xs text-gray-600">Score</Text>
               </View>
-            )}
+            )} */}
             
             {activity.correctAnswers !== null && (
               <View className="items-center"  style={{ marginRight: 20}}>
@@ -589,22 +647,26 @@ const ActivitiesTab = ({ isTeacher }) => {
         </View>
 
         {/* Progress Bar for completed activities */}
-        {activity.score !== null && (
-          <View className="mt-3">
-            <View className="w-full bg-gray-200 rounded-full h-2">
+                {activity.score !== null && (
+          <View style={{ marginTop: 12 }}>
+            <View style={{ width: '100%', backgroundColor: '#e5e7eb', borderRadius: 999, height: 8 }}>
               <View
-                className={`h-2 rounded-full ${
-                  activity.score >= 80
-                    ? "bg-green-500"
-                    : activity.score >= 60
-                    ? "bg-yellow-500"
-                    : "bg-red-500"
-                }`}
-                style={{ width: `${activity.score}%` }}
+                style={{
+                  height: 8,
+                  borderRadius: 999,
+                  width: `${activity.score}%`,
+                  backgroundColor:
+                    activity.score >= 80
+                      ? '#22c54a' // green-500
+                      : activity.score >= 60
+                      ? '#eab308' // yellow-500
+                      : '#ef4444', // red-500
+                }}
               />
             </View>
           </View>
         )}
+
 
         {/* Submission Date for completed activities */}
         {activity.submissionDate && (
