@@ -10,7 +10,7 @@ import {
 import React from "react";
 import Beehive from "./Beehive";
 
-const ActivitiesTab = () => {
+const ActivitiesTab = ({ isTeacher }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
@@ -426,13 +426,18 @@ const ActivitiesTab = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* <ScrollView className="p-4">
-        {categories.map((category) => (
-          <CategoryCard key={category.id} item={category} />
-        ))}
-      </ScrollView>
-
-      <StudentDetailsModal /> */}
+      {isTeacher ? (
+        <>
+          <ScrollView className="p-4">
+            {categories.map((category) => (
+              <CategoryCard key={category.id} item={category} />
+            ))}
+          </ScrollView>
+          <StudentDetailsModal />
+        </>
+      ) : (
+        <></>
+      )}
     </View>
   );
 };

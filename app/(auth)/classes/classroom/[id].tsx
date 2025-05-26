@@ -491,13 +491,21 @@ const Classroom = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "Students":
-        return isTeacher ? renderStudents() : <ActivitiesTab />;
+        return isTeacher ? (
+          renderStudents()
+        ) : (
+          <ActivitiesTab isTeacher={isTeacher} />
+        );
       case "Activities":
-        return <ActivitiesTab />;
+        return <ActivitiesTab isTeacher={isTeacher} />;
       case "Grades":
-        return isTeacher ? renderGrades() : <ActivitiesTab />;
+        return isTeacher ? (
+          renderGrades()
+        ) : (
+          <ActivitiesTab isTeacher={isTeacher} />
+        );
       default:
-        return <ActivitiesTab />;
+        return <ActivitiesTab isTeacher={isTeacher} />;
     }
   };
 
