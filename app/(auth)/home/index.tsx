@@ -14,7 +14,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { stageData } from "@/utils/stageData";
 import { useLevel } from "@/context/LevelContext";
 import AnimatedBeehive from "@/components/AnimatedBeehive";
-import AnimatedClouds from "@/components/AnimatedClouds";
 
 export default function Home() {
   const scrollViewRef = useRef<ScrollView>(null);

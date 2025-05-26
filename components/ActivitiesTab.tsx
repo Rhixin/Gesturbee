@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Modal, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+  SafeAreaView,
+} from "react-native";
 import React from "react";
 import Beehive from "./Beehive";
 
@@ -15,12 +22,42 @@ const ActivitiesTab = () => {
       submissions: 25,
       avgScore: 30,
       students: [
-        { id: 1, name: "Alice Johnson", score: 85, submissionDate: "2024-01-15", status: "Completed" },
-        { id: 2, name: "Bob Smith", score: 72, submissionDate: "2024-01-14", status: "Completed" },
-        { id: 3, name: "Charlie Brown", score: 0, submissionDate: null, status: "Not Submitted" },
-        { id: 4, name: "Diana Prince", score: 95, submissionDate: "2024-01-16", status: "Completed" },
-        { id: 5, name: "Edward Wilson", score: 68, submissionDate: "2024-01-13", status: "Completed" },
-      ]
+        {
+          id: 1,
+          name: "Alice Johnson",
+          score: 85,
+          submissionDate: "2024-01-15",
+          status: "Completed",
+        },
+        {
+          id: 2,
+          name: "Bob Smith",
+          score: 72,
+          submissionDate: "2024-01-14",
+          status: "Completed",
+        },
+        {
+          id: 3,
+          name: "Charlie Brown",
+          score: 0,
+          submissionDate: null,
+          status: "Not Submitted",
+        },
+        {
+          id: 4,
+          name: "Diana Prince",
+          score: 95,
+          submissionDate: "2024-01-16",
+          status: "Completed",
+        },
+        {
+          id: 5,
+          name: "Edward Wilson",
+          score: 68,
+          submissionDate: "2024-01-13",
+          status: "Completed",
+        },
+      ],
     },
     {
       id: 2,
@@ -29,12 +66,42 @@ const ActivitiesTab = () => {
       submissions: 81,
       avgScore: 20,
       students: [
-        { id: 1, name: "Alice Johnson", score: 45, submissionDate: "2024-01-18", status: "Completed" },
-        { id: 2, name: "Bob Smith", score: 30, submissionDate: "2024-01-17", status: "Completed" },
-        { id: 3, name: "Charlie Brown", score: 55, submissionDate: "2024-01-19", status: "Completed" },
-        { id: 4, name: "Diana Prince", score: 78, submissionDate: "2024-01-20", status: "Completed" },
-        { id: 5, name: "Edward Wilson", score: 0, submissionDate: null, status: "Not Submitted" },
-      ]
+        {
+          id: 1,
+          name: "Alice Johnson",
+          score: 45,
+          submissionDate: "2024-01-18",
+          status: "Completed",
+        },
+        {
+          id: 2,
+          name: "Bob Smith",
+          score: 30,
+          submissionDate: "2024-01-17",
+          status: "Completed",
+        },
+        {
+          id: 3,
+          name: "Charlie Brown",
+          score: 55,
+          submissionDate: "2024-01-19",
+          status: "Completed",
+        },
+        {
+          id: 4,
+          name: "Diana Prince",
+          score: 78,
+          submissionDate: "2024-01-20",
+          status: "Completed",
+        },
+        {
+          id: 5,
+          name: "Edward Wilson",
+          score: 0,
+          submissionDate: null,
+          status: "Not Submitted",
+        },
+      ],
     },
     {
       id: 3,
@@ -43,12 +110,42 @@ const ActivitiesTab = () => {
       submissions: 90,
       avgScore: 100,
       students: [
-        { id: 1, name: "Alice Johnson", score: 100, submissionDate: "2024-01-22", status: "Completed" },
-        { id: 2, name: "Bob Smith", score: 95, submissionDate: "2024-01-21", status: "Completed" },
-        { id: 3, name: "Charlie Brown", score: 88, submissionDate: "2024-01-23", status: "Completed" },
-        { id: 4, name: "Diana Prince", score: 92, submissionDate: "2024-01-24", status: "Completed" },
-        { id: 5, name: "Edward Wilson", score: 85, submissionDate: "2024-01-20", status: "Completed" },
-      ]
+        {
+          id: 1,
+          name: "Alice Johnson",
+          score: 100,
+          submissionDate: "2024-01-22",
+          status: "Completed",
+        },
+        {
+          id: 2,
+          name: "Bob Smith",
+          score: 95,
+          submissionDate: "2024-01-21",
+          status: "Completed",
+        },
+        {
+          id: 3,
+          name: "Charlie Brown",
+          score: 88,
+          submissionDate: "2024-01-23",
+          status: "Completed",
+        },
+        {
+          id: 4,
+          name: "Diana Prince",
+          score: 92,
+          submissionDate: "2024-01-24",
+          status: "Completed",
+        },
+        {
+          id: 5,
+          name: "Edward Wilson",
+          score: 85,
+          submissionDate: "2024-01-20",
+          status: "Completed",
+        },
+      ],
     },
     {
       id: 4,
@@ -57,12 +154,42 @@ const ActivitiesTab = () => {
       submissions: 80,
       avgScore: 100,
       students: [
-        { id: 1, name: "Alice Johnson", score: 90, submissionDate: "2024-01-25", status: "Completed" },
-        { id: 2, name: "Bob Smith", score: 85, submissionDate: "2024-01-24", status: "Completed" },
-        { id: 3, name: "Charlie Brown", score: 0, submissionDate: null, status: "Not Submitted" },
-        { id: 4, name: "Diana Prince", score: 95, submissionDate: "2024-01-26", status: "Completed" },
-        { id: 5, name: "Edward Wilson", score: 88, submissionDate: "2024-01-23", status: "Completed" },
-      ]
+        {
+          id: 1,
+          name: "Alice Johnson",
+          score: 90,
+          submissionDate: "2024-01-25",
+          status: "Completed",
+        },
+        {
+          id: 2,
+          name: "Bob Smith",
+          score: 85,
+          submissionDate: "2024-01-24",
+          status: "Completed",
+        },
+        {
+          id: 3,
+          name: "Charlie Brown",
+          score: 0,
+          submissionDate: null,
+          status: "Not Submitted",
+        },
+        {
+          id: 4,
+          name: "Diana Prince",
+          score: 95,
+          submissionDate: "2024-01-26",
+          status: "Completed",
+        },
+        {
+          id: 5,
+          name: "Edward Wilson",
+          score: 88,
+          submissionDate: "2024-01-23",
+          status: "Completed",
+        },
+      ],
     },
   ];
 
@@ -81,8 +208,12 @@ const ActivitiesTab = () => {
     if (!selectedCategory) return null;
 
     const totalStudents = selectedCategory.students.length;
-    const submitted = selectedCategory.students.filter(s => s.status === "Completed").length;
-    const pending = selectedCategory.students.filter(s => s.status === "Not Submitted").length;
+    const submitted = selectedCategory.students.filter(
+      (s) => s.status === "Completed"
+    ).length;
+    const pending = selectedCategory.students.filter(
+      (s) => s.status === "Not Submitted"
+    ).length;
 
     return (
       <Modal
@@ -91,9 +222,14 @@ const ActivitiesTab = () => {
         visible={modalVisible}
         onRequestClose={closeModal}
       >
-        <SafeAreaView style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", flex: 1 }} className="justify-center items-center px-4">
-          <View className="bg-white w-[90%] rounded-2xl p-6" style={{ maxHeight: '90%', minHeight: '85%' }}>
-            
+        <SafeAreaView
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", flex: 1 }}
+          className="justify-center items-center px-4"
+        >
+          <View
+            className="bg-white w-[90%] rounded-2xl p-6"
+            style={{ maxHeight: "90%", minHeight: "85%" }}
+          >
             {/* Modal Header */}
             <Text className="text-3xl font-semibold text-titlegray mb-2">
               {selectedCategory.title}
@@ -105,18 +241,28 @@ const ActivitiesTab = () => {
             <View style={{ flex: 1 }}>
               {/* Summary Stats */}
               <View className="bg-gray-100 rounded-xl p-4 mb-4s">
-                <Text className="text-lg font-semibold text-titlegray mb-3">Class Summary</Text>
+                <Text className="text-lg font-semibold text-titlegray mb-3">
+                  Class Summary
+                </Text>
                 <View className="flex-row justify-around">
                   <View className="items-center mx-4 ">
-                    <Text className="text-2xl font-bold text-blue-600">{totalStudents}</Text>
-                    <Text className="text-sm text-gray-600">Total Students</Text>
+                    <Text className="text-2xl font-bold text-blue-600">
+                      {totalStudents}
+                    </Text>
+                    <Text className="text-sm text-gray-600">
+                      Total Students
+                    </Text>
                   </View>
                   <View className="items-center">
-                    <Text className="text-2xl font-bold text-green-600">{submitted}</Text>
+                    <Text className="text-2xl font-bold text-green-600">
+                      {submitted}
+                    </Text>
                     <Text className="text-sm text-gray-600">Submitted</Text>
                   </View>
                   <View className="items-center mx-4 ">
-                    <Text className="text-2xl font-bold text-red-600">{pending}</Text>
+                    <Text className="text-2xl font-bold text-red-600">
+                      {pending}
+                    </Text>
                     <Text className="text-sm text-gray-600">Pending</Text>
                   </View>
                 </View>
@@ -127,9 +273,9 @@ const ActivitiesTab = () => {
                 <Text className="text-lg font-semibold text-titlegray mb-3">
                   Student Performance ({selectedCategory.students.length})
                 </Text>
-                
-                <ScrollView 
-                  className="flex-1" 
+
+                <ScrollView
+                  className="flex-1"
                   showsVerticalScrollIndicator={false}
                   style={{ maxHeight: 400 }}
                 >
@@ -144,13 +290,23 @@ const ActivitiesTab = () => {
                             {student.name}
                           </Text>
                           <View className="flex-row items-center mb-1">
-                            <Text className="text-sm text-gray-600">Status: </Text>
-                            <View className={`px-2 py-1 rounded-full ${
-                              student.status === "Completed" ? "bg-green-100" : "bg-red-100"
-                            }`}>
-                              <Text className={`text-xs font-medium ${
-                                student.status === "Completed" ? "text-green-700" : "text-red-700"
-                              }`}>
+                            <Text className="text-sm text-gray-600">
+                              Status:{" "}
+                            </Text>
+                            <View
+                              className={`px-2 py-1 rounded-full ${
+                                student.status === "Completed"
+                                  ? "bg-green-100"
+                                  : "bg-red-100"
+                              }`}
+                            >
+                              <Text
+                                className={`text-xs font-medium ${
+                                  student.status === "Completed"
+                                    ? "text-green-700"
+                                    : "text-red-700"
+                                }`}
+                              >
                                 {student.status}
                               </Text>
                             </View>
@@ -161,27 +317,37 @@ const ActivitiesTab = () => {
                             </Text>
                           )}
                         </View>
-                        
+
                         <View className="items-center ml-4">
-                          <Text className={`text-2xl font-bold ${
-                            student.score >= 80 ? "text-green-600" : 
-                            student.score >= 60 ? "text-yellow-600" : 
-                            student.score > 0 ? "text-red-600" : "text-gray-400"
-                          }`}>
+                          <Text
+                            className={`text-2xl font-bold ${
+                              student.score >= 80
+                                ? "text-green-600"
+                                : student.score >= 60
+                                ? "text-yellow-600"
+                                : student.score > 0
+                                ? "text-red-600"
+                                : "text-gray-400"
+                            }`}
+                          >
                             {student.score}%
                           </Text>
                           <Text className="text-xs text-gray-500">Score</Text>
                         </View>
                       </View>
-                      
+
                       {/* Score Progress Bar */}
                       <View className="mt-2">
                         <View className="w-full bg-gray-200 rounded-full h-2">
-                          <View 
+                          <View
                             className={`h-2 rounded-full ${
-                              student.score >= 80 ? "bg-green-500" : 
-                              student.score >= 60 ? "bg-yellow-500" : 
-                              student.score > 0 ? "bg-red-500" : "bg-gray-300"
+                              student.score >= 80
+                                ? "bg-green-500"
+                                : student.score >= 60
+                                ? "bg-yellow-500"
+                                : student.score > 0
+                                ? "bg-red-500"
+                                : "bg-gray-300"
                             }`}
                             style={{ width: `${student.score}%` }}
                           />
@@ -196,7 +362,9 @@ const ActivitiesTab = () => {
             {/* Action Buttons - Same style as CreateQuizModal */}
             <View className="flex-row justify-end px-5 py-4 border-t border-gray-200 mt-4">
               <TouchableOpacity onPress={closeModal}>
-                <Text className="text-primary font-semibold text-base">Close</Text>
+                <Text className="text-primary font-semibold text-base">
+                  Close
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -245,7 +413,7 @@ const ActivitiesTab = () => {
             </Text>
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             className="bg-yellow-400 px-4 py-2 rounded-full"
             onPress={() => handleViewDetails(item)}
           >
@@ -258,13 +426,13 @@ const ActivitiesTab = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <ScrollView className="p-4">
+      {/* <ScrollView className="p-4">
         {categories.map((category) => (
           <CategoryCard key={category.id} item={category} />
         ))}
       </ScrollView>
-      
-      <StudentDetailsModal />
+
+      <StudentDetailsModal /> */}
     </View>
   );
 };

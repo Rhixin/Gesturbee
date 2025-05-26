@@ -98,7 +98,7 @@ export default function Stage1Level1({
         <SpellingLesson
           title={"Can you fill in the missing letters?"}
           correctWord={["S", "P", "R", "O", "U", "T"]}
-          questionWord={["_", "P", "_", "_", "U","T"]}
+          questionWord={["_", "P", "_", "_", "U", "T"]}
           currentLessonIndex={currentLessonIndex}
         ></SpellingLesson>
       )}
@@ -137,7 +137,7 @@ export default function Stage1Level1({
         <SpellingLesson
           title={"Can you fill in the missing letters?"}
           correctWord={["T", "E", "A", "C", "H"]}
-          questionWord={["_", "E", "A", "_","H"]}
+          questionWord={["_", "E", "A", "_", "H"]}
           currentLessonIndex={currentLessonIndex}
         ></SpellingLesson>
       )}
@@ -159,8 +159,8 @@ export default function Stage1Level1({
           currentLessonIndex={currentLessonIndex}
         ></ExecuteLesson>
       )}
-       {currentLessonIndex === 11 && (
-         <MultipleChoiceLesson
+      {currentLessonIndex === 11 && (
+        <MultipleChoiceLesson
           title={"What sign language is this?"}
           videoSource={require("@/assets/videos/u.mp4")}
           choices={["S", "T", "U", "V"]}
