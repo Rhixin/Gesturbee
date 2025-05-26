@@ -1,7 +1,6 @@
 import ClassRoomService from "@/api/services/classroom-service";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
-import { router, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   View,
@@ -12,7 +11,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-const CreateClassModal = ({ modalVisible, setModalVisible }) => {
+const CreateClassModal = ({ modalVisible, setModalVisible, onClassCreated }) => {
   const [className, setClassName] = useState("");
   const [section, setSection] = useState("");
   const [description, setDescription] = useState("");
@@ -23,11 +22,6 @@ const CreateClassModal = ({ modalVisible, setModalVisible }) => {
   const [descriptionFocused, setDescriptionFocused] = useState(false);
 
   const { showToast } = useToast();
-  const router = useRouter();
-  const navigate = (path) => {
-    router.push(path);
-  };
-
   const { currentUser } = useAuth();
 
   const isFormValid = className.trim() !== "" && section.trim() !== "";
@@ -45,12 +39,15 @@ const CreateClassModal = ({ modalVisible, setModalVisible }) => {
 
     if (response.success) {
       showToast("Created a Classroom Successfully!", "success");
-      navigate("/(auth)/classes");
+      
+      if (onClassCreated) {
+        await onClassCreated();
+      }
+      
+      resetForm();
     } else {
       showToast(response.error, "error");
     }
-
-    resetForm();
   };
 
   const resetForm = () => {
@@ -67,7 +64,6 @@ const CreateClassModal = ({ modalVisible, setModalVisible }) => {
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => {
-          // Prevent closing while loading
         }}
       >
         <View
@@ -131,8 +127,6 @@ const CreateClassModal = ({ modalVisible, setModalVisible }) => {
             placeholder="Description"
             value={description}
             onChangeText={setDescription}
-            multiline
-            numberOfLines={4}
             textAlignVertical="top"
             onFocus={() => setDescriptionFocused(true)}
             onBlur={() => setDescriptionFocused(false)}

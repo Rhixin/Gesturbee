@@ -5,6 +5,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 import SuccessModal from "../SuccessModal";
 import { useAuth } from "@/context/AuthContext";
+import React from "react";
 
 export default function SpellingLesson({
   title,
@@ -23,6 +24,7 @@ export default function SpellingLesson({
     userSavedLesson,
     userSavedTotalLesson,
     updateLevel,
+    setShowLevelCompleteModal,
   } = useLevel();
   const { stageId, levelId } = useLocalSearchParams();
   const { currentUser } = useAuth();
@@ -106,6 +108,7 @@ export default function SpellingLesson({
                   12,
                   true
                 );
+                setShowLevelCompleteModal(true);
               } else {
                 updateLevel(
                   currentUser.id,
@@ -132,6 +135,7 @@ export default function SpellingLesson({
     setShowSuccessModal(false);
     // Optionally reset the state if you want to restart the exercise
     setCurrentWordState([...questionWord]);
+
     const firstBlankIndex = questionWord.findIndex((letter) => letter === "_");
     setCurrentPosition(firstBlankIndex !== -1 ? firstBlankIndex : -1);
   };

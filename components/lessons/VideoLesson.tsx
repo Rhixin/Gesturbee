@@ -26,6 +26,7 @@ export default function VideoLesson({
     userSavedLesson,
     userSavedTotalLesson,
     updateLevel,
+    setShowLevelCompleteModal,
   } = useLevel();
   const { stageId, levelId } = useLocalSearchParams();
   const { currentUser } = useAuth();
@@ -55,6 +56,7 @@ export default function VideoLesson({
           12,
           true
         );
+        setShowLevelCompleteModal(true);
       } else {
         updateLevel(
           currentUser.id,

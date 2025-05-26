@@ -20,31 +20,63 @@ import { useToast } from "@/context/ToastContext";
 const Classes = () => {
   const { currentUser } = useAuth();
   const { showToast } = useToast();
-  const [classes, setClasses] = useState(null);
+  const [myClasses, setMyClasses] = useState(null);
+  const [createdClasses, setCreatedClasses] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("My Classes");
 
-  // Apis
-  const fetchClasses = async () => {
-    setIsLoading(true);
-    setError(null);
+  const tabs = ["Joined Classes", "Created Classes"];
 
+  const fetchMyClasses = async () => {
+    const response = await ClassRoomService.getClassroom(
+      currentUser.id
+    );
+
+    if (response.success) {
+      setMyClasses(response.data);
+    } else {
+      showToast(response.error, "error");
+    }
+
+    return response.data;
+  };
+
+  const fetchCreatedClasses = async () => {
     const response = await ClassRoomService.getAllTeacherClasses(
       currentUser.id
     );
 
     if (response.success) {
-      setClasses(response.data);
+      setCreatedClasses(response.data);
     } else {
       showToast(response.error, "error");
     }
 
-    setIsLoading(false);
+    return response.data;
+  };
+
+  const fetchAllClasses = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await Promise.all([
+        fetchMyClasses(),
+        fetchCreatedClasses()
+      ]);
+    } catch (error) {
+      console.error("Error loading classes:", error);
+      setError("Failed to load classes");
+      showToast("Failed to load classes", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchClasses();
+      fetchAllClasses();
     }, [])
   );
 
@@ -53,13 +85,17 @@ const Classes = () => {
     router.push(`/classes/classroom/${id}`);
   };
 
+  const navigateToTab = (tab) => {
+    setActiveTab(tab);
+  };
+
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [createClassModalVisible, setCreateClassModalVisible] = useState(false);
   const [joinClassModalVisible, setJoinClassModalVisible] = useState(false);
 
   const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
 
-  const renderContent = () => {
+  const renderClassList = (classes, emptyMessage, emptySubMessage) => {
     if (isLoading) {
       return (
         <ScrollView
@@ -96,24 +132,7 @@ const Classes = () => {
           </Text>
           <TouchableOpacity
             className="mt-6 bg-primary px-6 py-3 rounded-lg"
-            onPress={async () => {
-              if (currentUser?.id) {
-                setIsLoading(true);
-                try {
-                  const response = await ClassRoomService.getAllTeacherClasses(
-                    currentUser.id
-                  );
-                  setClasses(response.data.data);
-                  setError(null);
-                } catch (err) {
-                  console.error("Retry failed:", err);
-                  setError("Failed to load classes. Please try again later.");
-                  showToast("Failed to load classes", "error");
-                } finally {
-                  setIsLoading(false);
-                }
-              }
-            }}
+            onPress={fetchAllClasses}
           >
             <Text className="text-white font-poppins-medium">Try Again</Text>
           </TouchableOpacity>
@@ -126,30 +145,34 @@ const Classes = () => {
         <View className="flex-1 justify-center items-center px-6">
           <Ionicons name="school-outline" size={48} color="#00BFAF" />
           <Text className="mt-4 text-gray-800 font-poppins-medium text-center text-lg">
-            You don't have any classes yet
+            {emptyMessage}
           </Text>
           <Text className="mt-2 text-gray-600 text-center">
-            Create a new class or join an existing one to get started
+            {emptySubMessage}
           </Text>
           <View className="flex-row mt-6">
-            <TouchableOpacity
-              className="mr-3 bg-primary px-6 py-3 rounded-lg flex-row items-center"
-              onPress={() => setCreateClassModalVisible(true)}
-            >
-              <Ionicons name="add-circle-outline" size={20} color="white" />
-              <Text className="ml-2 text-white font-poppins-medium">
-                Create Class
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="bg-secondary px-6 py-3 rounded-lg flex-row items-center"
-              onPress={() => setJoinClassModalVisible(true)}
-            >
-              <Ionicons name="enter-outline" size={20} color="white" />
-              <Text className="ml-2 text-white font-poppins-medium">
-                Join Class
-              </Text>
-            </TouchableOpacity>
+            {activeTab === "Created Classes" && (
+              <TouchableOpacity
+                className="mr-3 bg-primary px-6 py-3 rounded-lg flex-row items-center"
+                onPress={() => setCreateClassModalVisible(true)}
+              >
+                <Ionicons name="add-circle-outline" size={20} color="white" />
+                <Text className="ml-2 text-white font-poppins-medium">
+                  Create Class
+                </Text>
+              </TouchableOpacity>
+            )}
+            {activeTab === "My Classes" && (
+              <TouchableOpacity
+                className="bg-secondary px-6 py-3 rounded-lg flex-row items-center"
+                onPress={() => setJoinClassModalVisible(true)}
+              >
+                <Ionicons name="enter-outline" size={20} color="white" />
+                <Text className="ml-2 text-white font-poppins-medium">
+                  Join Class
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       );
@@ -165,7 +188,7 @@ const Classes = () => {
           paddingBottom: 20,
         }}
         renderItem={({ item }) => (
-          <View className="bg-primary rounded-xl p-6 mb-4 z-10">
+          <View className="bg-primary rounded-xl p-6 mb-4">
             <Text className="text-white text-xl font-bold">
               {item.className}
             </Text>
@@ -175,6 +198,14 @@ const Classes = () => {
                 {item.studentCount || "0"} students
               </Text>
             </View>
+            {activeTab === "My Classes" && item.teacherName && (
+              <View className="flex-row items-center mb-4">
+                <Ionicons name="person-outline" size={16} color="white" />
+                <Text className="text-white ml-2">
+                  Teacher: {item.teacherName}
+                </Text>
+              </View>
+            )}
 
             <TouchableOpacity
               className="bg-yellow-400 px-4 py-2 rounded-md self-end"
@@ -188,12 +219,32 @@ const Classes = () => {
     );
   };
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case "Joined Classes":
+        return renderClassList(
+          myClasses,
+          "You haven't joined any classes yet",
+          "Join a class to start learning and participating in activities"
+        );
+      case "Created Classes":
+        return renderClassList(
+          createdClasses,
+          "You haven't created any classes yet",
+          "Create a new class to start teaching and managing students"
+        );
+      default:
+        return renderClassList(myClasses, "No classes found", "");
+    }
+  };
+
   return (
-    <View className="flex-1 bg-gray">
-      <SafeAreaView className="px-6 pt-10 flex-row justify-between items-center z-50 bg-white shadow-sm">
+    <View className="flex-1 bg-white">
+      <SafeAreaView className="px-6 pt-10 flex-row justify-between items-center z-50 bg-white mb-5">
         <Text className="text-3xl font-poppins-bold text-titlegray">
           My Classes
         </Text>
+
         <View className="relative">
           <TouchableOpacity
             onPress={toggleDropdown}
@@ -203,7 +254,7 @@ const Classes = () => {
           </TouchableOpacity>
 
           {dropdownVisible && (
-            <View className="absolute top-12 right-0 bg-white shadow-md min-w-[120px] rounded-md z-50">
+            <View className="absolute top-12 right-0 bg-white shadow-md min-w-[150px] rounded-md z-50 border border-gray-100">
               <TouchableOpacity
                 className="px-4 py-3 flex-row items-center border-b border-gray-100"
                 onPress={() => {
@@ -234,18 +285,42 @@ const Classes = () => {
         </View>
       </SafeAreaView>
 
+      <View className="flex-row bg-white border-b border-gray-200 shadow-sm">
+        {tabs.map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            className="flex-1 items-center py-3"
+            onPress={() => navigateToTab(tab)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab }}
+          >
+            <Text
+              className={`text-base font-poppins-medium ${
+                activeTab === tab ? "text-primary" : "text-gray-600"
+              }`}
+            >
+              {tab}
+            </Text>
+            {activeTab === tab && (
+              <View className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {renderContent()}
 
       <CreateClassModal
         modalVisible={createClassModalVisible}
         setModalVisible={setCreateClassModalVisible}
+        onClassCreated={fetchCreatedClasses}
       />
 
       <JoinClassModal
         modalVisible={joinClassModalVisible}
         setModalVisible={setJoinClassModalVisible}
         studentId={currentUser.id}
-        loadData={fetchClasses}
+        loadData={fetchMyClasses}
       />
     </View>
   );
