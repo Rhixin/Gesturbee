@@ -72,14 +72,14 @@ export default function Stage1Level2({
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/g.mp4")}
          ></VideoLesson>
        )}
  
        {currentLessonIndex === 2 && (
          <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/g.mp4")}
            choices={["E", "F", "G", "H"]}
            correctAnswer={"G"}
            videoRef={videoRef}
@@ -111,14 +111,14 @@ export default function Stage1Level2({
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/h.mp4")}
          ></VideoLesson>
        )}
  
        {currentLessonIndex === 6 && (
          <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/h.mp4")}
            choices={["G", "H", "I", "J"]}
            correctAnswer={"H"}
            videoRef={videoRef}
@@ -150,7 +150,7 @@ export default function Stage1Level2({
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/i.mp4")}
          ></VideoLesson>
        )}
  
@@ -164,9 +164,9 @@ export default function Stage1Level2({
         {currentLessonIndex === 11 && (
           <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/i.mp4")}
            choices={["I", "J", "K", "L"]}
-           correctAnswer={"F"}
+           correctAnswer={"I"}
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}

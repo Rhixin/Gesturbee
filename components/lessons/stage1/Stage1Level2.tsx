@@ -73,14 +73,14 @@ export default function Stage1Level2({
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/d.mp4")}
         ></VideoLesson>
       )}
 
       {currentLessonIndex === 2 && (
         <MultipleChoiceLesson
           title={"What sign language is this?"}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/d.mp4")}
           choices={["E", "F", "G", "D"]}
           correctAnswer={"D"}
           videoRef={videoRef}
@@ -112,14 +112,14 @@ export default function Stage1Level2({
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/e.mp4")}
         ></VideoLesson>
       )}
 
       {currentLessonIndex === 6 && (
         <MultipleChoiceLesson
           title={"What sign language is this?"}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/d.mp4")}
           choices={["D", "E", "F", "G"]}
           correctAnswer={"D"}
           videoRef={videoRef}
@@ -151,7 +151,7 @@ export default function Stage1Level2({
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/f.mp4")}
         ></VideoLesson>
       )}
 
@@ -165,7 +165,7 @@ export default function Stage1Level2({
       {currentLessonIndex === 11 && (
         <MultipleChoiceLesson
           title={"What sign language is this?"}
-          videoSource={require("@/assets/videos/a.mp4")}
+          videoSource={require("@/assets/videos/f.mp4")}
           choices={["D", "E", "F", "G"]}
           correctAnswer={"F"}
           videoRef={videoRef}

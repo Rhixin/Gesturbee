@@ -72,14 +72,14 @@ export default function Stage1Level2({
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/y.mp4")}
          ></VideoLesson>
        )}
  
        {currentLessonIndex === 2 && (
          <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/y.mp4")}
            choices={["W", "X", "Y", "Z"]}
            correctAnswer={"Y"}
            videoRef={videoRef}
@@ -111,14 +111,14 @@ export default function Stage1Level2({
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/z.mp4")}
          ></VideoLesson>
        )}
  
        {currentLessonIndex === 6 && (
          <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/z.mp4")}
            choices={["X", "Z", "W", "Y"]}
            correctAnswer={"Z"}
            videoRef={videoRef}

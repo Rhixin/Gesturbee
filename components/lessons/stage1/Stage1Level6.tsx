@@ -72,14 +72,14 @@ export default function Stage1Level2({
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/p.mp4")}
          ></VideoLesson>
        )}
  
        {currentLessonIndex === 2 && (
          <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/p.mp4")}
            choices={["O", "P", "Q", "R"]}
            correctAnswer={"P"}
            videoRef={videoRef}
@@ -111,14 +111,14 @@ export default function Stage1Level2({
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/q.mp4")}
          ></VideoLesson>
        )}
  
        {currentLessonIndex === 6 && (
          <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/q.mp4")}
            choices={["O", "P", "Q", "R"]}
            correctAnswer={"Q"}
            videoRef={videoRef}
@@ -150,7 +150,7 @@ export default function Stage1Level2({
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/r.mp4")}
          ></VideoLesson>
        )}
  
@@ -164,7 +164,7 @@ export default function Stage1Level2({
         {currentLessonIndex === 11 && (
           <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/r.mp4")}
            choices={["R", "S", "T", "U"]}
            correctAnswer={"R"}
            videoRef={videoRef}
