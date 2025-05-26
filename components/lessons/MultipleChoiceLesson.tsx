@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import SuccessModal from "@/components/SuccessModal";
 import { useLocalSearchParams } from "expo-router";
 import { useLevel } from "@/context/LevelContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function MultipleChoiceLesson({
   title,
@@ -31,6 +32,7 @@ export default function MultipleChoiceLesson({
     updateLevel,
   } = useLevel();
   const { stageId, levelId } = useLocalSearchParams();
+  const { currentUser } = useAuth();
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -54,13 +56,22 @@ export default function MultipleChoiceLesson({
       if (!isThisLessonAlreadyDone()) {
         // Update Database
         if (userSavedLesson === userSavedTotalLesson) {
-          updateLevel(userSavedStage, userSavedLevel + 1, 1, 10);
+          updateLevel(
+            currentUser.id,
+            userSavedStage,
+            userSavedLevel + 1,
+            1,
+            12,
+            true
+          );
         } else {
           updateLevel(
+            currentUser.id,
             userSavedStage,
             userSavedLevel,
             userSavedLesson + 1,
-            userSavedTotalLesson
+            userSavedTotalLesson,
+            false
           );
         }
       } else {

@@ -6,7 +6,6 @@ import ExecuteLesson from "../ExecuteLesson";
 import MultipleChoiceLesson from "../MultipleChoiceLesson";
 import { useLocalSearchParams } from "expo-router";
 import SpellingLesson from "../SpellingLesson";
-import React from "react";
 
 export default function Stage1Level1({
   videoRef,
@@ -67,7 +66,7 @@ export default function Stage1Level1({
     <>
       {currentLessonIndex === 1 && (
         <VideoLesson
-          title={"This is 'A'"}
+          title={"This is 'S'"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
@@ -79,8 +78,8 @@ export default function Stage1Level1({
         <MultipleChoiceLesson
           title={"What sign language is this?"}
           videoSource={require("@/assets/videos/a.mp4")}
-          choices={["A", "B", "C", "D"]}
-          correctAnswer={"A"}
+          choices={["Q", "R", "S", "T"]}
+          correctAnswer={"S"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
@@ -89,8 +88,8 @@ export default function Stage1Level1({
 
       {currentLessonIndex === 3 && (
         <ExecuteLesson
-          title={"Execute A"}
-          correctAnswer={"A"}
+          title={"Execute S"}
+          correctAnswer={"S"}
           currentLessonIndex={currentLessonIndex}
         ></ExecuteLesson>
       )}
@@ -98,15 +97,15 @@ export default function Stage1Level1({
       {currentLessonIndex === 4 && (
         <SpellingLesson
           title={"Can you fill in the missing letters?"}
-          correctWord={["A", "W", "A", "R", "D"]}
-          questionWord={["_", "W", "_", "R", "D"]}
+          correctWord={["S", "P", "R", "O", "U", "T"]}
+          questionWord={["_", "P", "_", "_", "U","T"]}
           currentLessonIndex={currentLessonIndex}
         ></SpellingLesson>
       )}
 
       {currentLessonIndex === 5 && (
         <VideoLesson
-          title={"This is 'B'"}
+          title={"This is 'T'"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
@@ -118,8 +117,8 @@ export default function Stage1Level1({
         <MultipleChoiceLesson
           title={"What sign language is this?"}
           videoSource={require("@/assets/videos/a.mp4")}
-          choices={["A", "B", "C", "D"]}
-          correctAnswer={"B"}
+          choices={["S", "T", "U", "V"]}
+          correctAnswer={"T"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
@@ -128,8 +127,8 @@ export default function Stage1Level1({
 
       {currentLessonIndex === 7 && (
         <ExecuteLesson
-          title={"Execute B"}
-          correctAnswer={"B"}
+          title={"Execute T"}
+          correctAnswer={"T"}
           currentLessonIndex={currentLessonIndex}
         ></ExecuteLesson>
       )}
@@ -137,15 +136,15 @@ export default function Stage1Level1({
       {currentLessonIndex === 8 && (
         <SpellingLesson
           title={"Can you fill in the missing letters?"}
-          correctWord={["B", "E", "A", "R"]}
-          questionWord={["_", "E", "_", "R"]}
+          correctWord={["T", "E", "A", "C", "H"]}
+          questionWord={["_", "E", "A", "_","H"]}
           currentLessonIndex={currentLessonIndex}
         ></SpellingLesson>
       )}
 
       {currentLessonIndex === 9 && (
         <VideoLesson
-          title={"This is 'C'"}
+          title={"This is 'U'"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
@@ -155,17 +154,17 @@ export default function Stage1Level1({
 
       {currentLessonIndex === 10 && (
         <ExecuteLesson
-          title={"Execute C"}
-          correctAnswer={"C"}
+          title={"Execute U"}
+          correctAnswer={"U"}
           currentLessonIndex={currentLessonIndex}
         ></ExecuteLesson>
       )}
-      {currentLessonIndex === 11 && (
-        <MultipleChoiceLesson
+       {currentLessonIndex === 11 && (
+         <MultipleChoiceLesson
           title={"What sign language is this?"}
           videoSource={require("@/assets/videos/a.mp4")}
-          choices={["A", "B", "C", "D"]}
-          correctAnswer={"C"}
+          choices={["S", "T", "U", "V"]}
+          correctAnswer={"U"}
           videoRef={videoRef}
           setStatus={setStatus}
           currentLessonIndex={currentLessonIndex}
@@ -175,8 +174,8 @@ export default function Stage1Level1({
       {currentLessonIndex === 12 && (
         <SpellingLesson
           title={"Fill in the missing letters."}
-          correctWord={["C", "A", "B", "I", "N"]}
-          questionWord={["_", "_", "_", "I", "N"]}
+          correctWord={["U", "R", "B", "A", "N"]}
+          questionWord={["_", "_", "_", "A", "N"]}
           currentLessonIndex={currentLessonIndex}
         ></SpellingLesson>
       )}

@@ -6,6 +6,7 @@ import ExecuteLesson from "../ExecuteLesson";
 import MultipleChoiceLesson from "../MultipleChoiceLesson";
 import { useLocalSearchParams } from "expo-router";
 import SpellingLesson from "../SpellingLesson";
+import React from "react";
 
 export default function Stage1Level2({
   videoRef,
@@ -28,7 +29,7 @@ export default function Stage1Level2({
   setCurrentLessonTitle: React.Dispatch<React.SetStateAction<string>>;
   goToNextLesson: () => void;
 }) {
-   const MAX_LESSONS = 12;
+  const MAX_LESSONS = 12;
   const LESSON_TITLES = [
     "Starting off with the basics",
     "How well can you remember?",
@@ -65,122 +66,122 @@ export default function Stage1Level2({
   }, [currentLessonIndex]);
 
   return (
-     <>
-       {currentLessonIndex === 1 && (
-         <VideoLesson
-           title={"This is 'D'"}
-           videoRef={videoRef}
-           setStatus={setStatus}
-           currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
-         ></VideoLesson>
-       )}
- 
-       {currentLessonIndex === 2 && (
-         <MultipleChoiceLesson
-           title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
-           choices={["E", "F", "G", "D"]}
-           correctAnswer={"D"}
-           videoRef={videoRef}
-           setStatus={setStatus}
-           currentLessonIndex={currentLessonIndex}
-         ></MultipleChoiceLesson>
-       )}
- 
-       {currentLessonIndex === 3 && (
-         <ExecuteLesson
-           title={"Execute D"}
-           correctAnswer={"D"}
-           currentLessonIndex={currentLessonIndex}
-         ></ExecuteLesson>
-       )}
- 
-       {currentLessonIndex === 4 && (
-         <SpellingLesson
-           title={"Can you fill in the missing letters?"}
-           correctWord={["D", "R", "E", "A", "M"]}
-           questionWord={["_", "R", "E", "_", "M"]}
-           currentLessonIndex={currentLessonIndex}
-         ></SpellingLesson>
-       )}
- 
-       {currentLessonIndex === 5 && (
-         <VideoLesson
-           title={"This is 'E'"}
-           videoRef={videoRef}
-           setStatus={setStatus}
-           currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
-         ></VideoLesson>
-       )}
- 
-       {currentLessonIndex === 6 && (
-         <MultipleChoiceLesson
-           title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
-           choices={["D", "E", "F", "G"]}
-           correctAnswer={"D"}
-           videoRef={videoRef}
-           setStatus={setStatus}
-           currentLessonIndex={currentLessonIndex}
-         ></MultipleChoiceLesson>
-       )}
- 
-       {currentLessonIndex === 7 && (
-         <ExecuteLesson
-           title={"Execute E"}
-           correctAnswer={"E"}
-           currentLessonIndex={currentLessonIndex}
-         ></ExecuteLesson>
-       )}
- 
-       {currentLessonIndex === 8 && (
-         <SpellingLesson
-           title={"Can you fill in the missing letters?"}
-           correctWord={["E", "M", "B", "R", "A", "C", "E"]}
-           questionWord={["_", "M", "_", "R", "_", "_", "_"]}
-           currentLessonIndex={currentLessonIndex}
-         ></SpellingLesson>
-       )}
- 
-       {currentLessonIndex === 9 && (
-         <VideoLesson
-           title={"This is 'F'"}
-           videoRef={videoRef}
-           setStatus={setStatus}
-           currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
-         ></VideoLesson>
-       )}
- 
-       {currentLessonIndex === 10 && (
-         <ExecuteLesson
-           title={"Execute F"}
-           correctAnswer={"F"}
-           currentLessonIndex={currentLessonIndex}
-         ></ExecuteLesson>
-       )}
-        {currentLessonIndex === 11 && (
-          <MultipleChoiceLesson
-           title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
-           choices={["D", "E", "F", "G"]}
-           correctAnswer={"F"}
-           videoRef={videoRef}
-           setStatus={setStatus}
-           currentLessonIndex={currentLessonIndex}
-         ></MultipleChoiceLesson>
-       )}
- 
-       {currentLessonIndex === 12 && (
-         <SpellingLesson
-           title={"Fill in the missing letters."}
-           correctWord={["F", "R", "I", "E", "N", "D"]}
-           questionWord={["_", "R", "I", "_", "N", "_"]}
-           currentLessonIndex={currentLessonIndex}
-         ></SpellingLesson>
-       )}
-     </>
-   );
+    <>
+      {currentLessonIndex === 1 && (
+        <VideoLesson
+          title={"This is 'D'"}
+          videoRef={videoRef}
+          setStatus={setStatus}
+          currentLessonIndex={currentLessonIndex}
+          videoSource={require("@/assets/videos/a.mp4")}
+        ></VideoLesson>
+      )}
+
+      {currentLessonIndex === 2 && (
+        <MultipleChoiceLesson
+          title={"What sign language is this?"}
+          videoSource={require("@/assets/videos/a.mp4")}
+          choices={["E", "F", "G", "D"]}
+          correctAnswer={"D"}
+          videoRef={videoRef}
+          setStatus={setStatus}
+          currentLessonIndex={currentLessonIndex}
+        ></MultipleChoiceLesson>
+      )}
+
+      {currentLessonIndex === 3 && (
+        <ExecuteLesson
+          title={"Execute D"}
+          correctAnswer={"D"}
+          currentLessonIndex={currentLessonIndex}
+        ></ExecuteLesson>
+      )}
+
+      {currentLessonIndex === 4 && (
+        <SpellingLesson
+          title={"Can you fill in the missing letters?"}
+          correctWord={["D", "R", "E", "A", "M"]}
+          questionWord={["_", "R", "E", "_", "M"]}
+          currentLessonIndex={currentLessonIndex}
+        ></SpellingLesson>
+      )}
+
+      {currentLessonIndex === 5 && (
+        <VideoLesson
+          title={"This is 'E'"}
+          videoRef={videoRef}
+          setStatus={setStatus}
+          currentLessonIndex={currentLessonIndex}
+          videoSource={require("@/assets/videos/a.mp4")}
+        ></VideoLesson>
+      )}
+
+      {currentLessonIndex === 6 && (
+        <MultipleChoiceLesson
+          title={"What sign language is this?"}
+          videoSource={require("@/assets/videos/a.mp4")}
+          choices={["D", "E", "F", "G"]}
+          correctAnswer={"D"}
+          videoRef={videoRef}
+          setStatus={setStatus}
+          currentLessonIndex={currentLessonIndex}
+        ></MultipleChoiceLesson>
+      )}
+
+      {currentLessonIndex === 7 && (
+        <ExecuteLesson
+          title={"Execute E"}
+          correctAnswer={"E"}
+          currentLessonIndex={currentLessonIndex}
+        ></ExecuteLesson>
+      )}
+
+      {currentLessonIndex === 8 && (
+        <SpellingLesson
+          title={"Can you fill in the missing letters?"}
+          correctWord={["E", "M", "B", "R", "A", "C", "E"]}
+          questionWord={["_", "M", "_", "R", "_", "_", "_"]}
+          currentLessonIndex={currentLessonIndex}
+        ></SpellingLesson>
+      )}
+
+      {currentLessonIndex === 9 && (
+        <VideoLesson
+          title={"This is 'F'"}
+          videoRef={videoRef}
+          setStatus={setStatus}
+          currentLessonIndex={currentLessonIndex}
+          videoSource={require("@/assets/videos/a.mp4")}
+        ></VideoLesson>
+      )}
+
+      {currentLessonIndex === 10 && (
+        <ExecuteLesson
+          title={"Execute F"}
+          correctAnswer={"F"}
+          currentLessonIndex={currentLessonIndex}
+        ></ExecuteLesson>
+      )}
+      {currentLessonIndex === 11 && (
+        <MultipleChoiceLesson
+          title={"What sign language is this?"}
+          videoSource={require("@/assets/videos/a.mp4")}
+          choices={["D", "E", "F", "G"]}
+          correctAnswer={"F"}
+          videoRef={videoRef}
+          setStatus={setStatus}
+          currentLessonIndex={currentLessonIndex}
+        ></MultipleChoiceLesson>
+      )}
+
+      {currentLessonIndex === 12 && (
+        <SpellingLesson
+          title={"Fill in the missing letters."}
+          correctWord={["F", "R", "I", "E", "N", "D"]}
+          questionWord={["_", "R", "I", "_", "N", "_"]}
+          currentLessonIndex={currentLessonIndex}
+        ></SpellingLesson>
+      )}
+    </>
+  );
 }

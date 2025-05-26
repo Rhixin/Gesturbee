@@ -37,32 +37,25 @@ const JoinClassModal = ({
     if (!isFormValid || isLoading) return;
 
     setIsLoading(true);
-    try {
-      const response = await ClassRoomService.joinClass(
-        classId,
-        studentId,
-        showToast
-      );
 
-      console.log(response);
+    const response = await ClassRoomService.joinClass(classId, studentId);
 
-      // Show success message
-      showToast("Successfully requested to join the class!", "success");
-
-      // Reset form and close modal
-      setClassCode("");
-      setModalVisible(false);
-      loadData();
-      return response;
-    } catch (error) {
-      console.error("Failed to join class:", error);
-      showToast("Failed to join class. Please check the class code.", "error");
-      throw error;
-    } finally {
-      setIsLoading(false);
+    if (response.success) {
+      showToast("Successfully joined a class", "success");
+    } else {
+      showToast(response.error, "error");
     }
+
+    resetForm();
+    setIsLoading(false);
+    return response.data;
   };
 
+  const resetForm = () => {
+    setClassCode("");
+    setModalVisible(false);
+    loadData();
+  };
   // If loading, show the loading state
   if (isLoading) {
     return (

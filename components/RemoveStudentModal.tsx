@@ -29,25 +29,22 @@ const RemoveStudentModal = ({
 
   const fetchRemoveStudent = async () => {
     setIsLoading(true);
-    try {
-      const response = await ClassRoomService.removeStudent(
-        studentId,
-        classId,
-        showToast
-      );
 
-      setModalVisible(false);
-      loadData();
-    } catch (error) {
-      console.error("Failed to remove student:", error);
-      showToast("Failed to remove student", "error");
-    } finally {
-      setIsLoading(false);
+    const response = await ClassRoomService.removeStudent(studentId, classId);
+
+    if (response.success) {
+      showToast("Successfully remove a student", "success");
+    } else {
+      showToast(response.error, "error");
     }
+
+    setModalVisible(false);
+    loadData();
+    setIsLoading(false);
   };
 
   const handleCancel = () => {
-    if (isLoading) return; // Prevent closing during loading
+    if (isLoading) return;
     setModalVisible(false);
   };
 

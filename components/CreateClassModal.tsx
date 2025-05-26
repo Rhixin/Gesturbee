@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-const CreateClassModal = ({ modalVisible, setModalVisible, addNewClass }) => {
+const CreateClassModal = ({ modalVisible, setModalVisible }) => {
   const [className, setClassName] = useState("");
   const [section, setSection] = useState("");
   const [description, setDescription] = useState("");
@@ -36,26 +36,28 @@ const CreateClassModal = ({ modalVisible, setModalVisible, addNewClass }) => {
     const userId = currentUser.id;
 
     setIsLoading(true);
-    try {
-      const response = await ClassRoomService.createClassroom(
-        userId,
-        className,
-        description,
-        showToast,
-        navigate
-      );
+    const response = await ClassRoomService.createClassroom(
+      userId,
+      className,
+      description
+    );
+    setIsLoading(false);
 
-      // Reset the form
-      setClassName("");
-      setSection("");
-      setDescription("");
-      setModalVisible(false);
-    } catch (error) {
-      console.error("Failed to create class:", error);
-      showToast("Failed to create class", "error");
-    } finally {
-      setIsLoading(false);
+    if (response.success) {
+      showToast("Created a Classroom Successfully!", "success");
+      navigate("/(auth)/classes");
+    } else {
+      showToast(response.error, "error");
     }
+
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setClassName("");
+    setSection("");
+    setDescription("");
+    setModalVisible(false);
   };
 
   if (isLoading) {

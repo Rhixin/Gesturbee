@@ -21,53 +21,35 @@ const NotificationsButton = ({
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [loadingStates, setLoadingStates] = useState({}); // Track loading for each request
+  const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
 
   const [pendingRequests, setPendingRequests] = useState(
     enrollmentRequestsProfile || []
   );
 
-  // Apis here
+  // apis
   const fetchAdmissionEnrollmentRequest = async (studentId, accept) => {
-    // Set loading state for this specific request
-    setLoadingStates((prev) => ({
-      ...prev,
-      [studentId]: { accept: accept === true, reject: accept === false },
-    }));
+    setIsLoading(true);
 
-    try {
-      const response = await ClassRoomService.acceptOrRejectEnrollmentRequest(
-        studentId,
-        classId,
-        accept,
-        showToast
-      );
+    const response = await ClassRoomService.acceptOrRejectEnrollmentRequest(
+      studentId,
+      classId,
+      accept
+    );
 
-      // Remove the request from local state on success
-      setPendingRequests((prev) => prev.filter((req) => req.id !== studentId));
-
-      loadData();
-      return response;
-    } catch (error) {
-      console.error("Failed to process enrollment request:", error);
+    if (response.success) {
       showToast(
-        `Failed to ${accept ? "accept" : "reject"} enrollment request`,
-        "error"
+        `Successfully ${accept ? "Accepted" : "Rejected"} a student`,
+        "success"
       );
-      throw error;
-    } finally {
-      // Clear loading state for this request
-      setLoadingStates((prev) => {
-        const newState = { ...prev };
-        delete newState[studentId];
-        return newState;
-      });
+    } else {
+      showToast(response.error, "error");
     }
-  };
 
-  // Check if any request is currently being processed
-  const isAnyRequestLoading = Object.keys(loadingStates).length > 0;
+    loadData();
+    setIsLoading(false);
+  };
 
   // Filter notifications based on search text
   const filteredRequests = pendingRequests.filter((request) =>
@@ -77,7 +59,7 @@ const NotificationsButton = ({
   );
 
   const handleCloseModal = () => {
-    if (isAnyRequestLoading) return; // Prevent closing while processing
+    if (isLoading) return; // Prevent closing while processing
     setModalVisible(false);
   };
 
@@ -128,36 +110,27 @@ const NotificationsButton = ({
             <TextInput
               placeholder="Search for a request"
               className={`border border-gray-300 rounded-lg p-2 mb-4 ${
-                isAnyRequestLoading ? "opacity-50" : ""
+                isLoading ? "opacity-50" : ""
               }`}
               value={searchText}
               onChangeText={setSearchText}
-              editable={!isAnyRequestLoading}
+              editable={!isLoading}
             />
 
             {/* Scrollable list of requests */}
             <ScrollView
               style={{ height: 300, marginTop: 10 }}
               contentContainerStyle={{ flexGrow: 1 }}
-              scrollEnabled={!isAnyRequestLoading}
+              scrollEnabled={!isLoading}
             >
               <View>
                 {filteredRequests.length > 0 ? (
                   filteredRequests.map((item) => {
-                    const requestLoadingState = loadingStates[item.id];
-                    const isThisRequestLoading = Boolean(requestLoadingState);
-                    const isAcceptLoading = Boolean(
-                      requestLoadingState?.accept
-                    );
-                    const isRejectLoading = Boolean(
-                      requestLoadingState?.reject
-                    );
-
                     return (
                       <View
                         key={item.id}
                         className={`flex-row items-center justify-between bg-gray-100 rounded-lg p-4 mb-4 ${
-                          isThisRequestLoading ? "opacity-75" : ""
+                          isLoading ? "opacity-75" : ""
                         }`}
                       >
                         <View className="flex-row items-center">
@@ -178,13 +151,13 @@ const NotificationsButton = ({
                             onPress={() =>
                               fetchAdmissionEnrollmentRequest(item.id, true)
                             }
-                            disabled={isThisRequestLoading}
+                            disabled={isLoading}
                             className={`bg-primary px-3 py-2 rounded-full mr-2 flex-row items-center ${
-                              isThisRequestLoading ? "opacity-50" : ""
+                              isLoading ? "opacity-50" : ""
                             }`}
                             style={{ minWidth: 40, justifyContent: "center" }}
                           >
-                            {isAcceptLoading ? (
+                            {isLoading ? (
                               <ActivityIndicator size="small" color="white" />
                             ) : (
                               <Ionicons
@@ -200,17 +173,17 @@ const NotificationsButton = ({
                             onPress={() =>
                               fetchAdmissionEnrollmentRequest(item.id, false)
                             }
-                            disabled={isThisRequestLoading}
+                            disabled={isLoading}
                             style={{
                               backgroundColor: "#F44336",
                               minWidth: 40,
                               justifyContent: "center",
                             }}
                             className={`px-3 py-2 rounded-full flex-row items-center ${
-                              isThisRequestLoading ? "opacity-50" : ""
+                              isLoading ? "opacity-50" : ""
                             }`}
                           >
-                            {isRejectLoading ? (
+                            {isLoading ? (
                               <ActivityIndicator size="small" color="white" />
                             ) : (
                               <Ionicons name="close" size={20} color="white" />
@@ -233,7 +206,7 @@ const NotificationsButton = ({
             </ScrollView>
 
             {/* Show processing indicator if any request is loading */}
-            {isAnyRequestLoading && (
+            {isLoading && (
               <View className="flex-row items-center justify-center py-2">
                 <ActivityIndicator size="small" color="#00BFAF" />
                 <Text className="ml-2 text-gray-600">
@@ -247,11 +220,11 @@ const NotificationsButton = ({
               <TouchableOpacity
                 onPress={handleCloseModal}
                 className="px-4 py-2"
-                disabled={isAnyRequestLoading}
+                disabled={isLoading}
               >
                 <Text
                   className={`font-semibold text-base ${
-                    isAnyRequestLoading ? "text-gray-400" : "text-black"
+                    isLoading ? "text-gray-400" : "text-black"
                   }`}
                 >
                   Close

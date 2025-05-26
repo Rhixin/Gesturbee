@@ -66,59 +66,54 @@ const Classroom = () => {
 
   // apis
   const fetchClassroom = async () => {
-    try {
-      const response = await ClassRoomService.getClassroom(id, showToast);
-      const classroomDetails = response?.data.data;
-      setClassroomDetails(classroomDetails);
-      return classroomDetails;
-    } catch (error) {
-      console.error("Failed to fetch classroom:", error);
-      throw error;
+    const response = await ClassRoomService.getClassroom(id);
+
+    if (response.success) {
+      setClassroomDetails(response.data);
+    } else {
+      showToast(response.error, "error");
     }
+
+    return response.data;
   };
 
   const fetchStudents = async () => {
-    try {
-      const response = await ClassRoomService.getAllStudentsInThisClass(
-        id,
-        showToast
-      );
-      const students = response?.data.data;
-      const studentsProfile = students.map((item) => item.profile);
-      setStudents(studentsProfile);
-      return studentsProfile;
-    } catch (error) {
-      console.error("Failed to fetch students:", error);
-      throw error;
+    const response = await ClassRoomService.getAllStudentsInThisClass(
+      id,
+      showToast
+    );
+
+    if (response.success) {
+      setStudents(response.data);
+    } else {
+      showToast(response.error, "error");
     }
+
+    return response.data;
   };
 
   const fetchEnrollmentRequests = async (classId) => {
-    try {
-      const response = await ClassRoomService.getAllEnrollmentRequests(classId);
-      const enrollementRequests = response?.data.data;
-      const enrollementRequestsProfile = enrollementRequests.map(
-        (item) => item.profile
-      );
-      setEnrollmentRequests(enrollementRequestsProfile);
-      return enrollementRequestsProfile;
-    } catch (error) {
-      showToast("Failed to remove student", "error");
+    const response = await ClassRoomService.getAllEnrollmentRequests(classId);
+
+    if (response.success) {
+      setEnrollmentRequests(response.data);
+    } else {
+      showToast(response.error, "error");
     }
+
+    return response.data;
   };
 
-  const fetchAllUsers = async () => {
-    try {
-      const response = await ClassRoomService.getAllUsers();
-      const users = response?.data.data;
-      const allUserProfiles = users.map((item) => item.profile);
+  const fetchAllUsersNotEnrolled = async () => {
+    const response = await ClassRoomService.getAllUsersNotEnrolled(id);
 
-      setAllUsers(allUserProfiles);
-      return users;
-    } catch (error) {
-      console.error("Failed to fetch students:", error);
-      throw error;
+    if (response.success) {
+      setAllUsers(response.data);
+    } else {
+      showToast(response.error, "error");
     }
+
+    return response.data;
   };
 
   const loadData = async () => {
@@ -136,13 +131,13 @@ const Classroom = () => {
         fetchClassroom(),
         fetchStudents(),
         fetchEnrollmentRequests(id),
-        fetchAllUsers(),
+        fetchAllUsersNotEnrolled(),
       ]);
 
       // Check if all data sets were loaded successfully
       if (
         !classroomData ||
-        studentsData === undefined ||
+        !studentsData ||
         !enrollmentRequestsData ||
         !allUsersData
       ) {
