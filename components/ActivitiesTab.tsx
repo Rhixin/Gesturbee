@@ -193,6 +193,65 @@ const ActivitiesTab = ({ isTeacher }) => {
     },
   ];
 
+  // Student activities data - activities they're enrolled in
+  const studentActivities = [
+    {
+      id: 1,
+      title: "Greetings",
+      description: "Learn basic greetings and introductions",
+      dueDate: "2024-02-15",
+      status: "Completed",
+      score: 85,
+      submissionDate: "2024-01-15",
+      totalQuestions: 10,
+      correctAnswers: 8,
+    },
+    {
+      id: 2,
+      title: "Alphabets",
+      description: "Master the English alphabet and pronunciation",
+      dueDate: "2024-02-18",
+      status: "Completed",
+      score: 45,
+      submissionDate: "2024-01-18",
+      totalQuestions: 26,
+      correctAnswers: 12,
+    },
+    {
+      id: 3,
+      title: "Numbers",
+      description: "Learn numbers from 1 to 100",
+      dueDate: "2024-02-22",
+      status: "Completed",
+      score: 100,
+      submissionDate: "2024-01-22",
+      totalQuestions: 20,
+      correctAnswers: 20,
+    },
+    {
+      id: 4,
+      title: "Colors and Shapes",
+      description: "Identify and name different colors and shapes",
+      dueDate: "2024-02-25",
+      status: "In Progress",
+      score: null,
+      submissionDate: null,
+      totalQuestions: 15,
+      correctAnswers: null,
+    },
+    {
+      id: 5,
+      title: "Basic Conversations",
+      description: "Practice simple daily conversations",
+      dueDate: "2024-02-28",
+      status: "Not Started",
+      score: null,
+      submissionDate: null,
+      totalQuestions: 12,
+      correctAnswers: null,
+    },
+  ];
+
   const handleViewDetails = (category) => {
     setSelectedCategory(category);
     setModalVisible(true);
@@ -203,7 +262,7 @@ const ActivitiesTab = ({ isTeacher }) => {
     setSelectedCategory(null);
   };
 
-  // Student details modal component with CreateQuizModal styling
+  // Student details modal component 
   const StudentDetailsModal = () => {
     if (!selectedCategory) return null;
 
@@ -373,7 +432,7 @@ const ActivitiesTab = ({ isTeacher }) => {
     );
   };
 
-  // Category card component
+  // Category card component for teacher view
   const CategoryCard = ({ item }) => {
     return (
       <View className="bg-white rounded-lg p-4 mb-4 shadow-sm border border-gray-200">
@@ -424,6 +483,139 @@ const ActivitiesTab = ({ isTeacher }) => {
     );
   };
 
+  // Student activity card component
+  const StudentActivityCard = ({ activity }) => {
+    const getStatusColor = (status) => {
+      switch (status) {
+        case "Completed":
+          return "bg-green-100 text-green-500";
+        case "In Progress":
+          return "bg-yellow-100 text-yellow-700";
+        case "Not Started":
+          return "bg-gray-100 text-gray-700";
+        default:
+          return "bg-gray-100 text-gray-700";
+      }
+    };
+
+    const getScoreColor = (score) => {
+      if (score >= 80) return "text-green-600";
+      if (score >= 60) return "text-yellow-600";
+      if (score > 0) return "text-red-600";
+      return "text-gray-400";
+    };
+
+    const getActionButton = () => {
+      switch (activity.status) {
+        case "Completed":
+          return (
+            <TouchableOpacity className="bg-secondary px-4 py-2 rounded-full">
+              <Text className="text-white font-medium">View Results</Text>
+            </TouchableOpacity>
+          );
+        case "In Progress":
+          return (
+            <TouchableOpacity className="bg-orange-500 px-4 py-2 rounded-full">
+              <Text className="text-white font-medium">Continue</Text>
+            </TouchableOpacity>
+          );
+        case "Not Started":
+          return (
+            <TouchableOpacity className="bg-green-500 px-4 py-2 rounded-full">
+              <Text className="text-white font-medium">Start Activity</Text>
+            </TouchableOpacity>
+          );
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <View className="bg-white rounded-lg p-4 mb-4 shadow-sm border border-gray-200">
+        <View className="flex-row justify-between items-start mb-3">
+          <View className="flex-1">
+            <Text className="text-xl font-semibold text-gray-700 mb-2">
+              {activity.title}
+            </Text>
+            <Text className="text-sm text-gray-600 mb-2">
+              {activity.description}
+            </Text>
+            <Text className="text-sm text-gray-500 mb-2">
+              Due: {activity.dueDate}
+            </Text>
+            
+            {/* Status Badge */}
+            <View
+              className={`px-3 py-1 rounded-full self-start ${getStatusColor(
+                activity.status
+              )}`}
+            >
+              <Text className="text-xs font-medium">{activity.status}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View className="flex-row justify-between items-center mt-4">
+          {/* Performance Stats */}
+          <View className="flex-row space-x-6">
+            {activity.score !== null && (
+              <View className="items-center"  style={{ marginRight: 20}}>
+                <Text className={`text-lg  font-bold ${getScoreColor(activity.score)}`}  style={{ marginLeft: 2}}>
+                  {activity.score}%
+                </Text>
+                <Text className="text-xs text-gray-600">Score</Text>
+              </View>
+            )}
+            
+            {activity.correctAnswers !== null && (
+              <View className="items-center"  style={{ marginRight: 20}}>
+                <Text className="text-lg font-semibold text-gray-700">
+                  {activity.correctAnswers}/{activity.totalQuestions}
+                </Text>
+                <Text className="text-xs text-gray-600">Correct</Text>
+              </View>
+            )}
+            
+            <View className="items-center">
+              <Text className="text-lg font-semibold text-gray-700">
+                {activity.totalQuestions}
+              </Text>
+              <Text className="text-xs text-gray-600">Questions</Text>
+            </View>
+          </View>
+
+          {/* Action Button */}
+          {getActionButton()}
+        </View>
+
+        {/* Progress Bar for completed activities */}
+        {activity.score !== null && (
+          <View className="mt-3">
+            <View className="w-full bg-gray-200 rounded-full h-2">
+              <View
+                className={`h-2 rounded-full ${
+                  activity.score >= 80
+                    ? "bg-green-500"
+                    : activity.score >= 60
+                    ? "bg-yellow-500"
+                    : "bg-red-500"
+                }`}
+                style={{ width: `${activity.score}%` }}
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Submission Date for completed activities */}
+        {activity.submissionDate && (
+          <Text className="text-xs text-gray-500 mt-2">
+            Submitted on: {activity.submissionDate}
+          </Text>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       {isTeacher ? (
@@ -436,7 +628,15 @@ const ActivitiesTab = ({ isTeacher }) => {
           <StudentDetailsModal />
         </>
       ) : (
-        <></>
+        // Student View
+        <ScrollView className="p-4">
+          <Text className="text-2xl font-bold text-gray-800 mb-4">
+            My Activities
+          </Text>
+          {studentActivities.map((activity) => (
+            <StudentActivityCard key={activity.id} activity={activity} />
+          ))}
+        </ScrollView>
       )}
     </View>
   );
