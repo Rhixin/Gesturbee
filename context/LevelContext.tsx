@@ -88,6 +88,9 @@ export const LevelProvider: React.FC<{
       setUserSavedLevel(newLevel);
       setUserSavedLesson(1);
       setUserSavedTotalLesson(12);
+
+      console.log("HERERE");
+      console.log(newStage + " " + newLevel);
     } catch (error) {
       console.error("Failed to save progress:", error);
     } finally {

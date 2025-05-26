@@ -23,7 +23,7 @@ const RoadmapService = {
       const responseData = response.data.data;
       return {
         success: true,
-        data: { stage: responseData.stage, level: responseData.Level },
+        data: { stage: responseData.stage, level: responseData.level },
       };
     } catch (error) {
       return {
