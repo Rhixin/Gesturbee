@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 import SuccessModal from "../SuccessModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function SpellingLesson({
   title,
@@ -24,7 +25,7 @@ export default function SpellingLesson({
     updateLevel,
   } = useLevel();
   const { stageId, levelId } = useLocalSearchParams();
-
+  const { currentUser } = useAuth();
   const [prediction, setPrediction] = useState("");
   const [isWebViewLoaded, setIsWebViewLoaded] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -97,13 +98,22 @@ export default function SpellingLesson({
             if (!isThisLessonAlreadyDone()) {
               // Update Database
               if (userSavedLesson === userSavedTotalLesson) {
-                updateLevel(userSavedStage, userSavedLevel + 1, 1, 10);
+                updateLevel(
+                  currentUser.id,
+                  userSavedStage,
+                  userSavedLevel + 1,
+                  1,
+                  12,
+                  true
+                );
               } else {
                 updateLevel(
+                  currentUser.id,
                   userSavedStage,
                   userSavedLevel,
                   userSavedLesson + 1,
-                  userSavedTotalLesson
+                  userSavedTotalLesson,
+                  false
                 );
               }
             }

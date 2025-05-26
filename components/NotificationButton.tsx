@@ -1,37 +1,74 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Modal, SafeAreaView, TextInput, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  SafeAreaView,
+  TextInput,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-const NotificationsButton = ({ handleAcceptRequest }) => {
+import ClassRoomService from "@/api/services/classroom-service";
+import { useToast } from "@/context/ToastContext";
+
+const NotificationsButton = ({
+  handleAcceptRequest,
+  enrollmentRequestsProfile,
+  classId,
+  loadData,
+}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useToast();
 
-  const [pendingRequests, setPendingRequests] = useState([
-    { id: "3", name: "John Doe", email: "johndoe@gmail.com" },
-    { id: "4", name: "Jane Doe", email: "janedoe@gmail.com" },
-    { id: "5", name: "Cool Me", email: "cool@gmail.com" },
-    { id: "6", name: "Blabla", email: "bla@gmail.com" },
-  ]);
+  const [pendingRequests, setPendingRequests] = useState(
+    enrollmentRequestsProfile || []
+  );
 
-  const handleAccept = (id) => {
-    const acceptedRequest = pendingRequests.find((req) => req.id === id);
-    if (acceptedRequest) {
-      handleAcceptRequest([acceptedRequest]);
+  // apis
+  const fetchAdmissionEnrollmentRequest = async (studentId, accept) => {
+    setIsLoading(true);
+
+    const response = await ClassRoomService.acceptOrRejectEnrollmentRequest(
+      studentId,
+      classId,
+      accept
+    );
+
+    if (response.success) {
+      showToast(
+        `Successfully ${accept ? "Accepted" : "Rejected"} a student`,
+        "success"
+      );
+    } else {
+      showToast(response.error, "error");
     }
-    setPendingRequests((prev) => prev.filter((req) => req.id !== id));
-  };
 
-  const handleDecline = (id) => {
-    setPendingRequests((prev) => prev.filter((req) => req.id !== id));
+    loadData();
+    setIsLoading(false);
   };
 
   // Filter notifications based on search text
   const filteredRequests = pendingRequests.filter((request) =>
-    request.name.toLowerCase().includes(searchText.toLowerCase())
+    (request.firstName + request.lastName)
+      .toLowerCase()
+      .includes(searchText.toLowerCase())
   );
+
+  const handleCloseModal = () => {
+    if (isLoading) return; // Prevent closing while processing
+    setModalVisible(false);
+  };
 
   return (
     <>
-      <TouchableOpacity onPress={() => setModalVisible(true)} className="relative mr-2">
+      <TouchableOpacity
+        onPress={() => setModalVisible(true)}
+        className="relative mr-2"
+      >
         <Ionicons name="notifications" size={24} color="white" />
         {pendingRequests.length > 0 && (
           <View
@@ -47,7 +84,9 @@ const NotificationsButton = ({ handleAcceptRequest }) => {
               justifyContent: "center",
             }}
           >
-            <Text className="text-xs text-white font-bold">{pendingRequests.length}</Text>
+            <Text className="text-xs text-white font-bold">
+              {pendingRequests.length}
+            </Text>
           </View>
         )}
       </TouchableOpacity>
@@ -56,67 +95,140 @@ const NotificationsButton = ({ handleAcceptRequest }) => {
         visible={modalVisible}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={handleCloseModal}
       >
-        <View style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }} className="flex-1 justify-center items-center px-4">
+        <View
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+          className="flex-1 justify-center items-center px-4"
+        >
           <View className="bg-white w-full rounded-2xl p-6">
-            <Text className="text-3xl font-semibold text-titlegray mb-2">Pending Requests</Text>
+            <Text className="text-3xl font-semibold text-titlegray mb-2">
+              Pending Requests
+            </Text>
 
             {/* Search bar */}
             <TextInput
               placeholder="Search for a request"
-              className="border border-gray-300 rounded-lg p-2 mb-4"
+              className={`border border-gray-300 rounded-lg p-2 mb-4 ${
+                isLoading ? "opacity-50" : ""
+              }`}
               value={searchText}
               onChangeText={setSearchText}
+              editable={!isLoading}
             />
 
             {/* Scrollable list of requests */}
-            <ScrollView style={{ height: 300, marginTop: 10 }} contentContainerStyle={{ flexGrow: 1 }}>
+            <ScrollView
+              style={{ height: 300, marginTop: 10 }}
+              contentContainerStyle={{ flexGrow: 1 }}
+              scrollEnabled={!isLoading}
+            >
               <View>
                 {filteredRequests.length > 0 ? (
-                  filteredRequests.map((item) => (
-                    <View
-                      key={item.id}
-                      className="flex-row items-center justify-between bg-gray-100 rounded-lg p-4 mb-4"
-                    >
-                      <View className="flex-row items-center">
-                        <View className="w-12 h-12 rounded-full bg-gray-200 mr-4 justify-center items-center">
-                          <Ionicons name="person" size={24} color="#999" />
+                  filteredRequests.map((item) => {
+                    return (
+                      <View
+                        key={item.id}
+                        className={`flex-row items-center justify-between bg-gray-100 rounded-lg p-4 mb-4 ${
+                          isLoading ? "opacity-75" : ""
+                        }`}
+                      >
+                        <View className="flex-row items-center">
+                          <View className="w-12 h-12 rounded-full bg-gray-200 mr-4 justify-center items-center">
+                            <Ionicons name="person" size={24} color="#999" />
+                          </View>
+
+                          <View>
+                            <Text className="font-semibold text-gray-800">
+                              {item.firstName + " " + item.lastName}
+                            </Text>
+                          </View>
                         </View>
 
-                        <View>
-                          <Text className="font-semibold text-gray-800">{item.name}</Text>
-                          <Text className="text-gray-500 text-sm">{item.email}</Text>
+                        <View className="flex-row">
+                          {/* Accept Button */}
+                          <TouchableOpacity
+                            onPress={() =>
+                              fetchAdmissionEnrollmentRequest(item.id, true)
+                            }
+                            disabled={isLoading}
+                            className={`bg-primary px-3 py-2 rounded-full mr-2 flex-row items-center ${
+                              isLoading ? "opacity-50" : ""
+                            }`}
+                            style={{ minWidth: 40, justifyContent: "center" }}
+                          >
+                            {isLoading ? (
+                              <ActivityIndicator size="small" color="white" />
+                            ) : (
+                              <Ionicons
+                                name="checkmark"
+                                size={20}
+                                color="white"
+                              />
+                            )}
+                          </TouchableOpacity>
+
+                          {/* Reject Button */}
+                          <TouchableOpacity
+                            onPress={() =>
+                              fetchAdmissionEnrollmentRequest(item.id, false)
+                            }
+                            disabled={isLoading}
+                            style={{
+                              backgroundColor: "#F44336",
+                              minWidth: 40,
+                              justifyContent: "center",
+                            }}
+                            className={`px-3 py-2 rounded-full flex-row items-center ${
+                              isLoading ? "opacity-50" : ""
+                            }`}
+                          >
+                            {isLoading ? (
+                              <ActivityIndicator size="small" color="white" />
+                            ) : (
+                              <Ionicons name="close" size={20} color="white" />
+                            )}
+                          </TouchableOpacity>
                         </View>
                       </View>
-
-                      <View className="flex-row">
-                        <TouchableOpacity
-                          onPress={() => handleAccept(item.id)}
-                          className="bg-primary px-3 py-2 rounded-full mr-2"
-                        >
-                          <Ionicons name="checkmark" size={20} color="white" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => handleDecline(item.id)}
-                          style={{ backgroundColor: "#F44336" }}
-                          className="px-3 py-2 rounded-full"
-                        >
-                          <Ionicons name="close" size={20} color="white" />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))
+                    );
+                  })
                 ) : (
-                  <Text className="text-center text-gray-500">No matching requests</Text>
+                  <View className="flex-1 justify-center items-center py-8">
+                    <Text className="text-center text-gray-500">
+                      {searchText.trim()
+                        ? `No requests found matching "${searchText}"`
+                        : "No pending requests"}
+                    </Text>
+                  </View>
                 )}
               </View>
             </ScrollView>
 
+            {/* Show processing indicator if any request is loading */}
+            {isLoading && (
+              <View className="flex-row items-center justify-center py-2">
+                <ActivityIndicator size="small" color="#00BFAF" />
+                <Text className="ml-2 text-gray-600">
+                  Processing request...
+                </Text>
+              </View>
+            )}
+
             {/* Cancel Button */}
             <View className="flex-row justify-end py-2">
-              <TouchableOpacity onPress={() => setModalVisible(false)} className="px-4 py-2">
-                <Text className="text-black font-semibold text-base">Close</Text>
+              <TouchableOpacity
+                onPress={handleCloseModal}
+                className="px-4 py-2"
+                disabled={isLoading}
+              >
+                <Text
+                  className={`font-semibold text-base ${
+                    isLoading ? "text-gray-400" : "text-black"
+                  }`}
+                >
+                  Close
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

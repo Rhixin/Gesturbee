@@ -6,6 +6,7 @@ import ExecuteLesson from "../ExecuteLesson";
 import MultipleChoiceLesson from "../MultipleChoiceLesson";
 import { useLocalSearchParams } from "expo-router";
 import SpellingLesson from "../SpellingLesson";
+import React from "react";
 
 export default function Stage1Level1({
   videoRef,
@@ -159,8 +160,8 @@ export default function Stage1Level1({
           currentLessonIndex={currentLessonIndex}
         ></ExecuteLesson>
       )}
-       {currentLessonIndex === 11 && (
-         <MultipleChoiceLesson
+      {currentLessonIndex === 11 && (
+        <MultipleChoiceLesson
           title={"What sign language is this?"}
           videoSource={require("@/assets/videos/a.mp4")}
           choices={["A", "B", "C", "D"]}

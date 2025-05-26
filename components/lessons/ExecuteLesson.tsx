@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 import SuccessModal from "../SuccessModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ExecuteLesson({
   title,
@@ -22,6 +23,7 @@ export default function ExecuteLesson({
     updateLevel,
   } = useLevel();
   const { stageId, levelId } = useLocalSearchParams();
+  const { currentUser } = useAuth();
 
   const [prediction, setPrediction] = useState("");
   const [isWebViewLoaded, setIsWebViewLoaded] = useState(false);
@@ -85,13 +87,22 @@ export default function ExecuteLesson({
           if (!isThisLessonAlreadyDone()) {
             // Update Database
             if (userSavedLesson === userSavedTotalLesson) {
-              updateLevel(userSavedStage, userSavedLevel + 1, 1, 10);
+              updateLevel(
+                currentUser.id,
+                userSavedStage,
+                userSavedLevel + 1,
+                1,
+                12,
+                true
+              );
             } else {
               updateLevel(
+                currentUser.id,
                 userSavedStage,
                 userSavedLevel,
                 userSavedLesson + 1,
-                userSavedTotalLesson
+                userSavedTotalLesson,
+                false
               );
             }
           }

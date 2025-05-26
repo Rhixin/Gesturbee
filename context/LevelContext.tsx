@@ -1,17 +1,21 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-
+import RoadmapService from "@/api/services/roadmap-service";
 // Define types for our level context
 type LevelContextType = {
   userSavedStage: number;
   userSavedLevel: number;
   userSavedLesson: number;
   userSavedTotalLesson: number;
+  isLoadingLevel: boolean;
   updateLevel: (
+    userId: number,
     stage: number,
     level: number,
     lesson: number,
-    totalLesson: number
+    totalLesson: number,
+    levelComplete: boolean
   ) => void;
+  initializeLevel: (userId: number, stage: number, level: number) => void;
 };
 
 // Create the context with default values
@@ -20,10 +24,12 @@ const LevelContext = createContext<LevelContextType>({
   userSavedLevel: 1,
   userSavedLesson: 1,
   userSavedTotalLesson: 1,
+  isLoadingLevel: false,
   updateLevel: () => {},
+  initializeLevel: () => {},
 });
 
-// Create a provider component
+// Provider component
 export const LevelProvider: React.FC<{
   children: React.ReactNode;
   initialStage?: number;
@@ -35,39 +41,68 @@ export const LevelProvider: React.FC<{
   initialStage = 1,
   initialLevel = 1,
   initialLesson = 1,
-  initialTotalLessons = 10,
+  initialTotalLessons = 12,
 }) => {
   const [userSavedStage, setUserSavedStage] = useState(initialStage);
   const [userSavedLevel, setUserSavedLevel] = useState(initialLevel);
   const [userSavedLesson, setUserSavedLesson] = useState(initialLesson);
   const [userSavedTotalLesson, setUserSavedTotalLesson] =
     useState(initialTotalLessons);
+  const [isLoadingLevel, setIsLoadingLevel] = useState(false);
 
-  // TODO: initial query to get initial value sa level ni user
-  useEffect(() => {
-    setUserSavedStage(1);
-    setUserSavedLevel(1);
-    setUserSavedLesson(1);
-    setUserSavedTotalLesson(10);
-  }, []);
-
-  // TODO: transact with backend using api, update level ni user
-  const updateLevel = (
+  const updateLevel = async (
+    userId: number,
     newStage: number,
     newLevel: number,
     newLesson: number,
-    newTotalLesson: number
+    newTotalLesson: number,
+    levelComplete: boolean
   ) => {
-    saveProgressToBackend(userSavedStage, userSavedLevel);
+    setIsLoadingLevel(true);
 
-    setUserSavedStage(newStage);
-    setUserSavedLevel(newLevel);
-    setUserSavedLesson(newLesson);
-    setUserSavedTotalLesson(newTotalLesson);
+    try {
+      if (levelComplete) {
+        await saveProgressToBackend(userId, newStage, newLevel);
+      }
+      setUserSavedStage(newStage);
+      setUserSavedLevel(newLevel);
+      setUserSavedLesson(newLesson);
+      setUserSavedTotalLesson(newTotalLesson);
+    } catch (error) {
+      console.error("Failed to save progress:", error);
+    } finally {
+      setIsLoadingLevel(false);
+    }
   };
 
-  const saveProgressToBackend = (stageId: number, levelId: number) => {
-    // TODO: Implement API call to save progress
+  const initializeLevel = async (
+    userId: number,
+    newStage: number,
+    newLevel: number
+  ) => {
+    setIsLoadingLevel(true);
+
+    try {
+      //await saveProgressToBackend(userId, newStage, newLevel);
+      setUserSavedStage(newStage);
+      setUserSavedLevel(newLevel);
+      setUserSavedLesson(1);
+      setUserSavedTotalLesson(12);
+    } catch (error) {
+      console.error("Failed to save progress:", error);
+    } finally {
+      setIsLoadingLevel(false);
+    }
+  };
+
+  const saveProgressToBackend = async (
+    userId: number,
+    stageId: number,
+    levelId: number
+  ) => {
+    const response = await RoadmapService.updateLevel(userId, stageId, levelId);
+
+    return response;
   };
 
   return (
@@ -77,7 +112,9 @@ export const LevelProvider: React.FC<{
         userSavedLevel,
         userSavedLesson,
         userSavedTotalLesson,
+        isLoadingLevel,
         updateLevel,
+        initializeLevel,
       }}
     >
       {children}
@@ -85,5 +122,4 @@ export const LevelProvider: React.FC<{
   );
 };
 
-// Create a custom hook to use the level context
 export const useLevel = () => useContext(LevelContext);
