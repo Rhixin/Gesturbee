@@ -138,13 +138,16 @@ const Register = () => {
       lastLogin: new Date().toISOString(),
     };
 
-    try {
-      await AuthService.register(body, showToast, navigate);
-    } catch (error) {
-      console.error("Registration failed:", error);
-    } finally {
-      setIsLoading(false);
+    const response = await AuthService.register(body);
+
+    if (response?.success) {
+      showToast("Successfully registered an Account", "success");
+      navigate("/");
+    } else {
+      showToast(response?.error, "error");
     }
+
+    setIsLoading(false);
   };
 
   return (

@@ -3,32 +3,44 @@ import TokenService from "./token-service";
 import RoadmapService from "./roadmap-service";
 
 const AuthService = {
-  login: async (username, password, showToast, navigate) => {
+  login: async (username, password) => {
     try {
       const response = await api.post("/auth/login", {
         email: username,
         password: password,
       });
 
-      showToast("Logged in successfully!", "success");
-      navigate("/(auth)/home");
-
-      return response;
+      return {
+        success: true,
+        data: response.data.response.data,
+        token: response.data.token,
+      };
     } catch (error) {
-      const message = error.response.data.responseType;
-      showToast(message, "error");
+      return {
+        success: false,
+        error: error.response?.data?.responseType || "Error Logging In",
+        data: null,
+      };
     }
   },
 
-  register: async (userData, showToast, navigate) => {
+  register: async (userData) => {
     try {
       const response = await api.post("/auth/register", userData);
 
-      showToast("Registered an account successfully!", "success");
-      navigate("/");
+      console.log(response);
+
+      return {
+        success: true,
+        data: response.data.data,
+      };
     } catch (error) {
-      showToast(error, "error");
-      throw error;
+      return {
+        success: false,
+        error:
+          error.response?.data?.responseType || "Error Registering an Account",
+        data: null,
+      };
     }
   },
 
@@ -122,9 +134,12 @@ const AuthService = {
       const progressResponse = await RoadmapService.getLevel(user.id);
 
       // Only proceed if progress data was successfully fetched
-      if (progressResponse) {
-        const { stage, level } = progressResponse.data.data;
-        initializeLevel(user.id, stage, level);
+      if (progressResponse.success) {
+        initializeLevel(
+          user.id,
+          progressResponse.data.stage,
+          progressResponse.data.level
+        );
       } else {
         throw new Error("Failed to load user progress data");
       }

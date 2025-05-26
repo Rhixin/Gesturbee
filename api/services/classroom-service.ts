@@ -1,13 +1,7 @@
 import api from "../axios-config";
 
 const ClassRoomService = {
-  createClassroom: async (
-    teacherId,
-    className,
-    classDescription,
-    showToast,
-    navigate
-  ) => {
+  createClassroom: async (teacherId, className, classDescription) => {
     try {
       const response = await api.post("/e-classroom/class/create-class", {
         teacherId: teacherId,
@@ -15,32 +9,45 @@ const ClassRoomService = {
         classDescription: classDescription,
       });
 
-      showToast("Created a Classroom Successfully!", "success");
-      navigate("/(auth)/classes");
+      return { success: true, data: response.data.data };
     } catch (error) {
-      const message = error.response?.data?.responseType;
-      showToast(message, "error");
+      return {
+        success: false,
+        error: error.response?.data?.responseType || "An error occurred",
+        data: null,
+      };
     }
   },
-  getClassroom: async (classId, showToast) => {
+  getClassroom: async (classId) => {
     try {
       const response = await api.get(`/e-classroom/class/${classId}`);
-      return response.data.data;
+
+      return { success: true, data: response.data.data };
     } catch (error) {
-      const message = error.response?.data?.responseType;
-      showToast(message, "error");
+      return {
+        success: false,
+        error:
+          error.response?.data?.responseType ||
+          "Error fetching Classroom Details",
+        data: null,
+      };
     }
   },
-  getAllTeacherClasses: async (teacherId, showToast) => {
+  getAllTeacherClasses: async (teacherId) => {
     try {
       const response = await api.get(
         `/e-classroom/teacher/${teacherId}/classes`
       );
 
-      return response;
+      return { success: true, data: response.data.data };
     } catch (error) {
-      const message = error.response?.data?.responseType;
-      showToast(message, "error");
+      return {
+        success: false,
+        error:
+          error.response?.data?.responseType ||
+          "Error fetching teacher classes",
+        data: null,
+      };
     }
   },
   getAllStudentsInThisClass: async (classId, showToast) => {
@@ -48,19 +55,15 @@ const ClassRoomService = {
       const response = await api.get(`/e-classroom/class/${classId}/students`);
       const data = response.data.data;
       const users = data.map((item) => item.profile);
-      return users;
+      return { success: true, data: users };
     } catch (error) {
-      const message = error.response?.data?.responseType;
-      showToast(message, "error");
-    }
-  },
-  getAllUsers: async () => {
-    try {
-      const response = await api.get(`/e-classroom/user/all`);
-
-      return response;
-    } catch (error) {
-      const message = error.response?.data?.responseType;
+      return {
+        success: false,
+        error:
+          error.response?.data?.responseType ||
+          "Error fetching students in This Class",
+        data: null,
+      };
     }
   },
   getAllUsersNotEnrolled: async (classId) => {
@@ -72,9 +75,15 @@ const ClassRoomService = {
       const users = response?.data.data;
       const allUserProfiles = users.map((item) => item.profile);
 
-      return allUserProfiles;
+      return { success: true, data: allUserProfiles };
     } catch (error) {
-      const message = error.response?.data?.responseType;
+      return {
+        success: false,
+        error:
+          error.response?.data?.responseType ||
+          "Error fetching students not enrolled in this class",
+        data: null,
+      };
     }
   },
   getAllEnrollmentRequests: async (classId) => {
@@ -88,29 +97,33 @@ const ClassRoomService = {
         (item) => item.profile
       );
 
-      return enrollementRequestsProfile;
+      return { success: true, data: enrollementRequestsProfile };
     } catch (error) {
-      const message = error.response?.data?.responseType;
+      return {
+        success: false,
+        error:
+          error.response?.data?.responseType ||
+          "Error fetching enrollment requests",
+        data: null,
+      };
     }
   },
-  removeStudent: async (studentId, classId, showToast) => {
+  removeStudent: async (studentId, classId) => {
     try {
       const response = await api.post(
         `/e-classroom/class/${classId}/remove-student/${studentId}`
       );
 
-      showToast("Successfully removed a student!", "success");
+      return { success: true, data: response?.data.data };
     } catch (error) {
-      const message = error.response?.data?.responseType;
-      showToast(message, "error");
+      return {
+        success: false,
+        error: error.response?.data?.responseType || "Error removing student",
+        data: null,
+      };
     }
   },
-  acceptOrRejectEnrollmentRequest: async (
-    studentId,
-    classId,
-    accept,
-    showToast
-  ) => {
+  acceptOrRejectEnrollmentRequest: async (studentId, classId, accept) => {
     try {
       const response = await api.post("/e-classroom/class/process-enrollment", {
         studentId: studentId,
@@ -118,41 +131,45 @@ const ClassRoomService = {
         accept: accept,
       });
 
-      if (accept) {
-        showToast("Successfully accepted student!", "success");
-      } else {
-        showToast("Successfully rejected a student!", "success");
-      }
+      return { success: true, data: response?.data.data };
     } catch (error) {
-      const message = error.response?.data?.responseType;
-      showToast(message, "error");
+      return {
+        success: false,
+        error:
+          error.response?.data?.responseType ||
+          "Error processing enrollment request",
+        data: null,
+      };
     }
   },
-  addStudent: async (studentId, classId, showToast) => {
+  addStudent: async (studentId, classId) => {
     try {
       const response = await api.post(
         `/e-classroom/class/${classId}/add-student/${studentId}`
       );
 
-      showToast("Successfully added a student!", "success");
-      return response;
+      return { success: true, data: response?.data.data };
     } catch (error) {
-      const message = error.response?.data?.responseType;
-      showToast(message, "error");
+      return {
+        success: false,
+        error: error.response?.data?.responseType || "Error adding student",
+        data: null,
+      };
     }
   },
-  joinClass: async (classId, studentId, showToast) => {
+  joinClass: async (classId, studentId) => {
     try {
-      console.log("Class: " + classId + " Student: " + studentId);
       const response = await api.post(
         `/e-classroom/class/${classId}/request-enrollment/${studentId}`
       );
 
-      showToast("Successfully requested to join the class!", "success");
-      return response;
+      return { success: true, data: response?.data.data };
     } catch (error) {
-      const message = error.response?.data?.responseType;
-      showToast(message, "error");
+      return {
+        success: false,
+        error: error.response?.data?.responseType || "Error adding student",
+        data: null,
+      };
     }
   },
 };

@@ -90,18 +90,15 @@ const Login = () => {
 
     setIsLoading(true);
 
-    const response = await AuthService.login(
-      email,
-      password,
-      showToast,
-      navigate
-    );
+    const response = await AuthService.login(email, password);
 
-    if (response) {
-      const token = response.data.token;
-      const user = response.data.response.data;
+    if (response.success) {
+      const token = response.token;
+      const user = response.data;
 
       await handleAuthSuccess(user, token);
+    } else {
+      showToast(response.error, "error");
     }
 
     setIsLoading(false);

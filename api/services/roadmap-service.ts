@@ -1,4 +1,5 @@
 import api from "../axios-config";
+import Level from "../../app/(auth)/home/stage/[stageId]/level/[levelId]";
 
 const RoadmapService = {
   updateLevel: async (userId, stage, level) => {
@@ -19,10 +20,19 @@ const RoadmapService = {
   getLevel: async (userId) => {
     try {
       const response = await api.get(`/roadmap/user/${userId}/progress`);
-      return response;
+      const responseData = response.data.data;
+      return {
+        success: true,
+        data: { stage: responseData.stage, level: responseData.Level },
+      };
     } catch (error) {
-      const message = error.response?.data?.responseType;
-      throw message;
+      return {
+        success: false,
+        error:
+          error.response?.data?.responseType ||
+          "Error fetching roadmap progress",
+        data: null,
+      };
     }
   },
 };

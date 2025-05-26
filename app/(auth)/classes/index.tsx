@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import CreateClassModal from "@/components/CreateClassModal";
 import JoinClassModal from "@/components/JoinClassModal";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import ClassRoomService from "@/api/services/classroom-service";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
@@ -28,32 +29,24 @@ const Classes = () => {
     setIsLoading(true);
     setError(null);
 
-    //console.log(currentUser.id);
+    const response = await ClassRoomService.getAllTeacherClasses(
+      currentUser.id
+    );
 
-    try {
-      const response = await ClassRoomService.getAllTeacherClasses(
-        currentUser.id,
-        showToast
-      );
-
-      const classes = response.data.data;
-      setClasses(classes);
-    } catch (error) {
-      console.error("Failed to fetch classes:", error);
-      setError("Failed to load classes. Please try again later.");
-      showToast("Failed to load classes", "error");
-    } finally {
-      setIsLoading(false);
+    if (response.success) {
+      setClasses(response.data);
+    } else {
+      showToast(response.error, "error");
     }
+
+    setIsLoading(false);
   };
 
-  useEffect(() => {
-    if (currentUser?.id) {
+  useFocusEffect(
+    React.useCallback(() => {
       fetchClasses();
-    } else {
-      setIsLoading(false);
-    }
-  }, []);
+    }, [])
+  );
 
   const router = useRouter();
   const navigateToClassroom = (id: number) => {
@@ -65,13 +58,6 @@ const Classes = () => {
   const [joinClassModalVisible, setJoinClassModalVisible] = useState(false);
 
   const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
-
-  const addNewClass = (newClass) => {
-    setClasses((prevClasses) => [
-      ...prevClasses,
-      { id: String(prevClasses.length + 1), ...newClass },
-    ]);
-  };
 
   const renderContent = () => {
     if (isLoading) {
@@ -115,8 +101,7 @@ const Classes = () => {
                 setIsLoading(true);
                 try {
                   const response = await ClassRoomService.getAllTeacherClasses(
-                    currentUser.id,
-                    showToast
+                    currentUser.id
                   );
                   setClasses(response.data.data);
                   setError(null);
@@ -199,26 +184,6 @@ const Classes = () => {
             </TouchableOpacity>
           </View>
         )}
-        refreshing={isLoading}
-        onRefresh={async () => {
-          if (currentUser?.id) {
-            setIsLoading(true);
-            try {
-              const response = await ClassRoomService.getAllTeacherClasses(
-                currentUser.id,
-                showToast
-              );
-              setClasses(response.data.data);
-              setError(null);
-            } catch (err) {
-              console.error("Refresh failed:", err);
-              setError("Failed to refresh classes. Please try again later.");
-              showToast("Failed to refresh classes", "error");
-            } finally {
-              setIsLoading(false);
-            }
-          }
-        }}
       />
     );
   };
@@ -274,7 +239,6 @@ const Classes = () => {
       <CreateClassModal
         modalVisible={createClassModalVisible}
         setModalVisible={setCreateClassModalVisible}
-        addNewClass={addNewClass}
       />
 
       <JoinClassModal

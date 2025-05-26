@@ -36,27 +36,26 @@ const AddStudentModal = ({
   // Apis here
   const fetchAddStudent = async (studentId, classId) => {
     setIsLoading(true);
-    try {
-      const response = await ClassRoomService.addStudent(
-        studentId,
-        classId,
-        showToast
-      );
 
-      // Reset form state
-      setSelectedStudents([]);
-      setSelectedStudent(-1);
-      setSearchText("");
-      setModalVisible(false);
-      loadData();
-      return response;
-    } catch (error) {
-      console.error("Failed to add student:", error);
-      showToast("Failed to add student", "error");
-      throw error;
-    } finally {
-      setIsLoading(false);
+    const response = await ClassRoomService.addStudent(studentId, classId);
+
+    if (response.success) {
+      showToast("Successfully Added a Student", "success");
+    } else {
+      showToast(response.error, "error");
     }
+
+    resetForm();
+    setIsLoading(false);
+    return response.data;
+  };
+
+  const resetForm = () => {
+    setSelectedStudents([]);
+    setSelectedStudent(-1);
+    setSearchText("");
+    setModalVisible(false);
+    loadData();
   };
 
   // Filter students based on search text

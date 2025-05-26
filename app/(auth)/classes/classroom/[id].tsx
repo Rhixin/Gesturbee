@@ -66,30 +66,54 @@ const Classroom = () => {
 
   // apis
   const fetchClassroom = async () => {
-    const data = await ClassRoomService.getClassroom(id, showToast);
-    setClassroomDetails(data);
-    return data;
+    const response = await ClassRoomService.getClassroom(id);
+
+    if (response.success) {
+      setClassroomDetails(response.data);
+    } else {
+      showToast(response.error, "error");
+    }
+
+    return response.data;
   };
 
   const fetchStudents = async () => {
-    const data = await ClassRoomService.getAllStudentsInThisClass(
+    const response = await ClassRoomService.getAllStudentsInThisClass(
       id,
       showToast
     );
-    setStudents(data);
-    return data;
+
+    if (response.success) {
+      setStudents(response.data);
+    } else {
+      showToast(response.error, "error");
+    }
+
+    return response.data;
   };
 
   const fetchEnrollmentRequests = async (classId) => {
-    const data = await ClassRoomService.getAllEnrollmentRequests(classId);
-    setEnrollmentRequests(data);
-    return data;
+    const response = await ClassRoomService.getAllEnrollmentRequests(classId);
+
+    if (response.success) {
+      setEnrollmentRequests(response.data);
+    } else {
+      showToast(response.error, "error");
+    }
+
+    return response.data;
   };
 
   const fetchAllUsersNotEnrolled = async () => {
-    const data = await ClassRoomService.getAllUsersNotEnrolled(id);
-    setAllUsers(data);
-    return data;
+    const response = await ClassRoomService.getAllUsersNotEnrolled(id);
+
+    if (response.success) {
+      setAllUsers(response.data);
+    } else {
+      showToast(response.error, "error");
+    }
+
+    return response.data;
   };
 
   const loadData = async () => {
@@ -113,7 +137,7 @@ const Classroom = () => {
       // Check if all data sets were loaded successfully
       if (
         !classroomData ||
-        studentsData === undefined ||
+        !studentsData ||
         !enrollmentRequestsData ||
         !allUsersData
       ) {
