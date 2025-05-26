@@ -50,6 +50,23 @@ const ClassRoomService = {
       };
     }
   },
+  getAllStudentClasses: async (teacherId) => {
+    try {
+      const response = await api.get(
+        `/e-classroom/student/${teacherId}/classes`
+      );
+
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error.response?.data?.responseType ||
+          "Error fetching student classes",
+        data: null,
+      };
+    }
+  },
   getAllStudentsInThisClass: async (classId, showToast) => {
     try {
       const response = await api.get(`/e-classroom/class/${classId}/students`);

@@ -24,12 +24,12 @@ const Classes = () => {
   const [createdClasses, setCreatedClasses] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("My Classes");
+  const [activeTab, setActiveTab] = useState("Joined Classes");
 
   const tabs = ["Joined Classes", "Created Classes"];
 
   const fetchMyClasses = async () => {
-    const response = await ClassRoomService.getClassroom(
+    const response = await ClassRoomService.getAllStudentClasses(
       currentUser.id
     );
 
@@ -61,10 +61,7 @@ const Classes = () => {
     setError(null);
 
     try {
-      await Promise.all([
-        fetchMyClasses(),
-        fetchCreatedClasses()
-      ]);
+      await Promise.all([fetchMyClasses(), fetchCreatedClasses()]);
     } catch (error) {
       console.error("Error loading classes:", error);
       setError("Failed to load classes");
@@ -162,7 +159,7 @@ const Classes = () => {
                 </Text>
               </TouchableOpacity>
             )}
-            {activeTab === "My Classes" && (
+            {activeTab === "Joined Classes" && (
               <TouchableOpacity
                 className="bg-secondary px-6 py-3 rounded-lg flex-row items-center"
                 onPress={() => setJoinClassModalVisible(true)}

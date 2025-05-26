@@ -10,13 +10,16 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { stageData } from "@/utils/stageData";
 import { useLevel } from "@/context/LevelContext";
+import AnimatedBeehive from "@/components/AnimatedBeehive";
+import AnimatedClouds from "@/components/AnimatedClouds";
 
 export default function Home() {
   const scrollViewRef = useRef<ScrollView>(null);
   const router = useRouter();
-  const { userSavedStage } = useLevel();
+  const { userSavedStage, userSavedLevel, userSavedTotalLesson } = useLevel();
 
   const navigateToStage = (id: number) => {
     router.push(`/home/stage/${id}`);
@@ -26,115 +29,119 @@ export default function Home() {
     return stageNumber > userSavedStage;
   };
 
-  // Get screen height to fix container height
   const screenHeight = Dimensions.get("window").height;
 
   return (
     <ScrollView
       ref={scrollViewRef}
-      bounces={false} // prevent iOS bounce overscroll
+      bounces={false}
       contentContainerStyle={{ flexGrow: 1 }}
-      // Remove onContentSizeChange to avoid auto scroll to bottom
+      style={{ flex: 1 }}
     >
-      <ImageBackground
-        source={require("@/assets/images/homebg7.png")}
-        style={{ flex: 1, minHeight: screenHeight }}
-        resizeMode="cover"
-      >
-        <SafeAreaView className="pt-10 pb-10" style={{ flex: 1 }}>
-          {stageData.map((item, index) => {
-            const locked = isStageLocked(item.id);
+      <View style={{ flex: 1, position: "relative" }}>
+        <LinearGradient
+          colors={["#00BFAF", "#0AC9B3", "#007F8B"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={{ flex: 1 }}
+        >
+          <SafeAreaView className="pt-10 pb-10" style={{ flex: 1 }}>
+            {stageData.map((item, index) => {
+              const locked = isStageLocked(item.id);
 
-            return (
-              <TouchableOpacity
-                key={index}
-                onPress={() => navigateToStage(item.id)}
-                activeOpacity={0.7}
-                disabled={locked}
-              >
-                <View
-                  className={`w-full flex ${
-                    item.stage % 2 === 0 ? "items-start" : "items-end"
-                  }`}
+              return (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => navigateToStage(item.id)}
+                  activeOpacity={0.7}
+                  disabled={locked}
                 >
                   <View
-                    style={{
-                      minWidth: 250,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
+                    className={`w-full flex ${
+                      item.stage % 2 === 0 ? "items-start" : "items-end"
+                    }`}
                   >
-                    {/* Stage number */}
                     <View
                       style={{
-                        backgroundColor: locked ? "#ccc" : "#FF9F1C",
-                        paddingVertical: 6,
-                        paddingHorizontal: 16,
-                        borderRadius: 20,
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: locked ? 0 : 0.3,
-                        shadowRadius: 3,
-                        elevation: locked ? 0 : 3,
+                        minWidth: 250,
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                     >
-                      <Text
+                      {/* Stage number */}
+                      <View
                         style={{
-                          fontSize: 15,
-                          fontWeight: "800",
-                          color: locked ? "#666" : "#fff",
-                          letterSpacing: 1,
+                          backgroundColor: locked ? "#ccc" : "#FF9F1C",
+                          paddingVertical: 6,
+                          paddingHorizontal: 16,
+                          borderRadius: 20,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: locked ? 0 : 0.3,
+                          shadowRadius: 3,
+                          elevation: locked ? 0 : 3,
                         }}
                       >
-                        STAGE {item.stage}
-                      </Text>
-                    </View>
+                        <Text
+                          style={{
+                            fontSize: 15,
+                            fontWeight: "800",
+                            color: locked ? "#666" : "#fff",
+                            letterSpacing: 1,
+                          }}
+                        >
+                          STAGE {item.stage}
+                        </Text>
+                      </View>
 
-                    {/* Title */}
-                    <View
-                      style={{
-                        backgroundColor: locked
-                          ? "rgba(200, 200, 200, 0.8)"
-                          : "rgba(255,255,255,0.9)",
-                        marginTop: 10,
-                        paddingVertical: 6,
-                        paddingHorizontal: 16,
-                        borderRadius: 20,
-                      }}
-                    >
-                      <Text
+                      {/* Title */}
+                      <View
                         style={{
-                          fontSize: 18,
-                          fontWeight: "800",
-                          color: locked ? "#888" : "#FF9F1C",
-                          textAlign: "center",
+                          backgroundColor: locked
+                            ? "rgba(200, 200, 200, 0.8)"
+                            : "rgba(255,255,255,0.9)",
+                          marginTop: 10,
+                          paddingVertical: 6,
+                          paddingHorizontal: 16,
+                          borderRadius: 20,
                         }}
                       >
-                        {item.title}
-                      </Text>
-                    </View>
+                        <Text
+                          style={{
+                            fontSize: 18,
+                            fontWeight: "800",
+                            color: locked ? "#888" : "#FF9F1C",
+                            textAlign: "center",
+                          }}
+                        >
+                          {item.title}
+                        </Text>
+                      </View>
 
-                    {/* Beehive images */}
-                    <View>
-                      {locked ? (
-                        <Image
-                          source={require("@/assets/images/beehive locked.png")}
-                          style={{ width: 180, height: 180, transform: [{ scale: 2 }] }}
-                        />
-                      ) : (
-                        <Image
-                          source={require("@/assets/images/beehive unlocked.png")}
-                          style={{ width: 180, height: 180, transform: [{ scale: 2 }] }}
-                        />
-                      )}
+                      {/* Beehive images */}
+                      <View>
+                        {locked ? (
+                          <AnimatedBeehive
+                            percentage={0}
+                            isGeneral={false}
+                          ></AnimatedBeehive>
+                        ) : (
+                          <AnimatedBeehive
+                            percentage={
+                              (userSavedLevel / userSavedTotalLesson) * 100
+                            }
+                            isGeneral={false}
+                          ></AnimatedBeehive>
+                        )}
+                      </View>
                     </View>
                   </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </SafeAreaView>
-      </ImageBackground>
+                </TouchableOpacity>
+              );
+            })}
+          </SafeAreaView>
+        </LinearGradient>
+      </View>
     </ScrollView>
   );
 }
