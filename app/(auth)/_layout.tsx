@@ -7,9 +7,6 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function TabLayout() {
   const { currentUser } = useAuth();
-  useEffect(() => {
-    console.log(currentUser);
-  });
 
   return (
     <Tabs
