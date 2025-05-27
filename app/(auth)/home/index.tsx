@@ -112,15 +112,15 @@ export default function Home() {
         className="absolute top-0 left-0 right-0 z-50"
         style={{ paddingTop: StatusBar.currentHeight || 0 }}
       >
-        <View>
-          <View className="mx-5 mt-6 bg-white rounded-2xl px-5 py-2 items-center shadow-lg relative">
+        <SafeAreaView>
+          <View className="mx-5 bg-white rounded-2xl px-5 py-2 items-center shadow-lg relative">
             <View className="rounded-xl w-60 h-8 flex justify-center items-center bg-[#01D3C1]">
               <Text className="text-lg font-poppins-bold text-white tracking-wide text-center">
                 Roadmap
               </Text>
             </View>
           </View>
-        </View>
+        </SafeAreaView>
       </View>
 
       <ScrollView
