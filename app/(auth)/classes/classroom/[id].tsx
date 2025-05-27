@@ -19,6 +19,7 @@ import RemoveStudentModal from "@/components/RemoveStudentModal";
 import ActivitiesTab from "@/components/ActivitiesTab";
 import { useToast } from "@/context/ToastContext";
 import ClassRoomService from "@/api/services/classroom-service";
+import { useAuth } from "@/context/AuthContext";
 
 const Classroom = () => {
   const getScoreColor = (score) => {
@@ -33,10 +34,13 @@ const Classroom = () => {
   };
 
   const { id } = useLocalSearchParams();
+  const { currentUser } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("Students");
-
-  const tabs = ["Students", "Activities", "Grades"];
+  const [activeTab, setActiveTab] = useState("Activities"); // Default to Activities
+  const [isTeacher, setIsTeacher] = useState(false);
+  const tabs = isTeacher
+    ? ["Students", "Activities", "Grades"]
+    : ["Activities"];
 
   const navigateToTab = (tab) => {
     setActiveTab(tab);
@@ -70,6 +74,11 @@ const Classroom = () => {
 
     if (response.success) {
       setClassroomDetails(response.data);
+      if (currentUser?.id === response.data?.teacherId) {
+        setIsTeacher(true);
+      } else {
+        setIsTeacher(false);
+      }
     } else {
       showToast(response.error, "error");
     }
@@ -161,6 +170,24 @@ const Classroom = () => {
       router.back();
     }
   }, [id]);
+
+  // Update active tab when classroom details are loaded
+  useEffect(() => {
+    if (classroomDetails && currentUser) {
+      const isTeacherRole = currentUser.id === classroomDetails.teacherId;
+      // If user is not a teacher, ensure they're on Activities tab
+      if (!isTeacherRole && activeTab !== "Activities") {
+        setActiveTab("Activities");
+      }
+      // If user is a teacher and currently on a non-existent tab, default to Students
+      if (
+        isTeacherRole &&
+        !["Students", "Activities", "Grades"].includes(activeTab)
+      ) {
+        setActiveTab("Students");
+      }
+    }
+  }, [classroomDetails, currentUser]);
 
   //adding student
   const handleAddStudents = (newStudents) => {
@@ -311,11 +338,14 @@ const Classroom = () => {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={() => showRemoveStudentModal(student.id)}
-            >
-              <Ionicons name="person-remove" size={20} color="#F2A800" />
-            </TouchableOpacity>
+            {/* Only show remove button for teachers */}
+            {isTeacher && (
+              <TouchableOpacity
+                onPress={() => showRemoveStudentModal(student.id)}
+              >
+                <Ionicons name="person-remove" size={20} color="#F2A800" />
+              </TouchableOpacity>
+            )}
           </View>
         ))}
       </ScrollView>
@@ -339,7 +369,7 @@ const Classroom = () => {
           <View className="flex-row justify-between">
             <View className="items-center">
               <Text className="text-2xl font-poppins-bold text-blue-600">
-                {students.length}
+                {students?.length || 0}
               </Text>
               <Text className="text-sm text-gray-600 font-poppins">
                 Students
@@ -461,27 +491,23 @@ const Classroom = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "Students":
-        return renderStudents();
+        return isTeacher ? (
+          renderStudents()
+        ) : (
+          <ActivitiesTab isTeacher={isTeacher} />
+        );
       case "Activities":
-        return <ActivitiesTab />;
+        return <ActivitiesTab isTeacher={isTeacher} />;
       case "Grades":
-        return renderGrades();
+        return isTeacher ? (
+          renderGrades()
+        ) : (
+          <ActivitiesTab isTeacher={isTeacher} />
+        );
       default:
-        return renderStudents();
+        return <ActivitiesTab isTeacher={isTeacher} />;
     }
   };
-
-  // // Loading state
-  // if (isLoading) {
-  //   return (
-  //     <View className="flex-1 justify-center items-center bg-gray-50">
-  //       <ActivityIndicator size="large" color="#FBBC05" />
-  //       <Text className="mt-4 text-secondary font-poppins-medium">
-  //         Loading classroom data...
-  //       </Text>
-  //     </View>
-  //   );
-  // }
 
   // Error state
   if (error) {
@@ -532,20 +558,26 @@ const Classroom = () => {
             {isLoading ? (
               <View className="w-10 h-10 rounded-full bg-gray-300 animate-pulse" />
             ) : (
-              <NotificationButton
-                handleAcceptRequest={handleAddStudents}
-                enrollmentRequestsProfile={enrollmentRequests}
-                classId={id}
-                loadData={loadData}
-              />
+              // Only show notification button for teachers
+              isTeacher && (
+                <NotificationButton
+                  handleAcceptRequest={handleAddStudents}
+                  enrollmentRequestsProfile={enrollmentRequests}
+                  classId={id}
+                  loadData={loadData}
+                />
+              )
             )}
 
-            <TouchableOpacity
-              accessibilityLabel="Settings"
-              accessibilityRole="button"
-            >
-              <Ionicons name="settings-outline" size={24} color="white" />
-            </TouchableOpacity>
+            {/* Only show settings for teachers */}
+            {isTeacher && (
+              <TouchableOpacity
+                accessibilityLabel="Settings"
+                accessibilityRole="button"
+              >
+                <Ionicons name="settings-outline" size={24} color="white" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </SafeAreaView>
@@ -575,8 +607,8 @@ const Classroom = () => {
       </View>
 
       <View className="flex-1">
-        {/* Add Student Button - Only show on Students tab */}
-        {activeTab === "Students" && (
+        {/* Add Student Button - Only show on Students tab for teachers */}
+        {activeTab === "Students" && isTeacher && (
           <View
             className="absolute bottom-4 right-4 p-4"
             style={{ zIndex: 10 }}
@@ -597,8 +629,8 @@ const Classroom = () => {
           </View>
         )}
 
-        {/* Add Activity Button - Only show on Activities tab */}
-        {activeTab === "Activities" && (
+        {/* Add Activity Button - Only show on Activities tab for teachers */}
+        {activeTab === "Activities" && isTeacher && (
           <View
             className="absolute bottom-4 right-1 p-4"
             style={{ zIndex: 100 }}
@@ -623,12 +655,16 @@ const Classroom = () => {
         {renderContent()}
       </View>
 
-      <AssignActivityModal
-        modalVisible={assignActivityModalVisible}
-        setModalVisible={setAssignActivityModalVisible}
-      />
+      {/* Only show assign activity modal for teachers */}
+      {isTeacher && (
+        <AssignActivityModal
+          modalVisible={assignActivityModalVisible}
+          setModalVisible={setAssignActivityModalVisible}
+        />
+      )}
 
-      {!isLoading && (
+      {/* Only show add student modal for teachers */}
+      {!isLoading && isTeacher && (
         <AddStudentModal
           modalVisible={addStudentModalVisible}
           setModalVisible={setAddStudentModalVisible}
@@ -640,14 +676,17 @@ const Classroom = () => {
         />
       )}
 
-      <RemoveStudentModal
-        modalVisible={removeStudentModalVisible}
-        setModalVisible={setRemoveStudentModalVisible}
-        studentId={selectedStudentId}
-        students={students || []}
-        loadData={loadData}
-        classId={id}
-      />
+      {/* Only show remove student modal for teachers */}
+      {isTeacher && (
+        <RemoveStudentModal
+          modalVisible={removeStudentModalVisible}
+          setModalVisible={setRemoveStudentModalVisible}
+          studentId={selectedStudentId}
+          students={students || []}
+          loadData={loadData}
+          classId={id}
+        />
+      )}
     </View>
   );
 };

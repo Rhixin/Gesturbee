@@ -72,14 +72,14 @@ export default function Stage1Level2({
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/j.mp4")}
          ></VideoLesson>
        )}
  
        {currentLessonIndex === 2 && (
          <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/j.mp4")}
            choices={["H", "I", "J", "K"]}
            correctAnswer={"J"}
            videoRef={videoRef}
@@ -90,7 +90,7 @@ export default function Stage1Level2({
  
        {currentLessonIndex === 3 && (
          <ExecuteLesson
-           title={"ExecuteJ"}
+           title={"Execute J"}
            correctAnswer={"J"}
            currentLessonIndex={currentLessonIndex}
          ></ExecuteLesson>
@@ -111,14 +111,14 @@ export default function Stage1Level2({
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/k.mp4")}
          ></VideoLesson>
        )}
  
        {currentLessonIndex === 6 && (
          <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/k.mp4")}
            choices={["K", "L", "I", "J"]}
            correctAnswer={"K"}
            videoRef={videoRef}
@@ -146,11 +146,11 @@ export default function Stage1Level2({
  
        {currentLessonIndex === 9 && (
          <VideoLesson
-           title={"This is 'I'"}
+           title={"This is 'L'"}
            videoRef={videoRef}
            setStatus={setStatus}
            currentLessonIndex={currentLessonIndex}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/l.mp4")}
          ></VideoLesson>
        )}
  
@@ -164,7 +164,7 @@ export default function Stage1Level2({
         {currentLessonIndex === 11 && (
           <MultipleChoiceLesson
            title={"What sign language is this?"}
-           videoSource={require("@/assets/videos/a.mp4")}
+           videoSource={require("@/assets/videos/l.mp4")}
            choices={["I", "J", "K", "L"]}
            correctAnswer={"L"}
            videoRef={videoRef}

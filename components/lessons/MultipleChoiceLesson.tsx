@@ -30,6 +30,7 @@ export default function MultipleChoiceLesson({
     userSavedLesson,
     userSavedTotalLesson,
     updateLevel,
+    setShowLevelCompleteModal,
   } = useLevel();
   const { stageId, levelId } = useLocalSearchParams();
   const { currentUser } = useAuth();
@@ -64,6 +65,7 @@ export default function MultipleChoiceLesson({
             12,
             true
           );
+          setShowLevelCompleteModal(true);
         } else {
           updateLevel(
             currentUser.id,
