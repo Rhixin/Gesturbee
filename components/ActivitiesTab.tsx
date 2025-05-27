@@ -262,7 +262,7 @@ const ActivitiesTab = ({ isTeacher }) => {
     setSelectedCategory(null);
   };
 
-  // Student details modal component 
+  // Student details modal component
   const StudentDetailsModal = () => {
     if (!selectedCategory) return null;
 
@@ -489,30 +489,30 @@ const ActivitiesTab = ({ isTeacher }) => {
       switch (status) {
         case "Completed":
           return {
-            backgroundColor: '#dcfce7', 
-            color: '#22c55e',           
+            backgroundColor: "#dcfce7",
+            color: "#22c55e",
           };
         case "In Progress":
           return {
-            backgroundColor: '#fef9c3', // Tailwind's yellow-100
-            color: '#a16207',           // Tailwind's yellow-700
+            backgroundColor: "#fef9c3", // Tailwind's yellow-100
+            color: "#a16207", // Tailwind's yellow-700
           };
         case "Not Started":
         default:
           return {
-            backgroundColor: '#f3f4f6', // Tailwind's gray-100
-            color: '#374151',           // Tailwind's gray-700
+            backgroundColor: "#f3f4f6", // Tailwind's gray-100
+            color: "#374151", // Tailwind's gray-700
           };
       }
     };
 
     const getScoreStyle = (score) => {
-      if (score >= 80) return { backgroundColor: '#dcfce7', color: '#16a34a' }; // green
-      if (score >= 60) return { backgroundColor: '#fef9c3', color: '#ca8a04' }; // yellow
-      if (score > 0) return { backgroundColor: '#fee2e2', color: '#dc2626' };   // red
-      return { backgroundColor: '#f3f4f6', color: '#9ca3af' };                  // gray
+      if (score >= 80) return { backgroundColor: "#dcfce7", color: "#16a34a" }; // green
+      if (score >= 60) return { backgroundColor: "#fef9c3", color: "#ca8a04" }; // yellow
+      if (score > 0) return { backgroundColor: "#fee2e2", color: "#dc2626" }; // red
+      return { backgroundColor: "#f3f4f6", color: "#9ca3af" }; // gray
     };
-    
+
     // Helper function to get the percentage for Beehive component
     const getActivityPercentage = (activity) => {
       if (activity.status === "Completed" && activity.score !== null) {
@@ -529,43 +529,48 @@ const ActivitiesTab = ({ isTeacher }) => {
         case "Completed":
           return (
             <TouchableOpacity
-            style={{
-              backgroundColor: '#16a34a',
-              paddingHorizontal: 16,
-              paddingVertical: 8,
-              borderRadius: 9999,
-            }}
-          >
-            <Text style={{ color: '#ffffff', fontWeight: '500' }}>View Results</Text>
-          </TouchableOpacity>
-          
+              style={{
+                backgroundColor: "#16a34a",
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 9999,
+              }}
+            >
+              <Text style={{ color: "#ffffff", fontWeight: "500" }}>
+                View Results
+              </Text>
+            </TouchableOpacity>
           );
         case "In Progress":
           return (
             <TouchableOpacity
-            style={{
-              backgroundColor: '#FBBC05', 
-              paddingHorizontal: 16,      
-              paddingVertical: 8,         
-              borderRadius: 9999,         
-            }}>
-            <Text style={{
-                color: '#ffffff',         
-                fontWeight: '500',       
-              }}>
-              Continue
-            </Text>
-          </TouchableOpacity>
+              style={{
+                backgroundColor: "#FBBC05",
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 9999,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#ffffff",
+                  fontWeight: "500",
+                }}
+              >
+                Continue
+              </Text>
+            </TouchableOpacity>
           );
         case "Not Started":
           return (
             <TouchableOpacity
-            style={{
-              backgroundColor: '#2563eb', 
-              paddingHorizontal: 16,      
-              paddingVertical: 8,         
-              borderRadius: 9999,         
-            }}>
+              style={{
+                backgroundColor: "#2563eb",
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 9999,
+              }}
+            >
               <Text className="text-white font-medium">Start Activity</Text>
             </TouchableOpacity>
           );
@@ -587,24 +592,29 @@ const ActivitiesTab = ({ isTeacher }) => {
             <Text className="text-sm text-gray-500 mb-2">
               Due: {activity.dueDate}
             </Text>
-            
+
             {/* Status Badge */}
             <View
-              className={`px-3 py-1 rounded-full self-start}`}   
-              style={getStatusColor(activity.status)}>
+              className={`px-3 py-1 rounded-full self-start}`}
+              style={getStatusColor(activity.status)}
+            >
               <Text className="text-xs font-medium">{activity.status}</Text>
             </View>
           </View>
 
           {/* Beehive Progress Indicator */}
           <View className="items-center ml-4">
-            <Beehive percentage={getActivityPercentage(activity)} isGeneral={false} />
+            <Beehive
+              percentage={getActivityPercentage(activity)}
+              isGeneral={false}
+            />
             <Text className="text-xs text-gray-600 mt-1">Score</Text>
             <Text
-              style={{ 
-                color: getActivityPercentage(activity) < 50 ? "#e70606" : "#149304",
+              style={{
+                color:
+                  getActivityPercentage(activity) < 50 ? "#e70606" : "#149304",
                 fontSize: 12,
-                fontWeight: 'bold'
+                fontWeight: "bold",
               }}
             >
               {getActivityPercentage(activity)}%
@@ -624,16 +634,16 @@ const ActivitiesTab = ({ isTeacher }) => {
                 <Text className="text-xs text-gray-600">Score</Text>
               </View>
             )} */}
-            
+
             {activity.correctAnswers !== null && (
-              <View className="items-center"  style={{ marginRight: 20}}>
+              <View className="items-center" style={{ marginRight: 20 }}>
                 <Text className="text-lg font-semibold text-gray-700">
                   {activity.correctAnswers}/{activity.totalQuestions}
                 </Text>
                 <Text className="text-xs text-gray-600">Correct</Text>
               </View>
             )}
-            
+
             <View className="items-center">
               <Text className="text-lg font-semibold text-gray-700">
                 {activity.totalQuestions}
@@ -647,9 +657,16 @@ const ActivitiesTab = ({ isTeacher }) => {
         </View>
 
         {/* Progress Bar for completed activities */}
-                {activity.score !== null && (
+        {activity.score !== null && (
           <View style={{ marginTop: 12 }}>
-            <View style={{ width: '100%', backgroundColor: '#e5e7eb', borderRadius: 999, height: 8 }}>
+            <View
+              style={{
+                width: "100%",
+                backgroundColor: "#e5e7eb",
+                borderRadius: 999,
+                height: 8,
+              }}
+            >
               <View
                 style={{
                   height: 8,
@@ -657,16 +674,15 @@ const ActivitiesTab = ({ isTeacher }) => {
                   width: `${activity.score}%`,
                   backgroundColor:
                     activity.score >= 80
-                      ? '#22c54a' // green-500
+                      ? "#22c54a" // green-500
                       : activity.score >= 60
-                      ? '#eab308' // yellow-500
-                      : '#ef4444', // red-500
+                      ? "#eab308" // yellow-500
+                      : "#ef4444", // red-500
                 }}
               />
             </View>
           </View>
         )}
-
 
         {/* Submission Date for completed activities */}
         {activity.submissionDate && (
@@ -692,9 +708,6 @@ const ActivitiesTab = ({ isTeacher }) => {
       ) : (
         // Student View
         <ScrollView className="p-4">
-          <Text className="text-2xl font-bold text-gray-800 mb-4">
-            My Activities
-          </Text>
           {studentActivities.map((activity) => (
             <StudentActivityCard key={activity.id} activity={activity} />
           ))}
