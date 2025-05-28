@@ -189,6 +189,38 @@ const ClassRoomService = {
       };
     }
   },
+  createQuiz: async (quiz) => {
+    try {
+      const response = await api.post(
+        "/e-classroom/exercise/create-exercise",
+        quiz
+      );
+
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.responseType || "Error creating a quiz",
+        data: null,
+      };
+    }
+  },
+  uploadVideo: async (presignedUrlList) => {
+    try {
+      const response = await api.post(
+        "/e-classroom/upload-presigned-url",
+        presignedUrlList
+      );
+
+      return { success: true, data: response.data.urlMap };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.responseType || "Error uploading video",
+        data: null,
+      };
+    }
+  },
 };
 
 export default ClassRoomService;

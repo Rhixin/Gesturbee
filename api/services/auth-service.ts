@@ -28,8 +28,6 @@ const AuthService = {
     try {
       const response = await api.post("/auth/register", userData);
 
-      console.log(response);
-
       return {
         success: true,
         data: response.data.data,
@@ -39,6 +37,24 @@ const AuthService = {
         success: false,
         error:
           error.response?.data?.responseType || "Error Registering an Account",
+        data: null,
+      };
+    }
+  },
+
+  changeProfile: async (userData) => {
+    try {
+      const response = await api.post("/profile/edit-profile", userData);
+
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error.response?.data?.responseType || "Error Changing User Details",
         data: null,
       };
     }
