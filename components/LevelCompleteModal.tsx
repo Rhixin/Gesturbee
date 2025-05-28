@@ -1,13 +1,13 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Modal, Image } from "react-native";
 
-type SuccessModalProps = {
+type LevelCompleteModalProps = {
   isVisible: boolean;
   onContinue: () => void;
   message: string;
 };
 
-const SuccessModal: React.FC<SuccessModalProps> = ({
+const LevelCompleteModal: React.FC<LevelCompleteModalProps> = ({
   isVisible,
   onContinue,
   message,
@@ -112,4 +112,4 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
   );
 };
 
-export default SuccessModal;
+export default LevelCompleteModal;
