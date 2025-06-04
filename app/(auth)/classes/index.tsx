@@ -16,6 +16,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import ClassRoomService from "@/api/services/classroom-service";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
+import MultipleChoiceLesson from "../../../components/lessons/MultipleChoiceLesson";
+import ClassSkeleton from "@/components/skeletons/ClassSkeleton";
 
 const Classes = () => {
   const { currentUser } = useAuth();
@@ -36,7 +38,7 @@ const Classes = () => {
     if (response.success) {
       setMyClasses(response.data);
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
 
     return response.data;
@@ -50,21 +52,26 @@ const Classes = () => {
     if (response.success) {
       setCreatedClasses(response.data);
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
 
     return response.data;
   };
 
-  const fetchAllClasses = async () => {
+  const loadData = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      await Promise.all([fetchMyClasses(), fetchCreatedClasses()]);
+      const [myClasses, createdClasses] = await Promise.all([
+        fetchMyClasses(),
+        fetchCreatedClasses(),
+      ]);
+
+      if (!myClasses || !createdClasses) {
+        throw new Error("Failed to load required class data");
+      }
     } catch (error) {
-      console.error("Error loading classes:", error);
-      setError("Failed to load classes");
       showToast("Failed to load classes", "error");
     } finally {
       setIsLoading(false);
@@ -73,7 +80,7 @@ const Classes = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchAllClasses();
+      loadData();
     }, [])
   );
 
@@ -103,18 +110,8 @@ const Classes = () => {
           }}
           className="w-full"
         >
-          {[...Array(5)].map((_, index) => (
-            <View
-              key={index}
-              className="bg-gray-200 rounded-xl p-6 mb-4 animate-pulse"
-            >
-              <View className="w-2/3 h-6 bg-gray-300 rounded mb-3" />
-              <View className="flex-row items-center mb-4">
-                <View className="w-4 h-4 bg-gray-300 rounded-full" />
-                <View className="ml-2 w-1/3 h-4 bg-gray-300 rounded" />
-              </View>
-              <View className="w-24 h-8 bg-gray-300 rounded self-end" />
-            </View>
+          {[...Array(4)].map((_, index) => (
+            <ClassSkeleton key={index}></ClassSkeleton>
           ))}
         </ScrollView>
       );
@@ -129,7 +126,7 @@ const Classes = () => {
           </Text>
           <TouchableOpacity
             className="mt-6 bg-primary px-6 py-3 rounded-lg"
-            onPress={fetchAllClasses}
+            onPress={loadData}
           >
             <Text className="text-white font-poppins-medium">Try Again</Text>
           </TouchableOpacity>

@@ -68,7 +68,6 @@ export const ASLRecognitionProvider = ({
         setClasses(recognizerData.classes);
 
         setIsModelReady(true);
-        console.log("ASL model loaded successfully");
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Unknown error";

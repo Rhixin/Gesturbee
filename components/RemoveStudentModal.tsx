@@ -33,9 +33,9 @@ const RemoveStudentModal = ({
     const response = await ClassRoomService.removeStudent(studentId, classId);
 
     if (response.success) {
-      showToast("Successfully remove a student", "success");
+      showToast(response.message, "success");
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
 
     setModalVisible(false);

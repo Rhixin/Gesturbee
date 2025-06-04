@@ -11,7 +11,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-const CreateClassModal = ({ modalVisible, setModalVisible, onClassCreated }) => {
+const CreateClassModal = ({
+  modalVisible,
+  setModalVisible,
+  onClassCreated,
+}) => {
   const [className, setClassName] = useState("");
   const [section, setSection] = useState("");
   const [description, setDescription] = useState("");
@@ -38,15 +42,15 @@ const CreateClassModal = ({ modalVisible, setModalVisible, onClassCreated }) => 
     setIsLoading(false);
 
     if (response.success) {
-      showToast("Created a Classroom Successfully!", "success");
-      
+      showToast(response.message, "success");
+
       if (onClassCreated) {
         await onClassCreated();
       }
-      
+
       resetForm();
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
   };
 
@@ -63,8 +67,7 @@ const CreateClassModal = ({ modalVisible, setModalVisible, onClassCreated }) => 
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => {
-        }}
+        onRequestClose={() => {}}
       >
         <View
           style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}

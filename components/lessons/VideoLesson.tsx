@@ -30,6 +30,7 @@ export default function VideoLesson({
   } = useLevel();
   const { stageId, levelId } = useLocalSearchParams();
   const { currentUser } = useAuth();
+
   // Handle mo next cya bisag humana ani nga level
   const isThisLessonAlreadyDone = () => {
     if (
@@ -40,7 +41,6 @@ export default function VideoLesson({
       return false;
     }
 
-    console.log("→ No match: Lesson is done.");
     return true;
   };
 

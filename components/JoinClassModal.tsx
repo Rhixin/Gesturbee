@@ -41,9 +41,9 @@ const JoinClassModal = ({
     const response = await ClassRoomService.joinClass(classId, studentId);
 
     if (response.success) {
-      showToast("Successfully joined a class", "success");
+      showToast(response.message, "success");
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
 
     resetForm();

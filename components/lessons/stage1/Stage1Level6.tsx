@@ -56,8 +56,6 @@ export default function Stage1Level2({
     } else {
       setCurrentLessonIndex(1);
     }
-
-    console.log(userSavedStage + " " + userSavedLevel + " " + userSavedLesson);
   }, []);
 
   // Updating titles when navigating

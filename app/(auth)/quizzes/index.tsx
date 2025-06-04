@@ -1,45 +1,30 @@
 import Beehive from "@/components/Beehive";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import CreateQuizModal from "@/components/CreateMultipleChoice";
 import CreateActionQuizModal from "@/components/CreateExecution";
 import QuizDetails from "@/components/QuizDetails";
 import QuizService from "../../../api/services/quiz-service";
 import ClassRoomService from "@/api/services/classroom-service";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
+import QuizSkeleton from "@/components/skeletons/QuizSkeleton";
 
 export default function Quizzes() {
+  const { currentUser } = useAuth();
+  const { showToast } = useToast();
   const progress = 70;
 
   const beehiveImage = () => {
     return require("@/assets/images/progress70.png");
   };
 
-  type QuizQuestion = {
-    id: number;
-    question: string;
-    choices: {
-      A: string;
-      B: string;
-      C: string;
-      D: string;
-    };
-    correctAnswer: "A" | "B" | "C" | "D";
-  };
-
-  type Quiz = {
-    id: number;
-    title: string;
-    type: string;
-    questions: QuizQuestion[];
-    description: string;
-    createdAt: string;
-    questionCount: number;
-  };
-
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [quizzes, setQuizzes] = useState([]);
+  const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
 
   const [nextQuizId, setNextQuizId] = useState(1);
 
@@ -52,19 +37,26 @@ export default function Quizzes() {
   const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
 
   // Function to handle adding new quiz
-  const addNewQuiz = (newQuiz) => {
-    const quizWithId = {
-      id: nextQuizId,
-      title: newQuiz.title,
-      type: newQuiz.type || "General",
-      progress: 0,
-      questions: newQuiz.questions,
-      description: newQuiz.description,
-      createdAt: newQuiz.createdAt,
-      questionCount: newQuiz.questions?.length || 0,
-    };
-    setQuizzes([...quizzes, quizWithId]);
-    setNextQuizId((prev) => prev + 1);
+  const addNewQuiz = (newQuiz) => {};
+
+  // Load data every time the screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchExercises();
+    }, [])
+  );
+
+  const fetchExercises = async () => {
+    setIsLoading(true);
+    const response = await ClassRoomService.getAllExercise(currentUser.id);
+
+    if (response.success) {
+      setQuizzes(response.data);
+    } else {
+      showToast(response.message, "error");
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -117,57 +109,62 @@ export default function Quizzes() {
 
       {/* Content */}
       <ScrollView contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}>
-        {quizzes.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            className="bg-white rounded-lg p-4 mx-4 mt-4 flex-row shadow-sm border border-gray-200"
-            activeOpacity={0.9}
-          >
-            <View className="items-center justify-center">
-              <Beehive
-                percentage={item.progress || progress}
-                isGeneral={false}
-              ></Beehive>
-              <View className="items-center mt-2"></View>
-            </View>
-
-            <View className="flex-1 ml-4 justify-between">
-              <View>
-                <Text className="text-lg font-poppins-medium mb-1">
-                  {item.title}
-                </Text>
-                <Text className="text-sm text-gray-700 font-poppins-medium mb-1">
-                  Type: {item.type}
-                </Text>
-                {/* Show question count for newly created quizzes */}
-                {item.questionCount && (
-                  <Text className="text-xs text-gray-500 mb-2">
-                    {item.questionCount} question
-                    {item.questionCount !== 1 ? "s" : ""}
-                  </Text>
-                )}
-                {/* Show description if available */}
-                {item.description && (
-                  <Text
-                    className="text-xs text-gray-600 mb-2"
-                    numberOfLines={2}
-                  >
-                    {item.description}
-                  </Text>
-                )}
+        {isLoading ? (
+          <>
+            {[...Array(4)].map((_, index) => (
+              <QuizSkeleton key={index} />
+            ))}
+          </>
+        ) : (
+          quizzes.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              className="bg-white rounded-lg p-4 mx-4 mt-4 flex-row shadow-sm border border-gray-200"
+              activeOpacity={0.9}
+            >
+              <View className="items-center justify-center">
+                <Beehive percentage={100} isGeneral={true}></Beehive>
+                <View className="items-center mt-2"></View>
               </View>
 
-              <TouchableOpacity
-                className="bg-yellow-400 py-2 px-6 rounded-full self-start mb-2 w-full"
-                onPress={() => setSelectedQuiz(item)}
-              >
-                <Text className="font-poppins-medium text-white text-center text-sm">
-                  View Quiz
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        ))}
+              <View className="flex-1 ml-4 justify-between">
+                <View>
+                  <Text className="text-lg font-poppins-medium mb-1">
+                    {item.exerciseTitle}
+                  </Text>
+                  <Text className="text-sm text-gray-700 font-poppins-medium mb-1">
+                    Type: {"Multiple Choice"}
+                  </Text>
+                  {/* Show question count for newly created quizzes */}
+                  {item.exerciseItems && (
+                    <Text className="text-xs text-gray-500 mb-2">
+                      {item.exerciseItems.length} question
+                      {item.exerciseItems.length !== 1 ? "s" : ""}
+                    </Text>
+                  )}
+                  {/* Show description if available */}
+                  {item.exerciseDescription && (
+                    <Text
+                      className="text-xs text-gray-600 mb-2"
+                      numberOfLines={2}
+                    >
+                      {item.exerciseDescription}
+                    </Text>
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  className="bg-yellow-400 py-2 px-6 rounded-full self-start mb-2 w-full"
+                  onPress={() => setSelectedQuiz(item)}
+                >
+                  <Text className="font-poppins-medium text-white text-center text-sm">
+                    View Quiz
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
 
       {/* Create Quiz Modal */}

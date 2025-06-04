@@ -40,9 +40,9 @@ const AddStudentModal = ({
     const response = await ClassRoomService.addStudent(studentId, classId);
 
     if (response.success) {
-      showToast("Successfully Added a Student", "success");
+      showToast(response.message, "success");
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
 
     resetForm();

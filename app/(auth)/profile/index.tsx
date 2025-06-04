@@ -27,14 +27,15 @@ export default function Profile() {
     setModalVisible(true);
   }
 
-  function handleEditProfilePicture() {
-    alert("Edit Profile Picture pressed!");
-    // upload functionality here.
-  }
-
-  // TODO: Normal Login Logic -------------------------------------------
   const normalLogOutListener = async () => {
-    await AuthService.logout(showToast, navigate);
+    const response = await AuthService.logout();
+
+    if (response.success) {
+      showToast(response.message, "success");
+      navigate("/");
+    } else {
+      showToast(response.message, "error");
+    }
   };
 
   return (
@@ -89,7 +90,7 @@ export default function Profile() {
               className="w-[120px] h-[120px] rounded-full object-cover bg-primary p-2"
             />
             <Pressable
-              onPress={handleEditProfilePicture}
+              onPress={() => {}}
               className="absolute bottom-2 right-2 bg-white p-1.5 rounded-full shadow"
             >
               <Ionicons name="pencil" size={16} color="#333" />

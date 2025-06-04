@@ -88,14 +88,10 @@ export const LevelProvider: React.FC<{
     setIsLoadingLevel(true);
 
     try {
-      //await saveProgressToBackend(userId, newStage, newLevel);
       setUserSavedStage(newStage);
       setUserSavedLevel(newLevel);
       setUserSavedLesson(1);
       setUserSavedTotalLesson(12);
-
-      console.log("HERERE");
-      console.log(newStage + " " + newLevel);
     } catch (error) {
       console.error("Failed to save progress:", error);
     } finally {

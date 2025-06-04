@@ -80,7 +80,7 @@ const Classroom = () => {
         setIsTeacher(false);
       }
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
 
     return response.data;
@@ -95,7 +95,7 @@ const Classroom = () => {
     if (response.success) {
       setStudents(response.data);
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
 
     return response.data;
@@ -107,7 +107,7 @@ const Classroom = () => {
     if (response.success) {
       setEnrollmentRequests(response.data);
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
 
     return response.data;
@@ -119,7 +119,7 @@ const Classroom = () => {
     if (response.success) {
       setAllUsers(response.data);
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
 
     return response.data;
@@ -130,7 +130,6 @@ const Classroom = () => {
     setError(null);
 
     try {
-      // Fetch both classroom details and students concurrently
       const [
         classroomData,
         studentsData,
@@ -143,7 +142,6 @@ const Classroom = () => {
         fetchAllUsersNotEnrolled(),
       ]);
 
-      // Check if all data sets were loaded successfully
       if (
         !classroomData ||
         !studentsData ||
@@ -153,8 +151,6 @@ const Classroom = () => {
         throw new Error("Failed to load required data");
       }
     } catch (error) {
-      console.error("Error loading classroom data:", error);
-      setError("Failed to load classroom data");
       showToast("Failed to load classroom data", "error");
       router.back();
     } finally {
@@ -166,22 +162,18 @@ const Classroom = () => {
     if (id) {
       loadData();
     } else {
-      setError("Invalid classroom ID");
       router.back();
     }
   }, [id]);
 
-  // Update active tab when classroom details are loaded
   useEffect(() => {
     if (classroomDetails && currentUser) {
-      const isTeacherRole = currentUser.id === classroomDetails.teacherId;
-      // If user is not a teacher, ensure they're on Activities tab
-      if (!isTeacherRole && activeTab !== "Activities") {
+      if (!isTeacher && activeTab !== "Activities") {
         setActiveTab("Activities");
       }
-      // If user is a teacher and currently on a non-existent tab, default to Students
+
       if (
-        isTeacherRole &&
+        isTeacher &&
         !["Students", "Activities", "Grades"].includes(activeTab)
       ) {
         setActiveTab("Students");

@@ -60,16 +60,22 @@ const AuthService = {
     }
   },
 
-  logout: async (showToast, navigate) => {
+  logout: async () => {
     try {
       await TokenService.removeToken();
-
       delete api.defaults.headers.common["Authorization"];
 
-      showToast("Logged out successfully!", "success");
-      navigate("/");
+      return {
+        success: true,
+        data: null,
+        message: "Successfully Logged Out",
+      };
     } catch (error) {
-      console.error("Logout error:", error);
+      return {
+        success: false,
+        message: error.response?.data?.responseType || "Error Logging Out",
+        data: null,
+      };
     }
   },
 
@@ -139,14 +145,11 @@ const AuthService = {
     showToast
   ) => {
     try {
-      // Save token and set auth header
       await TokenService.saveToken(token);
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      // Set user in context
       setCurrentUser(user);
 
-      // Fetch user progress - this MUST succeed before navigation
       const progressResponse = await RoadmapService.getLevel(user.id);
 
       // Only proceed if progress data was successfully fetched

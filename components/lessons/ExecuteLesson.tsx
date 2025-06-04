@@ -41,7 +41,6 @@ export default function ExecuteLesson({
       return false;
     }
 
-    console.log("→ No match: Lesson is done.");
     return true;
   };
 
@@ -76,10 +75,8 @@ export default function ExecuteLesson({
   // };
 
   const onMessage = (event) => {
-    console.log("Received message from WebView:", event.nativeEvent.data);
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      console.log("Parsed data:", data);
 
       if (data?.type === "prediction") {
         const predictedLetter = data.data.prediction.prediction;
@@ -115,8 +112,7 @@ export default function ExecuteLesson({
         }
       }
     } catch (error) {
-      console.log("Error parsing message:", error);
-      console.log("Raw message data:", event.nativeEvent.data);
+      console.error("Error parsing message:", error);
     }
   };
 

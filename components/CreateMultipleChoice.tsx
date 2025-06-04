@@ -88,9 +88,9 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
       if (!result.canceled && result.assets?.length > 0) {
         const asset = result.assets[0];
         const contentType = asset.mimeType || "video/mp4";
-        const fileName = `teacher/${
+        const fileName = `class_materials/teacher/${
           currentUser.id
-        }/content/${generateUUIDv4()}/lesson.mp4`;
+        }/content/${generateUUIDv4()}/content.mp4`;
         const itemNumber = questionId;
 
         let file;
@@ -110,16 +110,6 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
           }
           file = asset.uri;
         }
-
-        console.log(
-          "From Frontend:",
-          "File Name:",
-          fileName,
-          "| Content Type:",
-          contentType,
-          "| Item Number:",
-          itemNumber
-        );
 
         const newItem = {
           fileName: fileName,
@@ -153,46 +143,6 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
       }
     } catch (error) {
       console.error("Video upload error locally:", error);
-    }
-  };
-
-  const uploadToSignedUrl = async (
-    file: string | File | Blob,
-    signedUrl: string,
-    contentType: string
-  ) => {
-    try {
-      let body: Blob;
-
-      if (Platform.OS === "web") {
-        // In web, `file` should already be a File or Blob
-        if (!(file instanceof Blob)) {
-          throw new Error("Expected file to be Blob or File on web");
-        }
-        body = file;
-      } else {
-        // In native, fetch the URI and convert it to Blob
-        const response = await fetch(file as string);
-        body = await response.blob();
-      }
-
-      const uploadResponse = await fetch(signedUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": contentType,
-        },
-        body,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
-      }
-
-      console.log("✅ Upload successful");
-      return true;
-    } catch (error) {
-      console.error("❌ Upload error:", error);
-      return false;
     }
   };
 
@@ -313,62 +263,76 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
 
   const handleCreateQuiz = async () => {
     try {
-      const response = await ClassRoomService.uploadVideo(uploadVideosList);
+      // STEP 1: GET THE SIGNED URLS
+      const uploadPresignedUrlResponse =
+        await ClassRoomService.uploadPresignedUrl(uploadVideosList);
 
-      if (!response.success) {
+      if (!uploadPresignedUrlResponse.success) {
         throw new Error("Error getting signed URLs");
       }
 
-      const uploadPromises = Object.entries(response.data).map(([key, value]) =>
-        uploadToSignedUrl(uriList[key - 1], value, "video/mp4")
+      // STEP 2: UPLOAD THE VIDS TO AWS USING THE SIGNED URLS
+      const uploadSignedUrlResponse = await ClassRoomService.uploadSignedUrl(
+        uriList,
+        uploadPresignedUrlResponse.data,
+        "video/mp4"
       );
 
-      const uploadResults = await Promise.all(uploadPromises);
+      if (!uploadSignedUrlResponse.success) {
+        throw new Error("Error uploading videos to AWS");
+      }
 
-      if (uploadResults.every((result) => result === true)) {
-        const exerciseItems = questions.map((item) => ({
-          itemNumber: Number(item.id),
-          question: item.question,
-          correctAnswer: item.correctAnswer,
-          ...item.choices,
-        }));
+      // STEP 3: CREATE EXERCISE
+      const exerciseItems = questions.map((item) => ({
+        itemNumber: Number(item.id),
+        question: item.question,
+        correctAnswer: item.correctAnswer,
+        choiceA: item.choices.A,
+        choiceB: item.choices.B,
+        choiceC: item.choices.C,
+        choiceD: item.choices.D,
+      }));
 
-        const newExercise = {
-          teacherId: currentUser.id,
-          exerciseTitle: quizTitle,
-          exerciseDescription: quizDescription,
-          batchId: sharedBatchId,
-          exerciseItems: exerciseItems,
-        };
+      const newExercise = {
+        teacherId: currentUser.id,
+        exerciseTitle: quizTitle,
+        exerciseDescription: quizDescription,
+        type: "MultipleChoice",
+        batchId: sharedBatchId,
+        exerciseItems: exerciseItems,
+      };
 
-        const createQuizResponse = await ClassRoomService.createQuiz(
-          newExercise
-        );
+      const createQuizResponse = await ClassRoomService.createQuiz(newExercise);
 
-        if (createQuizResponse.success) {
-          showToast("Successfully created a Quiz!!", "success");
-        } else {
-          showToast("Failed to create a Quiz!!", "error");
-        }
+      if (!createQuizResponse.success) {
+        throw new Error("Error creating Exercise Content");
+      }
+
+      // STEP 4: Save the video content to our database
+      let videoContentList = uploadVideosList.map((item) => ({
+        contentS3Key: item.fileName,
+        contentType: item.contentType,
+        batchId: item.batchId,
+        itemNumber: item.itemNumber,
+      }));
+
+      const createVideoContentResponse =
+        await ClassRoomService.createVideoContent(videoContentList);
+
+      if (createVideoContentResponse.success) {
+        showToast(createVideoContentResponse.message, "success");
       } else {
-        console.error("Not all uploads were successful");
+        showToast(createVideoContentResponse.message, "error");
+        throw new Error("Error creating Video Content");
       }
     } catch (error) {
       console.error("Error:", error.message);
     }
 
-    const newQuiz = {
-      title: quizTitle,
-      description: quizDescription,
-      questions: questions,
-      type: "Multiple Choice",
-      createdAt: new Date().toISOString(),
-    };
+    resetForm();
+  };
 
-    // addNewQuiz(newQuiz);
-    // setNextId(2);
-
-    // Reset form
+  const resetForm = () => {
     setQuizTitle("");
     setQuizDescription("");
     setQuestions([

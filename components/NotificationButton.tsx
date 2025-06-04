@@ -39,12 +39,9 @@ const NotificationsButton = ({
     );
 
     if (response.success) {
-      showToast(
-        `Successfully ${accept ? "Accepted" : "Rejected"} a student`,
-        "success"
-      );
+      showToast(response.message, "success");
     } else {
-      showToast(response.error, "error");
+      showToast(response.message, "error");
     }
 
     loadData();
