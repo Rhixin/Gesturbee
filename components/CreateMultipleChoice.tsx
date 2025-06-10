@@ -1,8 +1,4 @@
-import { useAuth } from "@/context/AuthContext";
 import React, { useState, useRef, useEffect } from "react";
-import * as DocumentPicker from "expo-document-picker";
-import { Platform } from "react-native";
-import * as FileSystem from "expo-file-system";
 import {
   Modal,
   View,
@@ -11,158 +7,77 @@ import {
   Dimensions,
   SafeAreaView,
   ScrollView,
-  Keyboard,
   TouchableOpacity,
 } from "react-native";
-import ClassRoomService from "@/api/services/classroom-service";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
+import { Platform } from "react-native";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
+import QuizService from "@/api/services/quiz-service";
 
 const { width: screenWidth } = Dimensions.get("window");
 
 interface QuizQuestion {
   id: string;
+  itemNumber: number;
   question: string;
   videoUrl?: string;
-  choices: {
-    A: string;
-    B: string;
-    C: string;
-    D: string;
-  };
+  videoFileName?: string;
+  choices: { A: string; B: string; C: string; D: string };
   correctAnswer: "A" | "B" | "C" | "D";
 }
 
-interface CreateQuizModalProps {
-  modalVisible: boolean;
-  setModalVisible: (visible: boolean) => void;
-  addNewQuiz: (quiz: any) => void;
-}
-
-const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
-  modalVisible,
-  setModalVisible,
-  addNewQuiz,
-}) => {
+const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
   const { currentUser } = useAuth();
-
   const { showToast } = useToast();
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Basic form state
   const [quizTitle, setQuizTitle] = useState("");
   const [quizDescription, setQuizDescription] = useState("");
   const [questions, setQuestions] = useState<QuizQuestion[]>([
     {
       id: "1",
+      itemNumber: 1,
       question: "",
       choices: { A: "", B: "", C: "", D: "" },
       correctAnswer: "A",
     },
   ]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [focusedFields, setFocusedFields] = useState<{
-    [key: string]: boolean;
-  }>({});
+
+  // Video handling
   const [uploadVideosList, setUploadVideosList] = useState([]);
   const [uriList, setUriList] = useState([]);
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  const handleFocus = (fieldId: string) => {
-    setFocusedFields((prev) => ({ ...prev, [fieldId]: true }));
-  };
-
-  const handleBlur = (fieldId: string) => {
-    setFocusedFields((prev) => ({ ...prev, [fieldId]: false }));
-  };
-
-  const [nextId, setNextId] = useState<number>(2);
   const [sharedBatchId, setSharedBatchId] = useState<string>();
+
+  // Simple utilities
+  const generateId = () => (questions.length + 1).toString();
+  const generateUUIDv4 = () =>
+    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
 
   useEffect(() => {
     setSharedBatchId(generateUUIDv4());
   }, [modalVisible]);
 
-  const handleVideoUpload = async (questionId) => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: "video/*",
-      });
-
-      if (!result.canceled && result.assets?.length > 0) {
-        const asset = result.assets[0];
-        const contentType = asset.mimeType || "video/mp4";
-        const fileName = `class_materials/teacher/${
-          currentUser.id
-        }/content/${generateUUIDv4()}/content.mp4`;
-        const itemNumber = questionId;
-
-        let file;
-
-        if (Platform.OS === "web") {
-          if (!asset.file) {
-            console.error("Missing file object on web platform");
-            return;
-          }
-          file = asset.file;
-        } else {
-          // Native platform
-          const fileInfo = await FileSystem.getInfoAsync(asset.uri);
-          if (!fileInfo.exists) {
-            console.error("File does not exist at:", asset.uri);
-            return;
-          }
-          file = asset.uri;
-        }
-
-        const newItem = {
-          fileName: fileName,
-          contentType: contentType,
-          batchId: sharedBatchId,
-          itemNumber: itemNumber,
-        };
-
-        // Update state
-        setUploadVideosList((prev) => {
-          const index = prev.findIndex(
-            (item) => item.itemNumber === itemNumber
-          );
-
-          if (index !== -1) {
-            const updatedList = [...prev];
-            updatedList[index] = newItem;
-
-            setUriList((prevUriList) => {
-              const updatedUriList = [...prevUriList];
-              updatedUriList[index] = file;
-              return updatedUriList;
-            });
-
-            return updatedList;
-          } else {
-            setUriList((prevUriList) => [...prevUriList, file]);
-            return [...prev, newItem];
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Video upload error locally:", error);
-    }
-  };
-
+  // Question management
   const addQuestion = () => {
     const newQuestion: QuizQuestion = {
-      id: nextId.toString(),
+      id: generateId(),
+      itemNumber: questions.length + 1,
       question: "",
       choices: { A: "", B: "", C: "", D: "" },
       correctAnswer: "A",
     };
-    const newQuestions = [...questions, newQuestion];
-    setQuestions(newQuestions);
-
-    setNextId((prev) => prev + 1);
-
-    // Navigate to the new question
-    const newIndex = newQuestions.length - 1;
+    setQuestions([...questions, newQuestion]);
+    const newIndex = questions.length;
     setCurrentQuestionIndex(newIndex);
 
-    // Scroll to the new question
     setTimeout(() => {
       scrollViewRef.current?.scrollTo({
         x: newIndex * (screenWidth - 80),
@@ -172,71 +87,141 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
   };
 
   const removeQuestion = (questionId: string) => {
-    if (questions.length > 1) {
-      const questionIndex = questions.findIndex((q) => q.id === questionId);
-      const newQuestions = questions.filter((q) => q.id !== questionId);
-      setQuestions(newQuestions);
+    if (questions.length <= 1) return;
 
-      if (currentQuestionIndex >= newQuestions.length) {
-        setCurrentQuestionIndex(newQuestions.length - 1);
-      } else if (
-        questionIndex <= currentQuestionIndex &&
-        currentQuestionIndex > 0
-      ) {
-        setCurrentQuestionIndex(currentQuestionIndex - 1);
-      }
+    const questionIndex = questions.findIndex((q) => q.id === questionId);
+    const newQuestions = questions.filter((q) => q.id !== questionId);
+
+    // Update itemNumbers after removal
+    const updatedQuestions = newQuestions.map((q, index) => ({
+      ...q,
+      itemNumber: index + 1,
+    }));
+    setQuestions(updatedQuestions);
+
+    if (currentQuestionIndex >= updatedQuestions.length) {
+      setCurrentQuestionIndex(updatedQuestions.length - 1);
+    } else if (
+      questionIndex <= currentQuestionIndex &&
+      currentQuestionIndex > 0
+    ) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
-  const updateQuestion = (questionId: string, field: string, value: string) => {
+  const updateQuestion = (id: string, field: string, value: string) => {
     setQuestions(
-      questions.map((q) => (q.id === questionId ? { ...q, [field]: value } : q))
+      questions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
     );
   };
 
   const updateChoice = (
-    questionId: string,
+    id: string,
     choice: "A" | "B" | "C" | "D",
     value: string
   ) => {
     setQuestions(
       questions.map((q) =>
-        q.id === questionId
-          ? { ...q, choices: { ...q.choices, [choice]: value } }
-          : q
+        q.id === id ? { ...q, choices: { ...q.choices, [choice]: value } } : q
       )
     );
   };
 
-  const updateCorrectAnswer = (
-    questionId: string,
-    answer: "A" | "B" | "C" | "D"
-  ) => {
+  const updateCorrectAnswer = (id: string, answer: "A" | "B" | "C" | "D") => {
     setQuestions(
-      questions.map((q) =>
-        q.id === questionId ? { ...q, correctAnswer: answer } : q
-      )
+      questions.map((q) => (q.id === id ? { ...q, correctAnswer: answer } : q))
     );
   };
 
-  const updateVideoUrl = (
-    questionId: string,
-    url: string,
-    contentType: string
-  ) => {
-    setQuestions(
-      questions.map((q) => (q.id === questionId ? { ...q, videoUrl: url } : q))
-    );
+  // Video handling
+  const handleVideoUpload = async (questionId) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: "video/*" });
+      if (!result.canceled && result.assets?.length > 0) {
+        const asset = result.assets[0];
+        const fileName = `class_materials/teacher/${
+          currentUser.id
+        }/content/${generateUUIDv4()}/content.mp4`;
+        const itemNumber = questionId;
+
+        let file = Platform.OS === "web" ? asset.file : asset.uri;
+
+        if (Platform.OS !== "web") {
+          const fileInfo = await FileSystem.getInfoAsync(asset.uri);
+          if (!fileInfo.exists) return;
+        }
+
+        const newItem = {
+          fileName,
+          contentType: asset.mimeType || "video/mp4",
+          batchId: sharedBatchId,
+          itemNumber,
+        };
+
+        // Update the question with video file name
+        setQuestions(
+          questions.map((q) =>
+            q.itemNumber === itemNumber
+              ? { ...q, videoFileName: asset.name }
+              : q
+          )
+        );
+
+        setUploadVideosList((prev) => {
+          const index = prev.findIndex(
+            (item) => item.itemNumber === itemNumber
+          );
+          if (index !== -1) {
+            const updated = [...prev];
+            updated[index] = newItem;
+            setUriList((prevUri) => {
+              const updatedUri = [...prevUri];
+              updatedUri[index] = file;
+              return updatedUri;
+            });
+            return updated;
+          } else {
+            setUriList((prevUri) => [...prevUri, file]);
+            return [...prev, newItem];
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Video upload error:", error);
+    }
   };
 
   const removeVideo = (questionId: string) => {
+    const question = questions.find((q) => q.id === questionId);
+    if (!question) return;
+
+    // Remove from questions
     setQuestions(
       questions.map((q) =>
-        q.id === questionId ? { ...q, videoUrl: undefined } : q
+        q.id === questionId
+          ? { ...q, videoUrl: undefined, videoFileName: undefined }
+          : q
       )
     );
+
+    // Remove from upload lists
+    setUploadVideosList((prev) =>
+      prev.filter((item) => item.itemNumber !== question.itemNumber)
+    );
+    setUriList((prev) => {
+      const index = uploadVideosList.findIndex(
+        (item) => item.itemNumber === question.itemNumber
+      );
+      if (index !== -1) {
+        const updated = [...prev];
+        updated.splice(index, 1);
+        return updated;
+      }
+      return prev;
+    });
   };
 
+  // Navigation
   const navigateToQuestion = (index: number) => {
     setCurrentQuestionIndex(index);
     scrollViewRef.current?.scrollTo({
@@ -251,40 +236,44 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
     setCurrentQuestionIndex(currentIndex);
   };
 
+  // Form validation and submission
   const isFormValid = () => {
-    if (quizTitle.trim() === "") return false;
-
-    return questions.every(
-      (q) =>
-        q.question.trim() !== "" &&
-        Object.values(q.choices).every((choice) => choice.trim() !== "")
+    return (
+      quizTitle.trim() &&
+      questions.every(
+        (q) =>
+          q.question.trim() &&
+          Object.values(q.choices).every((choice) => choice.trim())
+      )
     );
   };
 
   const handleCreateQuiz = async () => {
     try {
-      // STEP 1: GET THE SIGNED URLS
-      const uploadPresignedUrlResponse =
-        await ClassRoomService.uploadPresignedUrl(uploadVideosList);
+      // Upload videos if any
+      if (uploadVideosList.length > 0) {
+        const uploadPresignedUrlResponse = await QuizService.uploadPresignedUrl(
+          uploadVideosList
+        );
 
-      if (!uploadPresignedUrlResponse.success) {
-        throw new Error("Error getting signed URLs");
+        if (!uploadPresignedUrlResponse.success) {
+          throw new Error("Error getting signed URLs");
+        }
+
+        const uploadSignedUrlResponse = await QuizService.uploadSignedUrl(
+          uriList,
+          uploadPresignedUrlResponse.data,
+          "video/mp4"
+        );
+
+        if (!uploadSignedUrlResponse.success) {
+          throw new Error(uploadSignedUrlResponse.message);
+        }
       }
 
-      // STEP 2: UPLOAD THE VIDS TO AWS USING THE SIGNED URLS
-      const uploadSignedUrlResponse = await ClassRoomService.uploadSignedUrl(
-        uriList,
-        uploadPresignedUrlResponse.data,
-        "video/mp4"
-      );
-
-      if (!uploadSignedUrlResponse.success) {
-        throw new Error("Error uploading videos to AWS");
-      }
-
-      // STEP 3: CREATE EXERCISE
+      // Create exercise
       const exerciseItems = questions.map((item) => ({
-        itemNumber: Number(item.id),
+        itemNumber: item.itemNumber,
         question: item.question,
         correctAnswer: item.correctAnswer,
         choiceA: item.choices.A,
@@ -299,37 +288,34 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
         exerciseDescription: quizDescription,
         type: "MultipleChoice",
         batchId: sharedBatchId,
-        exerciseItems: exerciseItems,
+        exerciseItems,
       };
 
-      const createQuizResponse = await ClassRoomService.createQuiz(newExercise);
+      const createQuizResponse = await QuizService.createQuiz(newExercise);
+      if (!createQuizResponse.success) throw new Error("Error creating quiz");
 
-      if (!createQuizResponse.success) {
-        throw new Error("Error creating Exercise Content");
+      // Save video content if any
+      if (uploadVideosList.length > 0) {
+        const videoContentList = uploadVideosList.map((item) => ({
+          contentS3Key: item.fileName,
+          contentType: item.contentType,
+          batchId: item.batchId,
+          itemNumber: item.itemNumber,
+        }));
+
+        const createVideoContentResponse = await QuizService.createVideoContent(
+          videoContentList
+        );
+        if (!createVideoContentResponse.success)
+          throw new Error("Error creating video content");
       }
 
-      // STEP 4: Save the video content to our database
-      let videoContentList = uploadVideosList.map((item) => ({
-        contentS3Key: item.fileName,
-        contentType: item.contentType,
-        batchId: item.batchId,
-        itemNumber: item.itemNumber,
-      }));
-
-      const createVideoContentResponse =
-        await ClassRoomService.createVideoContent(videoContentList);
-
-      if (createVideoContentResponse.success) {
-        showToast(createVideoContentResponse.message, "success");
-      } else {
-        showToast(createVideoContentResponse.message, "error");
-        throw new Error("Error creating Video Content");
-      }
+      showToast("Quiz created successfully!", "success");
+      resetForm();
+      loadData();
     } catch (error) {
-      console.error("Error:", error.message);
+      showToast(error.message, "error");
     }
-
-    resetForm();
   };
 
   const resetForm = () => {
@@ -338,37 +324,16 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
     setQuestions([
       {
         id: "1",
+        itemNumber: 1,
         question: "",
         choices: { A: "", B: "", C: "", D: "" },
         correctAnswer: "A",
       },
     ]);
     setCurrentQuestionIndex(0);
+    setUploadVideosList([]);
+    setUriList([]);
     setModalVisible(false);
-  };
-
-  const handleCancel = () => {
-    setQuizTitle("");
-    setQuizDescription("");
-    setQuestions([
-      {
-        id: "1",
-        question: "",
-        choices: { A: "", B: "", C: "", D: "" },
-        correctAnswer: "A",
-      },
-    ]);
-    setCurrentQuestionIndex(0);
-    setNextId(2);
-    setModalVisible(false);
-  };
-
-  const generateUUIDv4 = () => {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === "x" ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
   };
 
   return (
@@ -386,54 +351,43 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
           className="bg-white w-[80%] rounded-2xl p-6"
           style={{ maxHeight: "90%", minHeight: "85%" }}
         >
-          <Text className="text-3xl font-semibold text-titlegray mb-2">
-            Create Quiz
+          <Text className="text-3xl font-poppins-bold text-titlegray mb-2">
+            Create Muiltiple Choice Exercise
           </Text>
-          <Text className="text-lg text-subtitlegray mb-4">
-            Create a multiple choice quiz for your students!
+          <Text className="text-lg text-subtitlegray mb-4 font-poppins">
+            Create a multiple choice exercise for your students!
           </Text>
+
           <View style={{ flex: 1 }}>
             {/* Quiz Title */}
             <TextInput
-              placeholder="Quiz Title"
+              placeholder="Exercise Title"
               value={quizTitle}
               onChangeText={setQuizTitle}
-              onFocus={() => handleFocus("title")}
-              onBlur={() => handleBlur("title")}
-              multiline={false}
-              className={`rounded-lg p-3 mb-4 border ${
-                focusedFields["title"] ? "border-primary" : "border-gray-300"
-              }`}
+              className="rounded-lg p-3 mb-4 border border-gray-300"
             />
 
             {/* Quiz Description */}
             <TextInput
-              placeholder="Quiz Description (Optional)"
+              placeholder="Exercise Description"
               value={quizDescription}
               onChangeText={setQuizDescription}
               numberOfLines={2}
               textAlignVertical="top"
-              multiline={false}
-              onFocus={() => handleFocus("description")}
-              onBlur={() => handleBlur("description")}
-              className={`rounded-lg p-3 mb-6 text-left text-base border ${
-                focusedFields["description"]
-                  ? "border-primary"
-                  : "border-gray-300"
-              }`}
+              className="rounded-lg p-3 mb-6 text-left text-base border border-gray-300"
             />
 
-            {/* Question Navigation Slider */}
+            {/* Question Navigation */}
             <View className="mb-4">
               <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-lg font-semibold text-titlegray">
+                <Text className="text-lg font-poppins-bold text-titlegray">
                   Questions ({questions.length})
                 </Text>
                 <TouchableOpacity
                   onPress={addQuestion}
                   className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2"
                 >
-                  <Text className="text-blue-600 font-medium">
+                  <Text className="text-blue-600 font-poppins-medium">
                     + Add Question
                   </Text>
                 </TouchableOpacity>
@@ -452,7 +406,7 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
                       }`}
                     >
                       <Text
-                        className={`text-sm font-medium ${
+                        className={`text-sm font-poppins-medium ${
                           index === currentQuestionIndex
                             ? "text-white"
                             : "text-gray-600"
@@ -485,7 +439,7 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
                       <View style={{ maxHeight: 500 }}>
                         <View className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                           <View className="flex-row justify-between items-center">
-                            <Text className="text-lg font-semibold text-titlegray">
+                            <Text className="text-lg font-poppins-bold text-titlegray">
                               Question {index + 1}
                             </Text>
                             {questions.length > 1 && (
@@ -493,7 +447,7 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
                                 onPress={() => removeQuestion(question.id)}
                                 className="bg-red-100 px-3 py-1 rounded"
                               >
-                                <Text className="text-red-600 font-medium">
+                                <Text className="text-red-600 font-poppins-medium">
                                   Remove
                                 </Text>
                               </TouchableOpacity>
@@ -507,55 +461,56 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
                             onChangeText={(text) =>
                               updateQuestion(question.id, "question", text)
                             }
-                            multiline={false}
                             textAlignVertical="top"
-                            onFocus={() =>
-                              handleFocus(`question-${question.id}`)
-                            }
-                            onBlur={() => handleBlur(`question-${question.id}`)}
-                            className={`rounded-lg p-3 mb-3 text-left text-base border bg-white ${
-                              focusedFields[`question-${question.id}`]
-                                ? "border-primary"
-                                : "border-gray-300"
-                            }`}
+                            className="rounded-lg p-3 mb-3 text-left text-base border bg-white border-gray-300"
                           />
 
-                          {/* Video URL Input */}
+                          {/* Video Upload */}
                           <View className="mb-3">
-                            <Text className="text-base font-medium text-gray-700 mb-2">
+                            <Text className="text-base font-poppins-medium text-gray-700 mb-2">
                               Upload Video (Optional)
                             </Text>
-
-                            {/* Upload Button */}
                             <TouchableOpacity
-                              onPress={() => handleVideoUpload(index + 1)}
+                              onPress={() =>
+                                handleVideoUpload(question.itemNumber)
+                              }
                               className="border py-2 px-4 rounded-lg mb-2"
                             >
-                              <Text className="text-black text-center font-medium">
-                                Upload Video
+                              <Text className="text-black text-center font-poppins-medium">
+                                {question.videoFileName
+                                  ? "Change Video"
+                                  : "Upload Video"}
                               </Text>
                             </TouchableOpacity>
-
-                            {/* Display Uploaded Path */}
-                            {question.videoUrl ? (
-                              <View>
-                                <Text className="text-sm text-gray-600 italic">
-                                  Path: {question.videoUrl}
-                                </Text>
-                                <TouchableOpacity
-                                  onPress={() => removeVideo(question.id)}
-                                  className="mt-2 self-end"
-                                >
-                                  <Text className="text-red-600 font-medium">
-                                    Clear Video
-                                  </Text>
-                                </TouchableOpacity>
+                            {question.videoFileName && (
+                              <View className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                <View className="flex-row items-center justify-between">
+                                  <View className="flex-1">
+                                    <Text className="text-sm font-poppins-medium text-green-800 mb-1">
+                                      ✓ Video uploaded
+                                    </Text>
+                                    <Text
+                                      className="text-xs text-green-600 font-poppins"
+                                      numberOfLines={1}
+                                    >
+                                      {question.videoFileName}
+                                    </Text>
+                                  </View>
+                                  <TouchableOpacity
+                                    onPress={() => removeVideo(question.id)}
+                                    className="ml-2 bg-red-100 px-2 py-1 rounded"
+                                  >
+                                    <Text className="text-red-600 font-poppins-medium text-xs">
+                                      Clear
+                                    </Text>
+                                  </TouchableOpacity>
+                                </View>
                               </View>
-                            ) : null}
+                            )}
                           </View>
 
                           {/* Choices */}
-                          <Text className="text-base font-medium text-gray-700 mb-2">
+                          <Text className="text-base font-poppins-medium text-gray-700 mb-2">
                             Answer Choices
                           </Text>
                           {(["A", "B", "C", "D"] as const).map((choice) => (
@@ -577,7 +532,7 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
                                   <View className="w-2 h-2 bg-white rounded-full" />
                                 )}
                               </TouchableOpacity>
-                              <Text className="font-medium text-gray-700 w-6">
+                              <Text className="font-poppins-medium text-gray-700 w-6">
                                 {choice}.
                               </Text>
                               <TextInput
@@ -586,24 +541,11 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
                                 onChangeText={(text) =>
                                   updateChoice(question.id, choice, text)
                                 }
-                                onFocus={() =>
-                                  handleFocus(`choice-${question.id}-${choice}`)
-                                }
-                                onBlur={() =>
-                                  handleBlur(`choice-${question.id}-${choice}`)
-                                }
-                                className={`flex-1 ml-2 rounded-lg p-2 border bg-white ${
-                                  focusedFields[
-                                    `choice-${question.id}-${choice}`
-                                  ]
-                                    ? "border-primary"
-                                    : "border-gray-300"
-                                }`}
+                                className="flex-1 ml-2 rounded-lg p-2 border bg-white border-gray-300"
                               />
                             </View>
                           ))}
-
-                          <Text className="text-sm text-gray-500 mt-2">
+                          <Text className="text-sm text-gray-500 mt-2 font-poppins">
                             Tap the circle to select the correct answer
                           </Text>
                         </View>
@@ -617,22 +559,21 @@ const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
 
           {/* Action Buttons */}
           <View className="flex-row justify-end px-5 py-2 border-t border-gray-200">
-            <TouchableOpacity
-              onPress={handleCancel}
-              style={{ marginRight: 10 }}
-            >
-              <Text className="text-black font-semibold text-base">Cancel</Text>
+            <TouchableOpacity onPress={resetForm} style={{ marginRight: 10 }}>
+              <Text className="text-black font-poppins-medium text-base">
+                Cancel
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               disabled={!isFormValid()}
               onPress={handleCreateQuiz}
             >
               <Text
-                className={`font-semibold text-base ${
+                className={`font-poppins-medium text-base ${
                   isFormValid() ? "text-primary" : "text-gray-500"
                 }`}
               >
-                Create Quiz
+                Create Exercise
               </Text>
             </TouchableOpacity>
           </View>

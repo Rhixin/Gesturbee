@@ -16,17 +16,10 @@ import QuizSkeleton from "@/components/skeletons/QuizSkeleton";
 export default function Quizzes() {
   const { currentUser } = useAuth();
   const { showToast } = useToast();
-  const progress = 70;
-
-  const beehiveImage = () => {
-    return require("@/assets/images/progress70.png");
-  };
 
   const [quizzes, setQuizzes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
-
-  const [nextQuizId, setNextQuizId] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -35,22 +28,18 @@ export default function Quizzes() {
   const [createExecutionVisible, setCreateExecutionVisible] = useState(false);
 
   const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
+  const loadData = React.useCallback(() => {
+    fetchExercises();
+  }, []);
 
-  // Function to handle adding new quiz
-  const addNewQuiz = (newQuiz) => {};
-
-  // Load data every time the screen is focused
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchExercises();
-    }, [])
-  );
+  useFocusEffect(loadData);
 
   const fetchExercises = async () => {
     setIsLoading(true);
-    const response = await ClassRoomService.getAllExercise(currentUser.id);
+    const response = await QuizService.getAllExercise(currentUser.id);
 
     if (response.success) {
+      console.log(response.data);
       setQuizzes(response.data);
     } else {
       showToast(response.message, "error");
@@ -85,7 +74,7 @@ export default function Quizzes() {
                 }}
               >
                 <Ionicons name="list-outline" size={20} color="#00BFAF" />
-                <Text className="ml-2 text-gray-700 font-medium">
+                <Text className="ml-2 text-gray-700 font-poppins-medium">
                   Multiple Choice
                 </Text>
               </TouchableOpacity>
@@ -98,7 +87,7 @@ export default function Quizzes() {
                 }}
               >
                 <Ionicons name="play-outline" size={20} color="#00BFAF" />
-                <Text className="ml-2 text-gray-700 font-medium">
+                <Text className="ml-2 text-gray-700 font-medium font-poppins">
                   Execution Type
                 </Text>
               </TouchableOpacity>
@@ -133,11 +122,11 @@ export default function Quizzes() {
                     {item.exerciseTitle}
                   </Text>
                   <Text className="text-sm text-gray-700 font-poppins-medium mb-1">
-                    Type: {"Multiple Choice"}
+                    Type: {"null"}
                   </Text>
                   {/* Show question count for newly created quizzes */}
                   {item.exerciseItems && (
-                    <Text className="text-xs text-gray-500 mb-2">
+                    <Text className="text-xs text-gray-500 mb-2 font-poppins">
                       {item.exerciseItems.length} question
                       {item.exerciseItems.length !== 1 ? "s" : ""}
                     </Text>
@@ -145,7 +134,7 @@ export default function Quizzes() {
                   {/* Show description if available */}
                   {item.exerciseDescription && (
                     <Text
-                      className="text-xs text-gray-600 mb-2"
+                      className="text-xs text-gray-600 mb-2 font-poppins"
                       numberOfLines={2}
                     >
                       {item.exerciseDescription}
@@ -155,7 +144,7 @@ export default function Quizzes() {
 
                 <TouchableOpacity
                   className="bg-yellow-400 py-2 px-6 rounded-full self-start mb-2 w-full"
-                  onPress={() => setSelectedQuiz(item)}
+                  onPress={() => setSelectedQuiz(item.id)}
                 >
                   <Text className="font-poppins-medium text-white text-center text-sm">
                     View Quiz
@@ -171,18 +160,18 @@ export default function Quizzes() {
       <CreateQuizModal
         modalVisible={createMultipleChoiceVisible}
         setModalVisible={setCreateMultipleChoiceVisible}
-        addNewQuiz={addNewQuiz}
+        loadData={loadData}
       />
 
       <CreateActionQuizModal
         modalVisible={createExecutionVisible}
         setModalVisible={setCreateExecutionVisible}
-        addNewQuiz={addNewQuiz}
+        loadData={loadData}
       />
 
       <QuizDetails
         visible={selectedQuiz !== null}
-        quiz={selectedQuiz}
+        quizId={selectedQuiz}
         onClose={() => setSelectedQuiz(null)}
       />
     </View>
