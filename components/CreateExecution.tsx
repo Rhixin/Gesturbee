@@ -384,7 +384,7 @@ const CreateActionQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className={`py-2 px-4 rounded-lg ${
+              className={` rounded-lg ${
                 !isFormValid() || isLoading ? "opacity-50" : ""
               }`}
               disabled={!isFormValid() || isLoading}
