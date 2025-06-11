@@ -14,7 +14,7 @@ import * as FileSystem from "expo-file-system";
 import { Platform } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
-import QuizService from "@/api/services/quiz-service";
+import ExerciseService from "@/api/services/exercise-service";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -252,15 +252,14 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
     try {
       // Upload videos if any
       if (uploadVideosList.length > 0) {
-        const uploadPresignedUrlResponse = await QuizService.uploadPresignedUrl(
-          uploadVideosList
-        );
+        const uploadPresignedUrlResponse =
+          await ExerciseService.uploadPresignedUrl(uploadVideosList);
 
         if (!uploadPresignedUrlResponse.success) {
           throw new Error("Error getting signed URLs");
         }
 
-        const uploadSignedUrlResponse = await QuizService.uploadSignedUrl(
+        const uploadSignedUrlResponse = await ExerciseService.uploadSignedUrl(
           uriList,
           uploadPresignedUrlResponse.data,
           "video/mp4"
@@ -291,7 +290,9 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
         exerciseItems,
       };
 
-      const createQuizResponse = await QuizService.createQuiz(newExercise);
+      const createQuizResponse = await ExerciseService.createExercise(
+        newExercise
+      );
       if (!createQuizResponse.success) throw new Error("Error creating quiz");
 
       // Save video content if any
@@ -303,9 +304,8 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
           itemNumber: item.itemNumber,
         }));
 
-        const createVideoContentResponse = await QuizService.createVideoContent(
-          videoContentList
-        );
+        const createVideoContentResponse =
+          await ExerciseService.createVideoContent(videoContentList);
         if (!createVideoContentResponse.success)
           throw new Error("Error creating video content");
       }

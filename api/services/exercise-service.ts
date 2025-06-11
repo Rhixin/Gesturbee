@@ -1,8 +1,8 @@
 import { Platform } from "react-native";
 import api from "../axios-config";
 
-const QuizService = {
-  createQuiz: async (quiz) => {
+const ExerciseService = {
+  createExercise: async (quiz) => {
     try {
       const response = await api.post("/e-classroom/exercise", quiz);
 
@@ -149,6 +149,32 @@ const QuizService = {
       };
     }
   },
+  getAllUnassignedExercise: async (classId, teacherId) => {
+    try {
+      const response = await api.get(
+        `/e-classroom/class/${classId}/exercises/unassigned`,
+        {
+          params: {
+            teacherId: teacherId,
+          },
+        }
+      );
+
+      return {
+        success: true,
+        data: response.data.data,
+        message: "Successfully fetched all Teacher Exercises",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.responseType ||
+          "Error fetching Teacher Exercises",
+        data: null,
+      };
+    }
+  },
   getSpecificExercise: async (exerciseId) => {
     try {
       const response = await api.get(`/e-classroom/exercise/${exerciseId}`);
@@ -177,21 +203,13 @@ const QuizService = {
         },
       });
 
-      console.log(videoResponse);
-
       if (!videoResponse.ok) {
         throw new Error(`Failed to fetch video: ${videoResponse.statusText}`);
       }
 
-      const videoBlob = await videoResponse.blob();
-      const blobUrl = URL.createObjectURL(videoBlob);
-
       return {
         success: true,
-        data: {
-          blobUrl,
-          blob: videoBlob,
-        },
+        data: videoResponse.url,
         message: "Successfully fetched video content",
       };
     } catch (error) {
@@ -207,4 +225,4 @@ const QuizService = {
   },
 };
 
-export default QuizService;
+export default ExerciseService;

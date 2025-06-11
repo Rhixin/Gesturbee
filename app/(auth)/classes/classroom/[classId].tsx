@@ -14,12 +14,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AddStudentModal from "@/components/AddStudentModal";
 import NotificationButton from "@/components/NotificationButton";
-import AssignActivityModal from "@/components/AssignActivityModal";
+import AssignActivityModal from "@/components/AssignExerciseModal";
 import RemoveStudentModal from "@/components/RemoveStudentModal";
 import ActivitiesTab from "@/components/ActivitiesTab";
 import { useToast } from "@/context/ToastContext";
 import ClassRoomService from "@/api/services/classroom-service";
 import { useAuth } from "@/context/AuthContext";
+import ExerciseService from "@/api/services/exercise-service";
+import AssignExerciseModal from "@/components/AssignExerciseModal";
 
 const Classroom = () => {
   const getScoreColor = (score) => {
@@ -33,10 +35,10 @@ const Classroom = () => {
     return status === "completed" ? "text-green-600" : "text-orange-500";
   };
 
-  const { id } = useLocalSearchParams();
+  const { classId } = useLocalSearchParams();
   const { currentUser } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("Activities"); // Default to Activities
+  const [activeTab, setActiveTab] = useState("Activities");
   const [isTeacher, setIsTeacher] = useState(false);
   const tabs = isTeacher
     ? ["Students", "Activities", "Grades"]
@@ -67,10 +69,11 @@ const Classroom = () => {
   const [classroomDetails, setClassroomDetails] = useState(null);
   const [enrollmentRequests, setEnrollmentRequests] = useState(null);
   const [allUsers, setAllUsers] = useState(null);
+  const [notAssignedExercises, setNotAssignedExercises] = useState(null);
 
   // apis
   const fetchClassroom = async () => {
-    const response = await ClassRoomService.getClassroom(id);
+    const response = await ClassRoomService.getClassroom(classId);
 
     if (response.success) {
       setClassroomDetails(response.data);
@@ -88,7 +91,7 @@ const Classroom = () => {
 
   const fetchStudents = async () => {
     const response = await ClassRoomService.getAllStudentsInThisClass(
-      id,
+      classId,
       showToast
     );
 
@@ -101,7 +104,7 @@ const Classroom = () => {
     return response.data;
   };
 
-  const fetchEnrollmentRequests = async (classId) => {
+  const fetchEnrollmentRequests = async () => {
     const response = await ClassRoomService.getAllEnrollmentRequests(classId);
 
     if (response.success) {
@@ -114,10 +117,25 @@ const Classroom = () => {
   };
 
   const fetchAllUsersNotEnrolled = async () => {
-    const response = await ClassRoomService.getAllUsersNotEnrolled(id);
+    const response = await ClassRoomService.getAllUsersNotEnrolled(classId);
 
     if (response.success) {
       setAllUsers(response.data);
+    } else {
+      showToast(response.message, "error");
+    }
+
+    return response.data;
+  };
+
+  const fetchNotAssignedExercises = async () => {
+    const response = await ExerciseService.getAllUnassignedExercise(
+      classId,
+      currentUser.id
+    );
+
+    if (response.success) {
+      setNotAssignedExercises(response.data);
     } else {
       showToast(response.message, "error");
     }
@@ -135,18 +153,21 @@ const Classroom = () => {
         studentsData,
         enrollmentRequestsData,
         allUsersData,
+        notAssignedExercisesData,
       ] = await Promise.all([
         fetchClassroom(),
         fetchStudents(),
-        fetchEnrollmentRequests(id),
+        fetchEnrollmentRequests(),
         fetchAllUsersNotEnrolled(),
+        fetchNotAssignedExercises(),
       ]);
 
       if (
         !classroomData ||
         !studentsData ||
         !enrollmentRequestsData ||
-        !allUsersData
+        !allUsersData ||
+        !notAssignedExercisesData
       ) {
         throw new Error("Failed to load required data");
       }
@@ -159,12 +180,12 @@ const Classroom = () => {
   };
 
   useEffect(() => {
-    if (id) {
+    if (classId) {
       loadData();
     } else {
       router.back();
     }
-  }, [id]);
+  }, [classId]);
 
   useEffect(() => {
     if (classroomDetails && currentUser) {
@@ -202,9 +223,6 @@ const Classroom = () => {
     setSelectedStudentId(studentId);
     setRemoveStudentModalVisible(true);
   };
-
-  //selecting activity
-  const [selectedActivity, setSelectedActivity] = useState("");
 
   //for grades data
   const activitiesWithGrades = [
@@ -555,7 +573,7 @@ const Classroom = () => {
                 <NotificationButton
                   handleAcceptRequest={handleAddStudents}
                   enrollmentRequestsProfile={enrollmentRequests}
-                  classId={id}
+                  classId={classId}
                   loadData={loadData}
                 />
               )
@@ -648,10 +666,11 @@ const Classroom = () => {
       </View>
 
       {/* Only show assign activity modal for teachers */}
-      {isTeacher && (
-        <AssignActivityModal
+      {!isLoading && isTeacher && (
+        <AssignExerciseModal
           modalVisible={assignActivityModalVisible}
           setModalVisible={setAssignActivityModalVisible}
+          exercises={notAssignedExercises}
         />
       )}
 
@@ -664,7 +683,7 @@ const Classroom = () => {
           allUsers={allUsers}
           studentsAlreadyAdded={students}
           loadData={loadData}
-          classId={id}
+          classId={classId}
         />
       )}
 
@@ -676,7 +695,7 @@ const Classroom = () => {
           studentId={selectedStudentId}
           students={students || []}
           loadData={loadData}
-          classId={id}
+          classId={classId}
         />
       )}
     </View>

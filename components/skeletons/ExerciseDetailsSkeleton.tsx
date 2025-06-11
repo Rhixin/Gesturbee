@@ -96,7 +96,7 @@ const FooterSkeleton = () => (
   </View>
 );
 
-const QuizDetailsSkeleton = () => {
+const ExerciseDetailsSkeleton = () => {
   return (
     <>
       <HeaderSkeleton />
@@ -106,4 +106,4 @@ const QuizDetailsSkeleton = () => {
   );
 };
 
-export default QuizDetailsSkeleton;
+export default ExerciseDetailsSkeleton;

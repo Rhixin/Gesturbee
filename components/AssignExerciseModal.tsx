@@ -9,45 +9,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const AssignActivityModal = ({ modalVisible, setModalVisible }) => {
+const AssignExerciseModal = ({ modalVisible, setModalVisible, exercises }) => {
   const [searchText, setSearchText] = useState("");
 
-  const activities = [
-    {
-      id: 1,
-      title: "Alphabets A-G",
-      numQuestions: "10",
-    },
-    {
-      id: 2,
-      title: "Greetings",
-      numQuestions: "10",
-    },
-    {
-      id: 3,
-      title: "Numbers",
-      numQuestions: "10",
-    },
-    {
-      id: 4,
-      title: "Numbers",
-      numQuestions: "10",
-    },
-    {
-      id: 5,
-      title: "Numbers",
-      numQuestions: "10",
-    },
-    {
-      id: 6,
-      title: "Numbers",
-      numQuestions: "10",
-    },
-  ];
-
-  //filtering activities, working search bar
-  const filteredActivities = activities.filter((activity) =>
-    activity.title.toLowerCase().includes(searchText.toLowerCase())
+  const filteredExercises = exercises.filter((exercise) =>
+    exercise.exerciseTitle.toLowerCase().includes(searchText.toLowerCase())
   );
 
   return (
@@ -64,9 +30,9 @@ const AssignActivityModal = ({ modalVisible, setModalVisible }) => {
         <View className="bg-white p-6 rounded-2xl w-full">
           {/* <Text className="text-xl font-poppins-bold mb-4">Assign Activity</Text> */}
           <Text className="text-3xl font-semibold text-titlegray mb-2">
-            Assign Activity
+            Assign Exercise
           </Text>
-          <Text className="text-lg mb-4">Assign activities to students</Text>
+          <Text className="text-lg mb-4">Assign exercises to students</Text>
           <TextInput
             placeholder="Search for an activity"
             className="border border-gray-300 rounded-lg p-2 mb-2"
@@ -79,18 +45,18 @@ const AssignActivityModal = ({ modalVisible, setModalVisible }) => {
             contentContainerStyle={{ flexGrow: 1 }}
           >
             <View>
-              {filteredActivities.length > 0 ? (
-                filteredActivities.map((activity) => (
+              {filteredExercises.length > 0 ? (
+                filteredExercises.map((exercise) => (
                   <View
-                    key={activity.id}
+                    key={exercise.id}
                     className="flex-row items-center justify-between bg-gray-100 rounded-lg p-4 mb-4"
                   >
                     <View>
                       <Text className="text-lg font-semibold">
-                        {activity.title}
+                        {exercise.exerciseTitle}
                       </Text>
                       <Text className="text-sm text-gray-500">
-                        {activity.numQuestions} Questions
+                        {exercise.exerciseDescription}
                       </Text>
                     </View>
                     <TouchableOpacity className="bg-yellow-400 rounded-full py-2 px-4">
@@ -100,7 +66,7 @@ const AssignActivityModal = ({ modalVisible, setModalVisible }) => {
                 ))
               ) : (
                 <Text className="text-center text-gray-500">
-                  No activities found
+                  No exercises found
                 </Text>
               )}
             </View>
@@ -120,4 +86,4 @@ const AssignActivityModal = ({ modalVisible, setModalVisible }) => {
   );
 };
 
-export default AssignActivityModal;
+export default AssignExerciseModal;

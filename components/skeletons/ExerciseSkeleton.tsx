@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 
-const QuizSkeleton = () => (
+const ExerciseSkeleton = () => (
   <View className="bg-white rounded-lg p-4 mx-4 mt-4 flex-row shadow-sm border border-gray-200">
     <View className="items-center justify-center">
       {/* Beehive skeleton */}
@@ -27,4 +27,4 @@ const QuizSkeleton = () => (
   </View>
 );
 
-export default QuizSkeleton;
+export default ExerciseSkeleton;

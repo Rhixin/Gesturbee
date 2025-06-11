@@ -1,4 +1,4 @@
-import QuizService from "@/api/services/quiz-service";
+import ExerciseService from "@/api/services/exercise-service";
 import { Video } from "expo-av";
 import React from "react";
 import { useState, useEffect } from "react";
@@ -18,7 +18,7 @@ const VideoPlayer = ({ s3Key, questionId }) => {
       setLoading(true);
       setError(false);
 
-      const response = await QuizService.getVideoContent(s3Key);
+      const response = await ExerciseService.getVideoContent(s3Key);
 
       if (response.success) {
         setVideoUri(response.data.presignedUrl);

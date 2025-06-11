@@ -6,12 +6,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import CreateQuizModal from "@/components/CreateMultipleChoice";
 import CreateActionQuizModal from "@/components/CreateExecution";
-import QuizDetails from "@/components/QuizDetails";
-import QuizService from "../../../api/services/quiz-service";
-import ClassRoomService from "@/api/services/classroom-service";
+import ExerciseDetails from "@/components/ExerciseDetails";
+import ExerciseService from "../../../api/services/exercise-service";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
-import QuizSkeleton from "@/components/skeletons/QuizSkeleton";
+import ExerciseSkeleton from "@/components/skeletons/ExerciseSkeleton";
 
 export default function Quizzes() {
   const { currentUser } = useAuth();
@@ -36,7 +35,7 @@ export default function Quizzes() {
 
   const fetchExercises = async () => {
     setIsLoading(true);
-    const response = await QuizService.getAllExercise(currentUser.id);
+    const response = await ExerciseService.getAllExercise(currentUser.id);
 
     if (response.success) {
       console.log(response.data);
@@ -101,7 +100,7 @@ export default function Quizzes() {
         {isLoading ? (
           <>
             {[...Array(4)].map((_, index) => (
-              <QuizSkeleton key={index} />
+              <ExerciseSkeleton key={index} />
             ))}
           </>
         ) : (
@@ -169,9 +168,9 @@ export default function Quizzes() {
         loadData={loadData}
       />
 
-      <QuizDetails
+      <ExerciseDetails
         visible={selectedQuiz !== null}
-        quizId={selectedQuiz}
+        exerciseId={selectedQuiz}
         onClose={() => setSelectedQuiz(null)}
       />
     </View>

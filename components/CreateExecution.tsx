@@ -9,7 +9,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import QuizService from "@/api/services/quiz-service";
+import ExerciseService from "@/api/services/exercise-service";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import Dropdown from "./Dropdown";
@@ -159,7 +159,9 @@ const CreateActionQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
 
       console.log(newExercise);
 
-      const createQuizResponse = await QuizService.createQuiz(newExercise);
+      const createQuizResponse = await ExerciseService.createExercise(
+        newExercise
+      );
 
       if (createQuizResponse.success) {
         showToast(createQuizResponse.message, "success");
