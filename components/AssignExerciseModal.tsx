@@ -6,15 +6,43 @@ import {
   Modal,
   TextInput,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import ClassRoomService from "@/api/services/classroom-service";
+import { useLocalSearchParams } from "expo-router";
+import { useToast } from "@/context/ToastContext";
 
-const AssignExerciseModal = ({ modalVisible, setModalVisible, exercises }) => {
+const AssignExerciseModal = ({
+  modalVisible,
+  setModalVisible,
+  exercises,
+  loadData,
+}) => {
+  const { classId } = useLocalSearchParams();
+  const { showToast } = useToast();
   const [searchText, setSearchText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const filteredExercises = exercises.filter((exercise) =>
     exercise.exerciseTitle.toLowerCase().includes(searchText.toLowerCase())
   );
+
+  const fetchAssignExercise = async (exerciseId) => {
+    setIsLoading(true);
+    const response = await ClassRoomService.assignExercise(classId, exerciseId);
+
+    if (response.success) {
+      showToast(response.message, "success");
+      loadData();
+    } else {
+      showToast(response.message, "error");
+    }
+
+    setModalVisible(false);
+    setIsLoading(false);
+    return response.data;
+  };
 
   return (
     <Modal
@@ -59,8 +87,27 @@ const AssignExerciseModal = ({ modalVisible, setModalVisible, exercises }) => {
                         {exercise.exerciseDescription}
                       </Text>
                     </View>
-                    <TouchableOpacity className="bg-yellow-400 rounded-full py-2 px-4">
-                      <Text className="text-white font-semibold">Assign</Text>
+                    <TouchableOpacity
+                      className="bg-yellow-400 rounded-full py-2 px-4"
+                      onPress={() => {
+                        fetchAssignExercise(exercise.id);
+                      }}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <ActivityIndicator
+                            size="small"
+                            color="#FFFFFF"
+                            style={{ marginRight: 8 }}
+                          />
+                          <Text className="text-white font-semibold">
+                            Assigning...
+                          </Text>
+                        </>
+                      ) : (
+                        <Text className="text-white font-semibold">Assign</Text>
+                      )}
                     </TouchableOpacity>
                   </View>
                 ))

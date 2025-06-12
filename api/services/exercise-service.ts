@@ -149,6 +149,25 @@ const ExerciseService = {
       };
     }
   },
+  getAssignedExercise: async (classId) => {
+    try {
+      const response = await api.get(`/e-classroom/class/${classId}/exercises`);
+
+      return {
+        success: true,
+        data: response.data.data,
+        message: "Successfully fetched all Assigned Exercises",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.responseType ||
+          "Error fetching Assigned Exercises",
+        data: null,
+      };
+    }
+  },
   getAllUnassignedExercise: async (classId, teacherId) => {
     try {
       const response = await api.get(
