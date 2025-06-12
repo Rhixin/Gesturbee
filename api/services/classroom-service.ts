@@ -235,6 +235,47 @@ const ClassRoomService = {
       };
     }
   },
+  assignExercise: async (classId, exerciseId) => {
+    try {
+      const response = await api.post(
+        `/e-classroom/class/${classId}/exercise/${exerciseId}`
+      );
+
+      return {
+        success: true,
+        data: response?.data.data,
+        message: "Successfully Assigned An Exercise",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.responseType || "Error assigning an exercise",
+        data: null,
+      };
+    }
+  },
+  getStudentClassExerciseAnswers: async (studentId, classExerciseId) => {
+    try {
+      const response = await api.get(
+        `/e-classroom/student/${studentId}/class-exercise/${classExerciseId}/answers`
+      );
+
+      return {
+        success: true,
+        data: response?.data.data,
+        message: "Successfully fetched all student answers",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.responseType ||
+          "Error fetching student answers",
+        data: null,
+      };
+    }
+  },
 };
 
 export default ClassRoomService;

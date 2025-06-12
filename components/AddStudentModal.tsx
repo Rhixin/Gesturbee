@@ -103,7 +103,7 @@ const AddStudentModal = ({
   };
 
   const handleCancel = () => {
-    if (isLoading) return; // Prevent closing during loading
+    if (isLoading) return;
 
     setSelectedStudents([]);
     setSelectedStudent(-1);

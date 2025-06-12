@@ -11,6 +11,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import ExerciseDetailsSkeleton from "./skeletons/ExerciseDetailsSkeleton";
+import VideoPlayer from "./VideoPlayer";
 
 interface ExerciseDetailsProps {
   visible: boolean;
@@ -25,7 +26,7 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
 }) => {
   const { showToast } = useToast();
   const [exercise, setExercise] = useState(null);
-  const [videos, setVideos] = useState([]);
+  const [videos, setVideos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchExerciseDetails = async () => {
@@ -54,9 +55,7 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
           })
         );
 
-        console.log(signedUrls);
-
-        //setVideos(signedUrls);
+        setVideos(signedUrls);
       }
 
       setExercise(response.data);
@@ -195,18 +194,8 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
                           </View>
 
                           {/* Video URL if present */}
-                          {q.presignedURL && (
-                            <View className="mb-4 bg-purple-50 p-3 rounded-lg border border-purple-200">
-                              <Text className="text-purple-700 font-poppins-medium text-sm mb-1">
-                                Video Attached
-                              </Text>
-                              <Text
-                                className="text-purple-600 text-xs"
-                                numberOfLines={1}
-                              >
-                                {q.presignedURL}
-                              </Text>
-                            </View>
+                          {videos[index] && (
+                            <VideoPlayer videoUrl={videos[index]}></VideoPlayer>
                           )}
 
                           {/* Answer Choices */}

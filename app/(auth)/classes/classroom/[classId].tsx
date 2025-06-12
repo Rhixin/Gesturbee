@@ -16,12 +16,13 @@ import AddStudentModal from "@/components/AddStudentModal";
 import NotificationButton from "@/components/NotificationButton";
 import AssignActivityModal from "@/components/AssignExerciseModal";
 import RemoveStudentModal from "@/components/RemoveStudentModal";
-import ActivitiesTab from "@/components/ActivitiesTab";
+import ExercisesTab from "@/components/ExercisesTab";
 import { useToast } from "@/context/ToastContext";
 import ClassRoomService from "@/api/services/classroom-service";
 import { useAuth } from "@/context/AuthContext";
 import ExerciseService from "@/api/services/exercise-service";
 import AssignExerciseModal from "@/components/AssignExerciseModal";
+import ExerciseSkeleton from "@/components/skeletons/ExerciseSkeleton";
 
 const Classroom = () => {
   const getScoreColor = (score) => {
@@ -38,11 +39,9 @@ const Classroom = () => {
   const { classId } = useLocalSearchParams();
   const { currentUser } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("Activities");
+  const [activeTab, setActiveTab] = useState("Exercises");
   const [isTeacher, setIsTeacher] = useState(false);
-  const tabs = isTeacher
-    ? ["Students", "Activities", "Grades"]
-    : ["Activities"];
+  const tabs = isTeacher ? ["Students", "Exercises", "Grades"] : ["Exercises"];
 
   const navigateToTab = (tab) => {
     setActiveTab(tab);
@@ -69,6 +68,7 @@ const Classroom = () => {
   const [classroomDetails, setClassroomDetails] = useState(null);
   const [enrollmentRequests, setEnrollmentRequests] = useState(null);
   const [allUsers, setAllUsers] = useState(null);
+  const [assignedExercises, setAssignedExercises] = useState(null);
   const [notAssignedExercises, setNotAssignedExercises] = useState(null);
 
   // apis
@@ -128,6 +128,49 @@ const Classroom = () => {
     return response.data;
   };
 
+  const fetchAssignedExercises = async () => {
+    try {
+      const response = await ExerciseService.getAssignedExercise(classId);
+
+      if (response.success) {
+        if (!isTeacher) {
+          const responseAnswers = await Promise.all(
+            response.data.map(async (exercise) => {
+              const r = await ClassRoomService.getStudentClassExerciseAnswers(
+                currentUser.id,
+                exercise.classExerciseId
+              );
+
+              if (!r.success) {
+                throw Error(r.message);
+              }
+
+              let status = "Complete";
+
+              if (r.data.length == 0) {
+                status = "NotComplete";
+              }
+
+              return { ...exercise, studentAnswers: r.data, status: status };
+            })
+          );
+
+          console.log(responseAnswers);
+
+          setAssignedExercises(responseAnswers);
+        } else {
+          setAssignedExercises(response.data);
+        }
+      } else {
+        throw Error(response.message);
+      }
+
+      return response.data;
+    } catch (error) {
+      showToast(error.message, "error");
+    }
+  };
+
   const fetchNotAssignedExercises = async () => {
     const response = await ExerciseService.getAllUnassignedExercise(
       classId,
@@ -154,12 +197,14 @@ const Classroom = () => {
         enrollmentRequestsData,
         allUsersData,
         notAssignedExercisesData,
+        assignedExercisesData,
       ] = await Promise.all([
         fetchClassroom(),
         fetchStudents(),
         fetchEnrollmentRequests(),
         fetchAllUsersNotEnrolled(),
         fetchNotAssignedExercises(),
+        fetchAssignedExercises(),
       ]);
 
       if (
@@ -167,7 +212,8 @@ const Classroom = () => {
         !studentsData ||
         !enrollmentRequestsData ||
         !allUsersData ||
-        !notAssignedExercisesData
+        !notAssignedExercisesData ||
+        !assignedExercisesData
       ) {
         throw new Error("Failed to load required data");
       }
@@ -189,13 +235,13 @@ const Classroom = () => {
 
   useEffect(() => {
     if (classroomDetails && currentUser) {
-      if (!isTeacher && activeTab !== "Activities") {
-        setActiveTab("Activities");
+      if (!isTeacher && activeTab !== "Exercises") {
+        setActiveTab("Exercises");
       }
 
       if (
         isTeacher &&
-        !["Students", "Activities", "Grades"].includes(activeTab)
+        !["Students", "Exercises", "Grades"].includes(activeTab)
       ) {
         setActiveTab("Students");
       }
@@ -390,7 +436,7 @@ const Classroom = () => {
                 {activitiesWithGrades.length}
               </Text>
               <Text className="text-sm text-gray-600 font-poppins">
-                Activities
+                Exercises
               </Text>
             </View>
             <View className="items-center">
@@ -408,9 +454,9 @@ const Classroom = () => {
           </View>
         </View>
 
-        {/* Activities with Grades */}
+        {/* Exercises with Grades */}
         <Text className="text-xl font-poppins-bold text-gray-800 mb-3">
-          Activity Grades
+          Exercises Grades
         </Text>
 
         {activitiesWithGrades.map((activity) => (
@@ -503,19 +549,31 @@ const Classroom = () => {
       case "Students":
         return isTeacher ? (
           renderStudents()
+        ) : isLoading ? (
+          <ExerciseSkeleton></ExerciseSkeleton>
         ) : (
-          <ActivitiesTab isTeacher={isTeacher} />
+          <ExercisesTab isTeacher={isTeacher} exercises={assignedExercises} />
         );
-      case "Activities":
-        return <ActivitiesTab isTeacher={isTeacher} />;
+      case "Exercises":
+        return isLoading ? (
+          <ExerciseSkeleton></ExerciseSkeleton>
+        ) : (
+          <ExercisesTab isTeacher={isTeacher} exercises={assignedExercises} />
+        );
       case "Grades":
         return isTeacher ? (
           renderGrades()
+        ) : isLoading ? (
+          <ExerciseSkeleton></ExerciseSkeleton>
         ) : (
-          <ActivitiesTab isTeacher={isTeacher} />
+          <ExercisesTab isTeacher={isTeacher} exercises={assignedExercises} />
         );
       default:
-        return <ActivitiesTab isTeacher={isTeacher} />;
+        return isLoading ? (
+          <ExerciseSkeleton></ExerciseSkeleton>
+        ) : (
+          <ExercisesTab isTeacher={isTeacher} exercises={assignedExercises} />
+        );
     }
   };
 
@@ -639,8 +697,8 @@ const Classroom = () => {
           </View>
         )}
 
-        {/* Add Activity Button - Only show on Activities tab for teachers */}
-        {activeTab === "Activities" && isTeacher && (
+        {/* Add Activity Button - Only show on Exercises tab for teachers */}
+        {activeTab === "Exercises" && isTeacher && (
           <View
             className="absolute bottom-4 right-1 p-4"
             style={{ zIndex: 100 }}
@@ -671,6 +729,7 @@ const Classroom = () => {
           modalVisible={assignActivityModalVisible}
           setModalVisible={setAssignActivityModalVisible}
           exercises={notAssignedExercises}
+          loadData={loadData}
         />
       )}
 
