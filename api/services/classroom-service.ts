@@ -261,6 +261,9 @@ const ClassRoomService = {
         `/e-classroom/student/${studentId}/class-exercise/${classExerciseId}/answers`
       );
 
+      console.log("Student Answers");
+      console.log(response?.data.data);
+
       return {
         success: true,
         data: response?.data.data,

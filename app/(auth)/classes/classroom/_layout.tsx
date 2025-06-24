@@ -1,10 +1,10 @@
 import React from "react";
 import { Stack } from "expo-router";
-export default function ClassesLayout() {
+export default function ClassroomLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="classroom/[classId]" />
+      <Stack.Screen name="[classId]" />
+      <Stack.Screen name="exercise/[exerciseId]" />
     </Stack>
   );
 }

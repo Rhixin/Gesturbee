@@ -1,25 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
 import { TouchableOpacity, View, Text } from "react-native";
 import Beehive from "./Beehive";
+import AnswerExerciseModal from "./AnswerExerciseModal";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 const StudentExerciseCard = ({ exercise }) => {
+  const router = useRouter();
+  const { classId } = useLocalSearchParams();
+  const navigateToClassExercise = () => {
+    router.push(
+      `/classes/classroom/${classId}/exercise/${exercise.exerciseId}/classexercise/${exercise.classExerciseId}`
+    );
+  };
+
+  const [visible, setVisible] = useState(false);
   const getStatusColor = (status) => {
     switch (status) {
-      case "Completed":
+      case "Complete":
         return {
           backgroundColor: "#dcfce7",
           color: "#22c55e",
         };
       case "In Progress":
         return {
-          backgroundColor: "#fef9c3", // Tailwind's yellow-100
-          color: "#a16207", // Tailwind's yellow-700
+          backgroundColor: "#fef9c3",
+          color: "#a16207",
         };
       case "Not Started":
       default:
         return {
-          backgroundColor: "#f3f4f6", // Tailwind's gray-100
-          color: "#374151", // Tailwind's gray-700
+          backgroundColor: "#f3f4f6",
+          color: "#374151",
         };
     }
   };
@@ -33,7 +44,7 @@ const StudentExerciseCard = ({ exercise }) => {
 
   // Helper function to get the percentage for Beehive component
   const getActivityPercentage = (exercise) => {
-    if (exercise.status === "Completed" && exercise.score !== null) {
+    if (exercise.status === "Complete" && exercise.score !== null) {
       return exercise.score;
     } else if (exercise.status === "In Progress") {
       return 10; //default ni for the inprogress
@@ -44,7 +55,7 @@ const StudentExerciseCard = ({ exercise }) => {
 
   const getActionButton = () => {
     switch (exercise.status) {
-      case "Completed":
+      case "Complete":
         return (
           <TouchableOpacity
             style={{
@@ -52,6 +63,9 @@ const StudentExerciseCard = ({ exercise }) => {
               paddingHorizontal: 16,
               paddingVertical: 8,
               borderRadius: 9999,
+            }}
+            onPress={() => {
+              setVisible(!visible);
             }}
           >
             <Text style={{ color: "#ffffff", fontWeight: "500" }}>
@@ -79,7 +93,7 @@ const StudentExerciseCard = ({ exercise }) => {
             </Text>
           </TouchableOpacity>
         );
-      case "Not Started":
+      case "NotComplete":
         return (
           <TouchableOpacity
             style={{
@@ -88,6 +102,7 @@ const StudentExerciseCard = ({ exercise }) => {
               paddingVertical: 8,
               borderRadius: 9999,
             }}
+            onPress={navigateToClassExercise}
           >
             <Text className="text-white font-medium">Start Activity</Text>
           </TouchableOpacity>
@@ -107,16 +122,15 @@ const StudentExerciseCard = ({ exercise }) => {
           <Text className="text-sm text-gray-600 mb-2">
             {exercise.exerciseDescription}
           </Text>
-          <Text className="text-sm text-gray-500 mb-2">
-            Due: {exercise.dueDate}
-          </Text>
 
           {/* Status Badge */}
           <View
-            className={`px-3 py-1 rounded-full self-start}`}
+            className="px-3 py-1 rounded-full self-start"
             style={getStatusColor(exercise.status)}
           >
-            <Text className="text-xs font-medium">{exercise.status}</Text>
+            <Text className="text-xs font-medium">
+              {exercise.status == "Complete" ? "Done" : "Not Started Yet"}
+            </Text>
           </View>
         </View>
 
@@ -153,10 +167,10 @@ const StudentExerciseCard = ({ exercise }) => {
               </View>
             )} */}
 
-          {exercise.correctAnswers !== null && (
+          {exercise.score !== null && exercise.status == "Complete" && (
             <View className="items-center" style={{ marginRight: 20 }}>
               <Text className="text-lg font-semibold text-gray-700">
-                {exercise.correctAnswers}/{exercise.totalQuestions}
+                {exercise.score}/{exercise.totalQuestions}
               </Text>
               <Text className="text-xs text-gray-600">Correct</Text>
             </View>
@@ -175,7 +189,7 @@ const StudentExerciseCard = ({ exercise }) => {
       </View>
 
       {/* Progress Bar for completed activities */}
-      {exercise.score !== null && (
+      {/* {exercise.score !== null && (
         <View style={{ marginTop: 12 }}>
           <View
             style={{
@@ -200,7 +214,13 @@ const StudentExerciseCard = ({ exercise }) => {
             />
           </View>
         </View>
-      )}
+      )} */}
+
+      <AnswerExerciseModal
+        visible={visible}
+        exerciseId={exercise.exerciseId}
+        onClose={() => setVisible(!visible)}
+      />
     </View>
   );
 };

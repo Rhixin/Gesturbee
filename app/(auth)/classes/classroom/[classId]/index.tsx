@@ -47,10 +47,6 @@ const Classroom = () => {
     setActiveTab(tab);
   };
 
-  const navigate = (path) => {
-    router.push(path);
-  };
-
   //modals
   const [addStudentModalVisible, setAddStudentModalVisible] = useState(false);
   const [removeStudentModalVisible, setRemoveStudentModalVisible] =

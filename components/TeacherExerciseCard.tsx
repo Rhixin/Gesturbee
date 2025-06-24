@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, TouchableOpacity, Text } from "react-native";
 import Beehive from "./Beehive";
+import ExerciseDetails from "./ExerciseDetails";
 
 const TeacherExerciseCard = ({ exercise }) => {
+  const [visible, setVisible] = useState(false);
   return (
     <View className="bg-white rounded-lg p-4 mb-4 shadow-sm border border-gray-200">
       <Text className="text-xl font-semibold text-gray-700 mb-4">
@@ -10,11 +12,11 @@ const TeacherExerciseCard = ({ exercise }) => {
       </Text>
 
       <View className="flex flex-row justify-between items-center">
-        <View className="flex flex-col items-center">
+        {/* <View className="flex flex-col items-center">
           <Beehive percentage={12} isGeneral={true} />
           <Text className="text-xs text-gray-600 mt-1">Exercises</Text>
           <Text className="text-sm font-bold text-gray-800">{12}</Text>
-        </View>
+        </View> */}
 
         <View className="flex flex-col items-center">
           <Beehive percentage={43} isGeneral={false} />
@@ -41,11 +43,17 @@ const TeacherExerciseCard = ({ exercise }) => {
 
         <TouchableOpacity
           className="bg-yellow-400 px-4 py-2 rounded-full"
-          onPress={() => handleViewDetails(exercise.id)}
+          onPress={() => setVisible(!visible)}
         >
           <Text className="text-white font-medium">View Details</Text>
         </TouchableOpacity>
       </View>
+
+      <ExerciseDetails
+        visible={visible}
+        exerciseId={exercise.exerciseId}
+        onClose={() => setVisible(!visible)}
+      />
     </View>
   );
 };

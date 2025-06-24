@@ -213,15 +213,16 @@ const ExercisesTab = ({ isTeacher, exercises }) => {
       ) : (
         // Student View
         <ScrollView className="p-4">
-          {exercises.map((exercise) => (
+          {exercises.map((exercise, index) => (
             <StudentExerciseCard
               key={exercise.classExerciseId}
               exercise={{
                 ...exercise,
-                status: "Completed",
+                status: exercise.status,
                 score: 34,
                 correctAnswers: 20,
                 totalQuestions: 50,
+                studentAnswers: exercise.studentAnswers?.[index] || null,
               }}
             />
           ))}
