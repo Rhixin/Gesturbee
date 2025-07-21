@@ -1,7 +1,7 @@
-// import LottieView from "lottie-react-native";
 import React, { useState } from "react";
 import { View, LayoutChangeEvent } from "react-native";
-import { useGlobal } from "../context/GlobalContext";
+import { useGlobal } from "@/context/GlobalContext";
+import LottieWrapper from "./LottieWrapper";
 
 export default function ProgressBar({
   percent,
@@ -42,8 +42,8 @@ export default function ProgressBar({
         />
       </View>
 
-      {/* {percent > 0 && barWidth > 0 && (
-        <LottieView
+      {percent > 0 && barWidth > 0 && progressAnimation && (
+        <LottieWrapper
           source={progressAnimation}
           autoPlay
           loop
@@ -54,8 +54,16 @@ export default function ProgressBar({
             width: imageWidth,
             height: imageHeight,
           }}
+          webStyle={{
+            position: "absolute",
+            bottom: 7,
+            left: lottieLeft - imageWidth / 2,
+            width: imageWidth,
+            height: imageHeight,
+          }}
+          fallbackText="🐝"
         />
-      )} */}
+      )}
     </View>
   );
 }

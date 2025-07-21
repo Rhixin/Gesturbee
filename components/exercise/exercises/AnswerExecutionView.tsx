@@ -1,12 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
 import WebView from "react-native-webview";
-import SuccessModal from "../SuccessModal";
+import SuccessModal from "@/components/modals/SuccessModal";
 
-const AnswerExecutionView = ({ item }) => {
+const AnswerExecutionView = ({ item, setAnswerItem, answerForm, currentViewIndex }) => {
   const [prediction, setPrediction] = useState(null);
   const [isWebViewLoaded, setIsWebViewLoaded] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+
+  // Load saved answer when currentViewIndex changes (navigating between questions)
+  useEffect(() => {
+    const savedAnswer = answerForm?.[currentViewIndex];
+    if (savedAnswer) {
+      setPrediction(savedAnswer);
+      setIsCorrect(savedAnswer === item.correctAnswer);
+    } else {
+      setPrediction(null);
+      setIsCorrect(false);
+    }
+    setShowSuccessModal(false);
+  }, [currentViewIndex, answerForm, item.correctAnswer]);
 
   const onMessage = (event) => {
     try {
@@ -15,6 +29,18 @@ const AnswerExecutionView = ({ item }) => {
       if (data?.type === "prediction") {
         const predictedLetter = data.data.prediction.prediction;
         setPrediction(predictedLetter);
+        
+        // Check if prediction matches correct answer
+        if (predictedLetter === item.correctAnswer) {
+          setIsCorrect(true);
+          setShowSuccessModal(true);
+          // Set the answer in the form
+          if (setAnswerItem) {
+            setAnswerItem(predictedLetter);
+          }
+        } else {
+          setIsCorrect(false);
+        }
       }
     } catch (error) {
       console.error("Error parsing message:", error);
@@ -42,8 +68,6 @@ const AnswerExecutionView = ({ item }) => {
         <WebView
           source={{ uri: "https://gesturbee-app-model.vercel.app/" }}
           style={{
-            width: "100%",
-            height: "100%",
             opacity: isWebViewLoaded ? 1 : 0,
           }}
           allowsInlineMediaPlayback={true}
@@ -59,7 +83,21 @@ const AnswerExecutionView = ({ item }) => {
           onMessage={onMessage}
         />
       </View>
-      <Text style={styles.prediction}>{prediction}</Text>
+      {prediction && (
+        <View style={styles.predictionContainer}>
+          <Text style={[
+            styles.prediction,
+            { color: prediction === item.correctAnswer ? '#22c55e' : '#ef4444' }
+          ]}>
+            {prediction}
+          </Text>
+          {prediction === item.correctAnswer ? (
+            <Text style={styles.correctText}>✓ Correct!</Text>
+          ) : (
+            <Text style={styles.incorrectText}>Try again</Text>
+          )}
+        </View>
+      )}
       <SuccessModal
         isVisible={showSuccessModal}
         onContinue={handleContinueAndReset}
@@ -73,7 +111,7 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     alignItems: "center",
-    height: "55%",
+    height: "100%",
   },
   title: {
     color: "black",
@@ -86,7 +124,6 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     backgroundColor: "black",
-    position: "relative",
   },
   loadingContainer: {
     position: "absolute",
@@ -108,13 +145,25 @@ const styles = StyleSheet.create({
     height: "100%",
     flex: 1,
   },
-  prediction: {
-    color: "black",
-    fontSize: 24,
-    fontFamily: "poppins-medium",
-    marginLeft: 8,
+  predictionContainer: {
+    alignItems: "center",
     marginTop: 12,
     marginBottom: 16,
+  },
+  prediction: {
+    fontSize: 32,
+    fontFamily: "poppins-bold",
+    marginBottom: 8,
+  },
+  correctText: {
+    color: "#22c55e",
+    fontSize: 16,
+    fontFamily: "poppins-medium",
+  },
+  incorrectText: {
+    color: "#ef4444",
+    fontSize: 16,
+    fontFamily: "poppins-medium",
   },
 });
 

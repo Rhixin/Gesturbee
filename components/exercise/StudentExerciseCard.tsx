@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { TouchableOpacity, View, Text } from "react-native";
-import Beehive from "./Beehive";
-import AnswerExerciseModal from "./AnswerExerciseModal";
+import { Ionicons } from "@expo/vector-icons";
+import Beehive from "@/components/animations/Beehive";
+import AnswerExerciseModal from "@/components/exercise/AnswerExerciseModal";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 const StudentExerciseCard = ({ exercise }) => {
@@ -14,6 +15,18 @@ const StudentExerciseCard = ({ exercise }) => {
   };
 
   const [visible, setVisible] = useState(false);
+  
+  // Format exercise type
+  const formatExerciseType = (type) => {
+    switch (type) {
+      case "MultipleChoice":
+        return { label: "Multiple Choice", color: "bg-blue-100 text-blue-700", icon: "list" };
+      case "Execution":
+        return { label: "Execution Type", color: "bg-green-100 text-green-700", icon: "play" };
+      default:
+        return { label: "Exercise", color: "bg-gray-100 text-gray-700", icon: "document-text" };
+    }
+  };
   const getStatusColor = (status) => {
     switch (status) {
       case "Complete":
@@ -44,12 +57,12 @@ const StudentExerciseCard = ({ exercise }) => {
 
   // Helper function to get the percentage for Beehive component
   const getActivityPercentage = (exercise) => {
-    if (exercise.status === "Complete" && exercise.score !== null) {
-      return exercise.score;
-    } else if (exercise.status === "In Progress") {
-      return 10; //default ni for the inprogress
+    // Only show score if completed and student has answered
+    if (exercise.status === "Complete" && exercise.score !== null && exercise.totalQuestions > 0) {
+      // Use the existing score and totalQuestions data
+      return Math.round((exercise.score / exercise.totalQuestions) * 100);
     } else {
-      return 0; // Not started
+      return 0; // Empty beehive for not completed or no answers
     }
   };
 
@@ -97,7 +110,7 @@ const StudentExerciseCard = ({ exercise }) => {
         return (
           <TouchableOpacity
             style={{
-              backgroundColor: "#2563eb",
+              backgroundColor: "#FBBC05",
               paddingHorizontal: 16,
               paddingVertical: 8,
               borderRadius: 9999,
@@ -119,6 +132,28 @@ const StudentExerciseCard = ({ exercise }) => {
           <Text className="text-xl font-semibold text-gray-700 mb-2">
             {exercise.exerciseTitle}
           </Text>
+          
+          {/* Type badge */}
+          <View className="flex-row items-center mb-2">
+            {(() => {
+              const typeInfo = formatExerciseType(exercise.type);
+              return (
+                <View className={`flex-row items-center px-2 py-1 rounded-full ${typeInfo.color}`}>
+                  <Ionicons 
+                    name={typeInfo.icon} 
+                    size={12} 
+                    color={typeInfo.color.includes('blue') ? '#1d4ed8' : 
+                           typeInfo.color.includes('green') ? '#047857' : '#374151'} 
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text className={`text-xs font-medium ${typeInfo.color.split(' ')[1]}`}>
+                    {typeInfo.label}
+                  </Text>
+                </View>
+              );
+            })()}
+          </View>
+          
           <Text className="text-sm text-gray-600 mb-2">
             {exercise.exerciseDescription}
           </Text>
@@ -141,16 +176,27 @@ const StudentExerciseCard = ({ exercise }) => {
             isGeneral={false}
           />
           <Text className="text-xs text-gray-600 mt-1">Score</Text>
-          <Text
-            style={{
-              color:
-                getActivityPercentage(exercise) < 50 ? "#e70606" : "#149304",
-              fontSize: 12,
-              fontWeight: "bold",
-            }}
-          >
-            {getActivityPercentage(exercise)}%
-          </Text>
+          {exercise.status === "Complete" && exercise.score !== null ? (
+            <Text
+              style={{
+                color: getActivityPercentage(exercise) < 50 ? "#e70606" : "#149304",
+                fontSize: 12,
+                fontWeight: "bold",
+              }}
+            >
+              {getActivityPercentage(exercise)}%
+            </Text>
+          ) : (
+            <Text
+              style={{
+                color: "#9ca3af",
+                fontSize: 12,
+                fontWeight: "bold",
+              }}
+            >
+              --
+            </Text>
+          )}
         </View>
       </View>
 
@@ -220,6 +266,7 @@ const StudentExerciseCard = ({ exercise }) => {
         visible={visible}
         exerciseId={exercise.exerciseId}
         onClose={() => setVisible(!visible)}
+        studentAnswers={{ ...exercise.studentAnswers, score: exercise.score }}
       />
     </View>
   );

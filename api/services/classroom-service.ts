@@ -216,25 +216,65 @@ const ClassRoomService = {
       };
     }
   },
-  joinClass: async (classId, studentId) => {
+  joinClass: async (classCode, studentId, classId) => {
     try {
+      // Use your prepared endpoint with classId in URL and classCode in body
       const response = await api.post(
-        `/e-classroom/class/${classId}/request-enrollment/${studentId}`
+        `/e-classroom/class/${classId}/request-enrollment/${studentId}/`,
+        { classCode: classCode }
       );
 
       return {
         success: true,
         data: response?.data.data,
-        message: "Successfully Joined a Class",
+        message: "Successfully requested to join class",
       };
     } catch (error) {
+      let errorMessage = "Error joining class";
+      
+      if (error.response?.status === 403) {
+        const responseType = error.response?.data?.responseType;
+        if (responseType === "IncorrectClassCode") {
+          errorMessage = "Invalid class code. Please check the code and try again.";
+        } else if (responseType === "EnrollmentForbidden") {
+          errorMessage = "You cannot enroll in your own class.";
+        } else {
+          errorMessage = "Access forbidden. Please check your class code.";
+        }
+      } else if (error.response?.status === 404) {
+        errorMessage = "Class not found. Please verify the class code.";
+      } else if (error.response?.status === 409) {
+        errorMessage = "You have already requested to join this class.";
+      } else {
+        errorMessage = error.response?.data?.responseType || "Error joining class";
+      }
+
       return {
         success: false,
-        message: error.response?.data?.responseType || "Error adding student",
+        message: errorMessage,
         data: null,
       };
     }
   },
+
+  getClassByCode: async (classCode) => {
+    try {
+      const response = await api.get(`/e-classroom/class/by-code/${classCode}`);
+
+      return {
+        success: true,
+        data: response.data.data,
+        message: "Successfully retrieved class details",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.responseType || "Class not found",
+        data: null,
+      };
+    }
+  },
+
   assignExercise: async (classId, exerciseId) => {
     try {
       const response = await api.post(
@@ -261,9 +301,6 @@ const ClassRoomService = {
         `/e-classroom/student/${studentId}/class-exercise/${classExerciseId}/answers`
       );
 
-      console.log("Student Answers");
-      console.log(response?.data.data);
-
       return {
         success: true,
         data: response?.data.data,
@@ -275,6 +312,32 @@ const ClassRoomService = {
         message:
           error.response?.data?.responseType ||
           "Error fetching student answers",
+        data: null,
+      };
+    }
+  },
+  submitStudentClassExerciseAnswers: async (
+    studentId,
+    classExerciseId,
+    answers
+  ) => {
+    try {
+      const response = await api.post(
+        `/e-classroom/student/${studentId}/class-exercise/${classExerciseId}/answers`,
+        answers
+      );
+
+      return {
+        success: true,
+        data: response?.data.data,
+        message: "Successfully submitted all student answers",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.responseType ||
+          "Error submitting student answers",
         data: null,
       };
     }

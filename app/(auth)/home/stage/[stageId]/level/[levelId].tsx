@@ -1,5 +1,5 @@
-import ProgressBar from "@/components/Progressbar";
-import SuccessModal from "@/components/SuccessModal";
+import ProgressBar from "@/components/common/Progressbar";
+import SuccessModal from "@/components/modals/SuccessModal";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -13,7 +13,7 @@ import MultipleChoiceLesson from "@/components/lessons/MultipleChoiceLesson";
 import Stage1Level1 from "@/components/lessons/stage1/Stage1Level1";
 import { useLevel } from "@/context/LevelContext";
 import Stage1Level2 from "@/components/lessons/stage1/Stage1Level2";
-import LevelCompleteModal from "@/components/LevelCompleteModal";
+import LevelCompleteModal from "@/components/modals/LevelCompleteModal";
 import Stage1Level9 from "@/components/lessons/stage1/Stage1Level9";
 import Stage1Level8 from "@/components/lessons/stage1/Stage1Level8";
 import Stage1Level7 from "@/components/lessons/stage1/Stage1Level7";

@@ -3,7 +3,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
-import SuccessModal from "../SuccessModal";
+import SuccessModal from "@/components/modals/SuccessModal";
 import { useAuth } from "@/context/AuthContext";
 import React from "react";
 

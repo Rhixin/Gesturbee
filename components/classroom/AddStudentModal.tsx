@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import * as Clipboard from "expo-clipboard";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import ClassRoomService from "@/api/services/classroom-service";
-import { useToast } from "../context/ToastContext";
+import { useToast } from "@/context/ToastContext";
+import { useAuth } from "@/context/AuthContext";
 
 const AddStudentModal = ({
   modalVisible,
@@ -24,14 +25,24 @@ const AddStudentModal = ({
   studentsAlreadyAdded,
   loadData,
   classId,
+  classroomDetails,
 }) => {
   const { showToast } = useToast();
   const [searchText, setSearchText] = useState("");
-  const [inviteLink, setInviteLink] = useState("ifjSg25");
+  const [inviteLink, setInviteLink] = useState(classroomDetails?.classCode || `Class ID: ${classId}`);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
   const [validUsersToAdd, setValidUsersToAdd] = useState(allUsers);
+
+  // Update invite link when classroomDetails changes
+  useEffect(() => {
+    console.log("AddStudentModal - classroomDetails:", classroomDetails);
+    console.log("AddStudentModal - classCode:", classroomDetails?.classCode);
+    if (classroomDetails?.classCode) {
+      setInviteLink(classroomDetails.classCode);
+    }
+  }, [classroomDetails]);
 
   // Apis here
   const fetchAddStudent = async (studentId, classId) => {
@@ -145,6 +156,10 @@ const AddStudentModal = ({
             <Text className="text-sm text-gray-600 mb-2">Invite link</Text>
             <View className="flex-row items-center border border-gray-300 rounded-lg p-2">
               <Text className="flex-1">{inviteLink}</Text>
+              {/* Debug info - remove this later */}
+              <Text className="text-xs text-gray-400 mr-2">
+                {classroomDetails?.classCode ? `Code: ${classroomDetails.classCode}` : `ID: ${classId}`}
+              </Text>
               <TouchableOpacity onPress={copyToClipboard} disabled={isLoading}>
                 <Ionicons
                   name="copy-outline"

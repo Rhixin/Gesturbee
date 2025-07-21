@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { ResizeMode, Video } from "expo-av";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import SuccessModal from "@/components/SuccessModal";
+import SuccessModal from "@/components/modals/SuccessModal";
 import { useLocalSearchParams } from "expo-router";
 import { useLevel } from "@/context/LevelContext";
 import { useAuth } from "@/context/AuthContext";

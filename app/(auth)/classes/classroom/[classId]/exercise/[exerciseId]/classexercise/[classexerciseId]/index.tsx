@@ -1,8 +1,9 @@
+import ClassRoomService from "@/api/services/classroom-service";
 import ExerciseService from "@/api/services/exercise-service";
-import AnswerExecutionView from "@/components/exercises/AnswerExecutionView";
-import AnswerMultipleChoiceView from "@/components/exercises/AnswerMultipleChoiceView";
+import AnswerExecutionView from "@/components/exercise/exercises/AnswerExecutionView";
+import AnswerMultipleChoiceView from "@/components/exercise/exercises/AnswerMultipleChoiceView";
 import MultipleChoiceLesson from "@/components/lessons/MultipleChoiceLesson";
-import ProgressBar from "@/components/Progressbar";
+import ProgressBar from "@/components/common/Progressbar";
 import ExerciseDetailsSkeleton from "@/components/skeletons/ExerciseDetailsSkeleton";
 import ExerciseSkeleton from "@/components/skeletons/ExerciseSkeleton";
 import { useAuth } from "@/context/AuthContext";
@@ -17,10 +18,11 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Text,
+  ActivityIndicator,
 } from "react-native";
 
 const ClassExercise = () => {
-  const { exerciseId, classexercise } = useLocalSearchParams();
+  const { exerciseId, classexerciseId } = useLocalSearchParams();
   const { currentUser } = useAuth();
   const { showToast } = useToast();
 
@@ -31,12 +33,66 @@ const ClassExercise = () => {
   const [answerForm, setAnswerForm] = useState(null);
   const [currentViewIndex, setCurrentViewIndex] = useState(0);
 
-  useEffect(() => {
-    setAnswerForm(null);
-  }, []);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const fetchSubmitStudentAnswers = async () => {
+    if (!answerForm) {
+      showToast(`Please Answer All Items`, "warning");
+      return;
+    }
+
+    // For multiple choice exercises, require all answers
+    if (exercise?.exerciseType === "MultipleChoice") {
+      for (let i = 0; i < answerForm.length; i++) {
+        if (answerForm[i] === null) {
+          showToast(`Please Answer All Items`, "warning");
+          return;
+        }
+      }
+    }
+
+    setIsSubmitting(true);
+
+    // For execution exercises, only send answered questions
+    let answersToSubmit;
+    if (exercise?.exerciseType === "Base") {
+      // Filter out null answers and format for API
+      // Execution exercises store answers as strings directly
+      answersToSubmit = answerForm
+        .map((answer, index) => ({
+          itemNumber: index + 1,
+          answer: answer
+        }))
+        .filter(item => item.answer !== null);
+    } else {
+      // For multiple choice, send all answers as before
+      // Multiple choice stores answers as objects with .answer property
+      answersToSubmit = answerForm.map((answerObj, index) => ({
+        itemNumber: index + 1,
+        answer: answerObj?.answer
+      }));
+    }
+
+    const response = await ClassRoomService.submitStudentClassExerciseAnswers(
+      currentUser.id,
+      classexerciseId,
+      answersToSubmit
+    );
+
+    if (response.success) {
+      showToast(response.message, "success");
+      goBack();
+    } else {
+      showToast(response.message, "error");
+    }
+
+    setIsSubmitting(false);
+
+    return response.data;
+  };
 
   const setAnswerItem = (selectedAnswer) => {
-    let newAnswerForm = answerForm;
+    const newAnswerForm = [...answerForm];
     newAnswerForm[currentViewIndex] = selectedAnswer;
 
     console.log(newAnswerForm);
@@ -63,32 +119,10 @@ const ClassExercise = () => {
       ) {
         const exerciseItems = response.data.exerciseItems;
 
-        const signedUrls = await Promise.all(
-          exerciseItems.map(async (item) => {
-            // Check if presignedURL exists before using it
-            if (!item?.presignedURL) {
-              console.warn("Missing presignedURL for exercise item:", item);
-              return null;
-            }
-
-            const signedUrlResponse = await ExerciseService.getVideoContent(
-              item.presignedURL
-            );
-
-            if (!signedUrlResponse.success) {
-              throw new Error("Failed fetching video content from AWS");
-            }
-
-            return signedUrlResponse.data;
-          })
-        );
-
-        // Filter out null values
-        setVideos(signedUrls.filter((url) => url !== null));
+        setVideos(exerciseItems.map((item) => item.presignedURL));
       }
 
       setExercise(response.data);
-      console.log(response.data);
     } catch (error) {
       showToast(error?.message || "An error occurred", "error");
       goBack();
@@ -136,6 +170,19 @@ const ClassExercise = () => {
               )}
             </View>
           </View>
+
+          {/* Progress Bar */}
+          {!isLoading && exercise && (
+            <View className="w-full flex items-center mb-4">
+              <View className="items-center flex justify-center w-[70%]">
+                <ProgressBar
+                  percent={((currentViewIndex + 1) / exercise.exerciseItems.length) * 100}
+                  backgroundColor="bg-white"
+                  fillColor="bg-darkhoney"
+                />
+              </View>
+            </View>
+          )}
         </SafeAreaView>
 
         {isLoading && (
@@ -144,30 +191,34 @@ const ClassExercise = () => {
           </View>
         )}
 
-        {/* Render exercise content only when loaded and not null */}
-        {!isLoading && exercise && (
-          <View className="flex-1 w-full p-4">
-            {exercise.exerciseType == "MultipleChoice" ? (
-              <AnswerMultipleChoiceView
-                item={{
-                  ...exercise.exerciseItems[currentViewIndex],
-                  video: videos[currentViewIndex],
-                }}
-                setAnswerItem={setAnswerItem}
-                answerForm={answerForm}
-                currentViewIndex={currentViewIndex}
-              ></AnswerMultipleChoiceView>
-            ) : (
-              <AnswerExecutionView
-                item={exercise.exerciseItems[currentViewIndex]}
-              ></AnswerExecutionView>
-            )}
-          </View>
-        )}
+        {/* Exercise content and navigation - adjust height to account for progress bar */}
+        <View className="flex-1 w-full" style={{ maxHeight: '65%' }}>
+          {/* Render exercise content only when loaded and not null */}
+          {!isLoading && exercise && (
+            <View className="flex-1 w-full p-4">
+              {exercise.exerciseType == "MultipleChoice" ? (
+                <AnswerMultipleChoiceView
+                  item={{
+                    ...exercise.exerciseItems[currentViewIndex],
+                    video: videos[currentViewIndex],
+                  }}
+                  setAnswerItem={setAnswerItem}
+                  answerForm={answerForm}
+                  currentViewIndex={currentViewIndex}
+                ></AnswerMultipleChoiceView>
+              ) : (
+                <AnswerExecutionView
+                  item={exercise.exerciseItems[currentViewIndex]}
+                  setAnswerItem={setAnswerItem}
+                  answerForm={answerForm}
+                  currentViewIndex={currentViewIndex}
+                />
+              )}
+            </View>
+          )}
 
-        {/* Navigation */}
-
-        <View className="w-full flex-row items-center justify-center mb-8 px-6 space-x-4">
+          {/* Navigation - always at bottom */}
+          <View className="w-full flex-row items-center justify-center mt-4 mb-8 px-6 space-x-4">
           {currentViewIndex !== 0 && (
             <TouchableOpacity
               className="bg-gray-300 px-6 py-3 rounded-full"
@@ -196,15 +247,28 @@ const ClassExercise = () => {
           ) : (
             <TouchableOpacity
               className={`px-6 py-3 rounded-full flex-row items-center justify-center space-x-2 bg-secondary`}
-              onPress={() => {
-                console.log(answerForm);
-              }}
+              onPress={fetchSubmitStudentAnswers}
+              disabled={isSubmitting}
             >
-              <Text className="text-white font-poppins-medium text-lg">
-                Submit
-              </Text>
+              {isSubmitting ? (
+                <>
+                  <ActivityIndicator
+                    size="small"
+                    color="#ef4444"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text className="text-white font-poppins-medium text-lg">
+                    Submitting
+                  </Text>
+                </>
+              ) : (
+                <Text className="text-white font-poppins-medium text-lg">
+                  Submit
+                </Text>
+              )}
             </TouchableOpacity>
           )}
+        </View>
         </View>
       </View>
     </>

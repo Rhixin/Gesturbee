@@ -42,27 +42,69 @@ const ExerciseService = {
   uploadSignedUrl: async (
     uriList: string[] | File[] | Blob[],
     signedUrlList: Record<number, string>,
-    contentType: string
+    contentTypeOrMap: string | Record<number, string>
   ) => {
     try {
+      // Determine if we have a single content type or a map
+      const isContentTypeMap = typeof contentTypeOrMap === 'object';
+      
+      console.log("Starting upload with:", {
+        uriListLength: uriList.length,
+        signedUrlKeys: Object.keys(signedUrlList),
+        contentTypeOrMap,
+        isContentTypeMap
+      });
+
       const uploadPromises = Object.entries(signedUrlList).map(
         async ([key, signedUrl]) => {
           const numericKey = Number(key);
           const index = numericKey - 1;
           const file = uriList[index];
 
+          console.log(`Processing file ${index} (key ${numericKey}):`, {
+            fileExists: !!file,
+            fileType: typeof file,
+            signedUrlExists: !!signedUrl
+          });
+
+          if (!file) {
+            throw new Error(`No file found at index ${index} for key ${numericKey}`);
+          }
+
+          if (!signedUrl) {
+            throw new Error(`No signed URL found for key ${numericKey}`);
+          }
+
+          // Get the content type for this specific file
+          const contentType = isContentTypeMap 
+            ? (contentTypeOrMap as Record<number, string>)[numericKey] || "application/octet-stream"
+            : (contentTypeOrMap as string);
+
+          console.log(`Using content type for file ${index} (key ${numericKey}): ${contentType}`);
+
           let body: Blob;
 
           if (Platform.OS === "web") {
             // In web, `file` should already be a File or Blob
             if (!(file instanceof Blob)) {
-              throw new Error("Expected file to be Blob or File on web");
+              throw new Error(`Expected file to be Blob or File on web, got ${typeof file}`);
             }
             body = file;
+            console.log(`Web file prepared: size=${body.size}, type=${body.type}`);
           } else {
             // In native, fetch the URI and convert it to Blob
-            const response = await fetch(file as string);
-            body = await response.blob();
+            console.log(`Fetching file from URI: ${file}`);
+            try {
+              const response = await fetch(file as string);
+              if (!response.ok) {
+                throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
+              }
+              body = await response.blob();
+              console.log(`Native file prepared: size=${body.size}, type=${body.type}`);
+            } catch (fetchError) {
+              console.error(`Error fetching file from URI:`, fetchError);
+              throw new Error(`Failed to read file from URI: ${fetchError.message}`);
+            }
           }
 
           const uploadResponse = await fetch(signedUrl, {
@@ -74,8 +116,26 @@ const ExerciseService = {
           });
 
           if (!uploadResponse.ok) {
+            let errorDetails = uploadResponse.statusText;
+            try {
+              const errorText = await uploadResponse.text();
+              if (errorText) {
+                errorDetails += ` - ${errorText}`;
+              }
+            } catch (e) {
+              // If we can't read the response text, just use statusText
+            }
+            
+            console.error(`Upload failed for file ${index} (key ${numericKey}):`, {
+              status: uploadResponse.status,
+              statusText: uploadResponse.statusText,
+              url: signedUrl,
+              contentType,
+              fileSize: body?.size || 'unknown'
+            });
+            
             throw new Error(
-              `Upload failed for file ${index} (key ${numericKey}): ${uploadResponse.statusText}`
+              `Upload failed for file ${index} (key ${numericKey}): ${errorDetails}`
             );
           }
 
@@ -196,7 +256,11 @@ const ExerciseService = {
   },
   getSpecificExercise: async (exerciseId) => {
     try {
+      console.log("Fetching exercise with ID:", exerciseId);
       const response = await api.get(`/e-classroom/exercise/${exerciseId}`);
+      
+      console.log("API response:", response);
+      console.log("Response data:", response.data);
 
       return {
         success: true,
@@ -204,10 +268,13 @@ const ExerciseService = {
         message: "Successfully fetched Exercise Details",
       };
     } catch (error) {
+      console.error("Error in getSpecificExercise:", error);
+      console.error("Error response:", error.response);
       return {
         success: false,
         message:
           error.response?.data?.responseType ||
+          error.response?.data?.message ||
           "Error fetching exercise details",
         data: null,
       };
@@ -239,6 +306,23 @@ const ExerciseService = {
           error.response?.data?.responseType ||
           error.message ||
           "Failed to fetch video content",
+      };
+    }
+  },
+  editExerciseItem: async (editData) => {
+    try {
+      const response = await api.patch("/e-classroom/exercise/item/edit-item", editData);
+
+      return {
+        success: true,
+        data: response.data,
+        message: "Successfully updated exercise item",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.responseType || "Error updating exercise item",
+        data: null,
       };
     }
   },

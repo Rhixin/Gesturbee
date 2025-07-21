@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import CreateClassModal from "@/components/CreateClassModal";
-import JoinClassModal from "@/components/JoinClassModal";
+import CreateClassModal from "@/components/classroom/CreateClassModal";
+import JoinClassModal from "@/components/classroom/JoinClassModal";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import ClassRoomService from "@/api/services/classroom-service";
@@ -36,7 +36,22 @@ const Classes = () => {
     );
 
     if (response.success) {
-      setMyClasses(response.data);
+      console.log("My Classes data:", response.data);
+      
+      // Fetch student count for each class
+      const classesWithStudentCount = await Promise.all(
+        response.data.map(async (classItem) => {
+          const studentsResponse = await ClassRoomService.getAllStudentsInThisClass(
+            classItem.id
+          );
+          return {
+            ...classItem,
+            studentCount: studentsResponse.success ? studentsResponse.data.length : 0
+          };
+        })
+      );
+      
+      setMyClasses(classesWithStudentCount);
     } else {
       showToast(response.message, "error");
     }
@@ -50,7 +65,24 @@ const Classes = () => {
     );
 
     if (response.success) {
-      setCreatedClasses(response.data);
+      console.log("Created Classes data:", response.data);
+      
+      // Fetch student count for each class
+      const classesWithStudentCount = await Promise.all(
+        response.data.map(async (classItem) => {
+          console.log("Processing created class item:", classItem);
+          const studentsResponse = await ClassRoomService.getAllStudentsInThisClass(
+            classItem.id
+          );
+          return {
+            ...classItem,
+            studentCount: studentsResponse.success ? studentsResponse.data.length : 0
+          };
+        })
+      );
+      
+      console.log("Created classes with student count:", classesWithStudentCount);
+      setCreatedClasses(classesWithStudentCount);
     } else {
       showToast(response.message, "error");
     }
@@ -181,33 +213,51 @@ const Classes = () => {
           paddingTop: 20,
           paddingBottom: 20,
         }}
-        renderItem={({ item }) => (
-          <View className="bg-primary rounded-xl p-6 mb-4">
-            <Text className="text-white text-xl font-bold">
-              {item.className}
-            </Text>
-            <View className="flex-row items-center mt-2 mb-4">
-              <Ionicons name="person" size={16} color="white" />
-              <Text className="text-white ml-2">
-                {item.studentCount || "0"} students
-              </Text>
-            </View>
-            {activeTab === "My Classes" && item.teacherName && (
-              <View className="flex-row items-center mb-4">
-                <Ionicons name="person-outline" size={16} color="white" />
-                <Text className="text-white ml-2">
-                  Teacher: {item.teacherName}
+        renderItem={({ item, index }) => (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => navigateToClassroom(item.id)}
+            className="mb-4"
+          >
+            <View className="bg-primary rounded-xl p-6">
+              {/* Header with icon */}
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-white text-xl font-poppins-bold flex-1" numberOfLines={1}>
+                  {item.className}
                 </Text>
+                <Ionicons name="school-outline" size={24} color="white" />
               </View>
-            )}
-
-            <TouchableOpacity
-              className="bg-yellow-400 px-4 py-2 rounded-md self-end"
-              onPress={() => navigateToClassroom(item.id)}
-            >
-              <Text className="text-white font-semibold">View Class</Text>
-            </TouchableOpacity>
-          </View>
+              
+              {/* Teacher info for joined classes */}
+              {item.teacher?.profile && activeTab === "Joined Classes" && (
+                <View className="flex-row items-center mb-4">
+                  <Ionicons name="person-circle" size={16} color="white" />
+                  <Text className="text-white ml-2 font-poppins-medium">
+                    {item.teacher.profile.firstName} {item.teacher.profile.lastName}
+                  </Text>
+                </View>
+              )}
+              
+              {/* Student count and button section */}
+              <View className="flex-row items-center justify-between">
+                {/* Student count */}
+                <View className="flex-row items-center">
+                  <Ionicons name="people" size={16} color="white" />
+                  <Text className="text-white ml-2 font-poppins-medium">
+                    {item.studentCount || 0} student{(item.studentCount || 0) !== 1 ? 's' : ''}
+                  </Text>
+                </View>
+                
+                {/* View Class button */}
+                <TouchableOpacity 
+                  className="bg-yellow-400 px-4 py-3 rounded-lg"
+                  onPress={() => navigateToClassroom(item.id)}
+                >
+                  <Text className="text-white font-poppins-semibold">View Class</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
         )}
       />
     );
@@ -313,7 +363,6 @@ const Classes = () => {
       <JoinClassModal
         modalVisible={joinClassModalVisible}
         setModalVisible={setJoinClassModalVisible}
-        studentId={currentUser.id}
         loadData={fetchMyClasses}
       />
     </View>

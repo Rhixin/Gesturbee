@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { stageData } from "@/utils/stageData";
 import { useLevel } from "@/context/LevelContext";
-import AnimatedBeehive from "@/components/AnimatedBeehive";
+import AnimatedBeehive from "@/components/animations/AnimatedBeehive";
 
 // Animated Cloud Component
 const AnimatedCloud = ({ source, style, duration = 15000, delay = 0 }) => {

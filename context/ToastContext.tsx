@@ -1,4 +1,4 @@
-import Toast from "@/components/Toast";
+import Toast from "@/components/common/Toast";
 import React, { createContext, useContext, useState } from "react";
 
 // Define types for our context

@@ -1,5 +1,6 @@
 import ClassRoomService from "@/api/services/classroom-service";
 import { useToast } from "@/context/ToastContext";
+import { useAuth } from "@/context/AuthContext";
 import React, { useState } from "react";
 import {
   View,
@@ -15,15 +16,21 @@ import {
 const JoinClassModal = ({
   modalVisible,
   setModalVisible,
-  studentId,
   loadData,
 }) => {
   const [classCode, setClassCode] = useState("");
   const [classCodeisFocused, setClassCodeIsFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
+  const { currentUser } = useAuth();
 
-  const isFormValid = classCode.trim() !== "";
+  const validateClassCode = (code) => {
+    // Check if code matches the format GB-XXXXXXX (7 characters after GB-)
+    const classCodeRegex = /^GB-[A-Z0-9]{7}$/;
+    return classCodeRegex.test(code);
+  };
+
+  const isFormValid = classCode.trim() !== "" && validateClassCode(classCode.trim());
 
   const handleCancel = () => {
     if (isLoading) return; // Prevent closing during loading
@@ -33,22 +40,36 @@ const JoinClassModal = ({
   };
 
   // Apis here
-  const fetchJoinClass = async (studentId, classId) => {
+  const fetchJoinClass = async () => {
     if (!isFormValid || isLoading) return;
 
     setIsLoading(true);
 
-    const response = await ClassRoomService.joinClass(classId, studentId);
+    try {
+      // First get classId from classCode
+      const classResponse = await ClassRoomService.getClassByCode(classCode);
+      if (!classResponse.success) {
+        showToast("Invalid class code. Please check the code and try again.", "error");
+        setIsLoading(false);
+        return;
+      }
 
-    if (response.success) {
-      showToast(response.message, "success");
-    } else {
-      showToast(response.message, "error");
+      const classId = classResponse.data.id;
+      
+      // Now use your endpoint with both classId and classCode
+      const response = await ClassRoomService.joinClass(classCode, currentUser.id, classId);
+
+      if (response.success) {
+        showToast(response.message, "success");
+        resetForm();
+      } else {
+        showToast(response.message, "error");
+      }
+    } catch (error) {
+      showToast("Error joining class. Please try again.", "error");
     }
 
-    resetForm();
     setIsLoading(false);
-    return response.data;
   };
 
   const resetForm = () => {
@@ -114,16 +135,28 @@ const JoinClassModal = ({
           </Text>
           <View className="bg-white w-full rounded-2xl p-6">
             <TextInput
-              placeholder="Class Code"
+              placeholder="Class Code (e.g., GB-ABC123D)"
               value={classCode}
-              onChangeText={setClassCode}
+              onChangeText={(text) => setClassCode(text.toUpperCase())}
               editable={!isLoading}
-              className={`rounded-lg p-3 mb-4 border ${
-                classCodeisFocused ? "border-primary" : "border-gray-300"
+              autoCapitalize="characters"
+              maxLength={10}
+              className={`rounded-lg p-3 mb-1 border ${
+                classCodeisFocused ? "border-primary" : 
+                (classCode.trim() && !validateClassCode(classCode.trim())) ? "border-red-500" :
+                "border-gray-300"
               } ${isLoading ? "opacity-70" : "opacity-100"}`}
               onFocus={() => setClassCodeIsFocused(true)}
               onBlur={() => setClassCodeIsFocused(false)}
             />
+            {classCode.trim() && !validateClassCode(classCode.trim()) && (
+              <Text className="text-red-500 text-sm mb-3 px-1">
+                Please enter a valid class code (format: GB-XXXXXXX)
+              </Text>
+            )}
+            {(!classCode.trim() || validateClassCode(classCode.trim())) && (
+              <View className="mb-3" />
+            )}
             <View className="flex-row justify-end px-5 py-2 items-center">
               {isLoading && (
                 <ActivityIndicator
@@ -147,9 +180,7 @@ const JoinClassModal = ({
               </TouchableOpacity>
               <TouchableOpacity
                 disabled={!isFormValid || isLoading}
-                onPress={() => {
-                  fetchJoinClass(studentId, classCode);
-                }}
+                onPress={fetchJoinClass}
               >
                 <Text
                   className={`font-semibold text-base ${

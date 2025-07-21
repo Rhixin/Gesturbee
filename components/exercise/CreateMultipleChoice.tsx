@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import { Platform } from "react-native";
 import { useAuth } from "@/context/AuthContext";
@@ -51,6 +52,8 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
   const [uploadVideosList, setUploadVideosList] = useState([]);
   const [uriList, setUriList] = useState([]);
   const [sharedBatchId, setSharedBatchId] = useState<string>();
+  const [uploadingVideos, setUploadingVideos] = useState<Set<number>>(new Set());
+  const [isCreatingExercise, setIsCreatingExercise] = useState(false);
 
   // Simple utilities
   const generateId = () => (questions.length + 1).toString();
@@ -136,9 +139,27 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
   // Video handling
   const handleVideoUpload = async (questionId) => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({ type: "video/*" });
+      // Request media library permissions
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        showToast("Permission to access camera roll is required!", "error");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+        quality: 1,
+      });
+      
       if (!result.canceled && result.assets?.length > 0) {
         const asset = result.assets[0];
+        
+        // Set uploading state
+        setUploadingVideos(prev => new Set(prev).add(questionId));
+        showToast("Uploading video...", "info");
+        
         const fileName = `class_materials/teacher/${
           currentUser.id
         }/content/${generateUUIDv4()}/content.mp4`;
@@ -148,7 +169,14 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
 
         if (Platform.OS !== "web") {
           const fileInfo = await FileSystem.getInfoAsync(asset.uri);
-          if (!fileInfo.exists) return;
+          if (!fileInfo.exists) {
+            setUploadingVideos(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(questionId);
+              return newSet;
+            });
+            return;
+          }
         }
 
         const newItem = {
@@ -158,36 +186,60 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
           itemNumber,
         };
 
-        // Update the question with video file name
+        // Update the question with video file name immediately
         setQuestions(
           questions.map((q) =>
             q.itemNumber === itemNumber
-              ? { ...q, videoFileName: asset.name }
+              ? { ...q, videoFileName: asset.name || "video.mp4", videoUrl: asset.uri }
               : q
           )
         );
+
+        // Clear uploading state and show success immediately
+        setUploadingVideos(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(questionId);
+          return newSet;
+        });
+        showToast("Video selected successfully!", "success");
 
         setUploadVideosList((prev) => {
           const index = prev.findIndex(
             (item) => item.itemNumber === itemNumber
           );
           if (index !== -1) {
+            // Update existing item
             const updated = [...prev];
             updated[index] = newItem;
             setUriList((prevUri) => {
               const updatedUri = [...prevUri];
               updatedUri[index] = file;
+              console.log("Updated existing video at index", index, "URIs:", updatedUri);
               return updatedUri;
             });
+            console.log("Updated existing video item:", updated);
             return updated;
           } else {
-            setUriList((prevUri) => [...prevUri, file]);
-            return [...prev, newItem];
+            // Add new item
+            setUriList((prevUri) => {
+              const newUriList = [...prevUri, file];
+              console.log("Added new video URI:", newUriList);
+              return newUriList;
+            });
+            const newList = [...prev, newItem];
+            console.log("Added new video item:", newList);
+            return newList;
           }
         });
       }
     } catch (error) {
       console.error("Video upload error:", error);
+      setUploadingVideos(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(questionId);
+        return newSet;
+      });
+      showToast("Failed to upload video", "error");
     }
   };
 
@@ -249,25 +301,49 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
   };
 
   const handleCreateQuiz = async () => {
+    if (isCreatingExercise) return; // Prevent multiple submissions
+    
+    setIsCreatingExercise(true);
     try {
       // Upload videos if any
       if (uploadVideosList.length > 0) {
+        console.log("Starting video upload process...");
+        console.log("Upload videos list:", uploadVideosList);
+        console.log("URI list:", uriList);
+        
+        // Validate that uriList and uploadVideosList have matching lengths
+        if (uploadVideosList.length !== uriList.length) {
+          throw new Error(`Mismatch between videos (${uploadVideosList.length}) and URIs (${uriList.length})`);
+        }
+        
         const uploadPresignedUrlResponse =
           await ExerciseService.uploadPresignedUrl(uploadVideosList);
 
         if (!uploadPresignedUrlResponse.success) {
-          throw new Error("Error getting signed URLs");
+          console.error("Failed to get presigned URLs:", uploadPresignedUrlResponse);
+          throw new Error(`Error getting signed URLs: ${uploadPresignedUrlResponse.message || 'Unknown error'}`);
         }
 
+        console.log("Got presigned URLs, uploading files...");
+        
+        // Create a map of itemNumber to contentType for proper MIME type handling
+        const contentTypeMap = {};
+        uploadVideosList.forEach(item => {
+          contentTypeMap[item.itemNumber] = item.contentType;
+        });
+        
         const uploadSignedUrlResponse = await ExerciseService.uploadSignedUrl(
           uriList,
           uploadPresignedUrlResponse.data,
-          "video/mp4"
+          contentTypeMap
         );
 
         if (!uploadSignedUrlResponse.success) {
-          throw new Error(uploadSignedUrlResponse.message);
+          console.error("Failed to upload files:", uploadSignedUrlResponse);
+          throw new Error(`Video upload failed: ${uploadSignedUrlResponse.message || 'Unknown error'}`);
         }
+        
+        console.log("Video upload successful");
       }
 
       // Create exercise
@@ -314,7 +390,11 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
       resetForm();
       loadData();
     } catch (error) {
-      showToast(error.message, "error");
+      console.error("Error creating quiz:", error);
+      const errorMessage = error.message || "An unknown error occurred while creating the quiz";
+      showToast(errorMessage, "error");
+    } finally {
+      setIsCreatingExercise(false);
     }
   };
 
@@ -333,6 +413,7 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
     setCurrentQuestionIndex(0);
     setUploadVideosList([]);
     setUriList([]);
+    setIsCreatingExercise(false);
     setModalVisible(false);
   };
 
@@ -348,17 +429,19 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
         className="justify-center items-center px-4"
       >
         <View
-          className="bg-white w-[80%] rounded-2xl p-6"
-          style={{ maxHeight: "90%", minHeight: "85%" }}
+          className="bg-white w-[80%] rounded-2xl"
+          style={{ maxHeight: "90%", height: "90%" }}
         >
-          <Text className="text-3xl font-poppins-bold text-titlegray mb-2">
-            Create Muiltiple Choice Exercise
-          </Text>
-          <Text className="text-lg text-subtitlegray mb-4 font-poppins">
-            Create a multiple choice exercise for your students!
-          </Text>
+          <View className="pt-6 px-6">
+            <Text className="text-3xl font-poppins-bold text-titlegray mb-2">
+              Create Muiltiple Choice Exercise
+            </Text>
+            <Text className="text-lg text-subtitlegray mb-4 font-poppins">
+              Create a multiple choice exercise for your students!
+            </Text>
+          </View>
 
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1 }} className="px-6">
             {/* Quiz Title */}
             <TextInput
               placeholder="Exercise Title"
@@ -420,7 +503,7 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
               </View>
 
               {/* Horizontal Question Slider */}
-              <View style={{ height: 500 }}>
+              <View style={{ height: 400 }}>
                 <ScrollView
                   ref={scrollViewRef}
                   horizontal
@@ -433,10 +516,16 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
                   {questions.map((question, index) => (
                     <View
                       key={question.id}
-                      style={{ width: screenWidth - 60 }}
+                      style={{ width: screenWidth - 80 }}
                       className="pr-2"
                     >
-                      <View style={{ maxHeight: 500 }}>
+                      <ScrollView 
+                        style={{ height: 400 }} 
+                        showsVerticalScrollIndicator={true} 
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                        bounces={false}
+                        nestedScrollEnabled={true}
+                      >
                         <View className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                           <View className="flex-row justify-between items-center">
                             <Text className="text-lg font-poppins-bold text-titlegray">
@@ -474,10 +563,21 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
                               onPress={() =>
                                 handleVideoUpload(question.itemNumber)
                               }
-                              className="border py-2 px-4 rounded-lg mb-2"
+                              disabled={uploadingVideos.has(question.itemNumber)}
+                              className={`border py-2 px-4 rounded-lg mb-2 ${
+                                uploadingVideos.has(question.itemNumber) 
+                                  ? "bg-gray-100 border-gray-300" 
+                                  : "border-gray-300"
+                              }`}
                             >
-                              <Text className="text-black text-center font-poppins-medium">
-                                {question.videoFileName
+                              <Text className={`text-center font-poppins-medium ${
+                                uploadingVideos.has(question.itemNumber)
+                                  ? "text-gray-500"
+                                  : "text-black"
+                              }`}>
+                                {uploadingVideos.has(question.itemNumber)
+                                  ? "Uploading..."
+                                  : question.videoFileName
                                   ? "Change Video"
                                   : "Upload Video"}
                               </Text>
@@ -549,7 +649,7 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
                             Tap the circle to select the correct answer
                           </Text>
                         </View>
-                      </View>
+                      </ScrollView>
                     </View>
                   ))}
                 </ScrollView>
@@ -558,22 +658,29 @@ const CreateQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
           </View>
 
           {/* Action Buttons */}
-          <View className="flex-row justify-end px-5 py-2 border-t border-gray-200">
-            <TouchableOpacity onPress={resetForm} style={{ marginRight: 10 }}>
-              <Text className="text-black font-poppins-medium text-base">
+          <View className="flex-row justify-end px-6 py-3 border-t border-gray-200 bg-white">
+            <TouchableOpacity 
+              onPress={resetForm} 
+              className="px-3 py-1 mr-2"
+              disabled={isCreatingExercise}
+            >
+              <Text className={`font-poppins-medium text-sm ${
+                isCreatingExercise ? "text-gray-400" : "text-gray-600"
+              }`}>
                 Cancel
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              disabled={!isFormValid()}
+              disabled={!isFormValid() || isCreatingExercise}
               onPress={handleCreateQuiz}
+              className="px-3 py-1"
             >
               <Text
-                className={`font-poppins-medium text-base ${
-                  isFormValid() ? "text-primary" : "text-gray-500"
+                className={`font-poppins-medium text-sm ${
+                  isFormValid() && !isCreatingExercise ? "text-primary" : "text-gray-500"
                 }`}
               >
-                Create Exercise
+                {isCreatingExercise ? "Creating..." : "Create Exercise"}
               </Text>
             </TouchableOpacity>
           </View>

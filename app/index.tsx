@@ -1,6 +1,6 @@
 import { Text, View, TouchableOpacity, Image } from "react-native";
 import { useRouter } from "expo-router";
-// import LottieView from "lottie-react-native";
+import LottieWrapper from "@/components/common/LottieWrapper";
 import { useState, useEffect } from "react";
 import { useGlobal } from "@/context/GlobalContext";
 import React from "react";
@@ -19,19 +19,31 @@ export default function LandingPage() {
 
   return (
     <View className="flex flex-col items-center justify-center h-[100vh] bg-primary relative">
-      {/* <LottieView
-        source={bubbleAnimation}
-        autoPlay
-        loop
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          opacity: 0.2,
-        }}
-      /> */}
+      {bubbleAnimation && (
+        <LottieWrapper
+          source={bubbleAnimation}
+          autoPlay
+          loop
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: 0.2,
+          }}
+          webStyle={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: 0.2,
+            width: "100%",
+            height: "100%",
+          }}
+        />
+      )}
 
       <View className="flex flex-row gap-4">
         <Image

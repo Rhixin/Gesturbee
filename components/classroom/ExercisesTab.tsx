@@ -8,17 +8,35 @@ import {
   SafeAreaView,
 } from "react-native";
 import React from "react";
-import Beehive from "./Beehive";
-import TeacherExerciseCard from "./TeacherExerciseCard";
-import StudentExerciseCard from "./StudentExerciseCard";
+import { Ionicons } from "@expo/vector-icons";
+import Beehive from "@/components/animations/Beehive";
+import TeacherExerciseCard from "@/components/exercise/TeacherExerciseCard";
+import StudentExerciseCard from "@/components/exercise/StudentExerciseCard";
 
-const ExercisesTab = ({ isTeacher, exercises }) => {
+const ExercisesTab = ({ isTeacher, exercises, classroomDetails, studentCount, isLoading = false }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const handleViewDetails = (category) => {
-    setSelectedCategory(category);
-    setModalVisible(true);
+  const calculateScore = (studentAnswers, teacherAnswers) => {
+    console.log(studentAnswers);
+    if (!studentAnswers || studentAnswers.length == 0) {
+      return 0;
+    }
+
+    let score = 0;
+    for (let i = 0; i < teacherAnswers.length; i++) {
+      if (studentAnswers[i]) {
+        // Handle different answer formats
+        const studentAnswer = studentAnswers[i].answer || studentAnswers[i];
+        const teacherAnswer = teacherAnswers[i].correctAnswer;
+        
+        if (studentAnswer == teacherAnswer) {
+          score++;
+        }
+      }
+    }
+
+    return score;
   };
 
   const closeModal = () => {
@@ -201,31 +219,68 @@ const ExercisesTab = ({ isTeacher, exercises }) => {
       {isTeacher ? (
         <>
           <ScrollView className="p-4">
-            {exercises.map((exercise) => (
-              <TeacherExerciseCard
-                key={exercise.classExerciseId}
-                exercise={exercise}
-              />
-            ))}
+            {isLoading ? (
+              <View className="flex-1 justify-center items-center py-12">
+                <Text className="text-gray-500 text-lg">Loading exercises...</Text>
+              </View>
+            ) : exercises && exercises.length > 0 ? (
+              exercises.map((exercise) => (
+                <TeacherExerciseCard
+                  key={exercise.classExerciseId}
+                  exercise={exercise}
+                  classroomDetails={classroomDetails}
+                  studentCount={studentCount}
+                />
+              ))
+            ) : (
+              <View className="flex-1 justify-center items-center px-6" style={{ minHeight: 400 }}>
+                <Ionicons name="document-text-outline" size={48} color="#00BFAF" />
+                <Text className="mt-4 text-gray-800 font-poppins-medium text-center text-lg">
+                  You don't have any exercises assigned yet
+                </Text>
+                <Text className="mt-2 text-gray-600 text-center">
+                  Assign exercises to get started
+                </Text>
+              </View>
+            )}
           </ScrollView>
           <StudentDetailsModal />
         </>
       ) : (
         // Student View
         <ScrollView className="p-4">
-          {exercises.map((exercise, index) => (
-            <StudentExerciseCard
-              key={exercise.classExerciseId}
-              exercise={{
-                ...exercise,
-                status: exercise.status,
-                score: 34,
-                correctAnswers: 20,
-                totalQuestions: 50,
-                studentAnswers: exercise.studentAnswers?.[index] || null,
-              }}
-            />
-          ))}
+          {isLoading ? (
+            <View className="flex-1 justify-center items-center py-12">
+              <Text className="text-gray-500 text-lg">Loading exercises...</Text>
+            </View>
+          ) : exercises && exercises.length > 0 ? (
+            exercises.map((exercise, index) => (
+              <StudentExerciseCard
+                key={exercise.classExerciseId}
+                exercise={{
+                  ...exercise,
+                  status: exercise.status,
+                  score: calculateScore(
+                    exercise.studentAnswers,
+                    exercise.teacherAnswers
+                  ),
+                  correctAnswers: 20,
+                  totalQuestions: exercise.teacherAnswers.length,
+                  studentAnswers: exercise.studentAnswers,
+                }}
+              />
+            ))
+          ) : (
+            <View className="flex-1 justify-center items-center px-6" style={{ minHeight: 400 }}>
+              <Ionicons name="document-text-outline" size={48} color="#00BFAF" />
+              <Text className="mt-4 text-gray-800 font-poppins-medium text-center text-lg">
+                No exercises assigned yet
+              </Text>
+              <Text className="mt-2 text-gray-600 text-center">
+                Your teacher will assign exercises soon
+              </Text>
+            </View>
+          )}
         </ScrollView>
       )}
     </View>

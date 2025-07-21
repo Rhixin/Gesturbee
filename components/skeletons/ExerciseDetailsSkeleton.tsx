@@ -26,12 +26,6 @@ const HeaderSkeleton = () => (
       </View>
       <SkeletonBox width="60%" height={16} />
     </View>
-    <TouchableOpacity
-      onPress={() => {}}
-      className="bg-gray-100 w-10 h-10 rounded-full items-center justify-center"
-    >
-      <Text className="text-gray-600 text-xl font-bold">×</Text>
-    </TouchableOpacity>
   </View>
 );
 

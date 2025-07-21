@@ -2,7 +2,7 @@ import { Tabs, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
-import Loading from "@/components/Loading";
+import Loading from "@/components/common/Loading";
 import { useAuth } from "@/context/AuthContext";
 
 export default function TabLayout() {
@@ -44,7 +44,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="quizzes"
         options={{
-          title: "Quizzes",
+          title: "Exercises",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "document-text" : "document-text-outline"}

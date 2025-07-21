@@ -1,4 +1,4 @@
-import ProgressBar from "@/components/Progressbar";
+import ProgressBar from "@/components/common/Progressbar";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {

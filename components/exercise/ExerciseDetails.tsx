@@ -10,24 +10,30 @@ import {
   ScrollView,
   SafeAreaView,
 } from "react-native";
-import ExerciseDetailsSkeleton from "./skeletons/ExerciseDetailsSkeleton";
-import VideoPlayer from "./VideoPlayer";
+import { Ionicons } from "@expo/vector-icons";
+import ExerciseDetailsSkeleton from "@/components/skeletons/ExerciseDetailsSkeleton";
+import VideoPlayer from "@/components/common/VideoPlayer";
+import EditExerciseItemModal from "@/components/modals/EditExerciseItemModal";
 
 interface ExerciseDetailsProps {
   visible: boolean;
   exerciseId: any;
   onClose: () => void;
+  isTeacher?: boolean;
 }
 
 const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
   visible,
   exerciseId,
   onClose,
+  isTeacher = false,
 }) => {
   const { showToast } = useToast();
   const [exercise, setExercise] = useState(null);
   const [videos, setVideos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const fetchExerciseDetails = async () => {
     setIsLoading(true);
@@ -35,32 +41,26 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
       const response = await ExerciseService.getSpecificExercise(exerciseId);
 
       if (!response.success) {
-        throw Error(response.message);
+        showToast(response.message || "Failed to fetch exercise details", "error");
+        return;
       }
 
-      if (response.data.exerciseType == "MultipleChoice") {
+      if (response.data?.exerciseType == "MultipleChoice") {
         const exerciseItems = response.data.exerciseItems;
 
-        const signedUrls = await Promise.all(
-          exerciseItems.map(async (item) => {
-            const signedUrlResponse = await ExerciseService.getVideoContent(
-              item.presignedURL
-            );
+        console.log("Exercise items:", exerciseItems);
 
-            if (!signedUrlResponse.success) {
-              throw new Error("Failed fetching video content from AWS");
-            }
-
-            return signedUrlResponse.data;
-          })
-        );
-
-        setVideos(signedUrls);
+        if (exerciseItems && exerciseItems.length > 0) {
+          setVideos(exerciseItems.map((item) => item.presignedURL));
+        }
       }
 
       setExercise(response.data);
+      console.log("Exercise data loaded successfully:", response.data);
+      console.log("Exercise items structure:", response.data?.exerciseItems);
     } catch (error) {
-      showToast(error.message, "error");
+      console.error("Error fetching exercise details:", error);
+      showToast(error.message || "Failed to fetch exercise details", "error");
     } finally {
       setIsLoading(false);
     }
@@ -73,6 +73,21 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
       month: "long",
       day: "numeric",
     });
+  };
+
+  const handleEditItem = (item: any) => {
+    console.log("Editing item:", item);
+    if (!item) {
+      showToast("No item data available to edit", "error");
+      return;
+    }
+    setSelectedItem(item);
+    setEditModalVisible(true);
+  };
+
+  const handleItemUpdated = async () => {
+    console.log("Item updated, refreshing exercise details...");
+    await fetchExerciseDetails();
   };
 
   useEffect(() => {
@@ -97,7 +112,18 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
           style={{ maxHeight: "90%", minHeight: "70%" }}
         >
           {isLoading || !exercise ? (
-            <ExerciseDetailsSkeleton></ExerciseDetailsSkeleton>
+            <>
+              {/* Close Button */}
+              <TouchableOpacity
+                onPress={onClose}
+                className="bg-gray-100 w-10 h-10 rounded-full items-center justify-center"
+              >
+                <Text className="text-gray-600 text-xl font-poppins-bold">
+                  ×
+                </Text>
+              </TouchableOpacity>
+              <ExerciseDetailsSkeleton></ExerciseDetailsSkeleton>
+            </>
           ) : (
             <>
               {/* Header */}
@@ -165,7 +191,9 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
                     Questions
                   </Text>
 
-                  {exercise.exerciseItems.map((q: any, index: number) => (
+                  {exercise.exerciseItems.map((q: any, index: number) => {
+                    console.log(`Exercise item ${index}:`, q);
+                    return (
                     <View
                       key={index}
                       className="mb-6 bg-gray-50 rounded-xl p-5 border border-gray-200"
@@ -184,13 +212,22 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
                             />
                           </View>
                           {/* Question Header */}
-                          <View className="flex-row items-center mb-3">
+                          <View className="flex-row items-center justify-between mb-3">
                             <Text
                               className="text-lg font-semibold text-gray-800 flex-1 mt ml-2"
                               style={{ marginTop: 12 }}
                             >
                               {q.itemNumber}. {q.question}
                             </Text>
+                            {isTeacher && (
+                              <TouchableOpacity
+                                onPress={() => handleEditItem(q)}
+                                className="bg-blue-100 p-2 rounded-lg ml-2"
+                                style={{ marginTop: 12 }}
+                              >
+                                <Ionicons name="pencil" size={16} color="#3B82F6" />
+                              </TouchableOpacity>
+                            )}
                           </View>
 
                           {/* Video URL if present */}
@@ -227,15 +264,25 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
                         </>
                       ) : (
                         <View>
-                          <View className="flex-row items-center mb-3">
-                            <View className="bg-purple-600 w-8 h-8 rounded-full items-center justify-center mr-3">
-                              <Text className="text-white font-poppins-bold text-sm">
-                                {index + 1}
+                          <View className="flex-row items-center justify-between mb-3">
+                            <View className="flex-row items-center flex-1">
+                              <View className="bg-purple-600 w-8 h-8 rounded-full items-center justify-center mr-3">
+                                <Text className="text-white font-poppins-bold text-sm">
+                                  {index + 1}
+                                </Text>
+                              </View>
+                              <Text className="text-lg font-poppins-medium text-gray-800 flex-1">
+                                {q.itemNumber}. {q.question}
                               </Text>
                             </View>
-                            <Text className="text-lg font-poppins-medium text-gray-800">
-                              {q.itemNumber}. {q.question}
-                            </Text>
+                            {isTeacher && (
+                              <TouchableOpacity
+                                onPress={() => handleEditItem(q)}
+                                className="bg-blue-100 p-2 rounded-lg ml-2"
+                              >
+                                <Ionicons name="pencil" size={16} color="#3B82F6" />
+                              </TouchableOpacity>
+                            )}
                           </View>
                           <View className="bg-white p-4 rounded-lg border border-gray-200">
                             <Text className="text-gray-700 leading-6">
@@ -245,7 +292,8 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
                         </View>
                       )}
                     </View>
-                  ))}
+                    );
+                  })}
                 </View>
               </ScrollView>
 
@@ -266,6 +314,14 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
           )}
         </View>
       </SafeAreaView>
+
+      {/* Edit Exercise Item Modal */}
+      <EditExerciseItemModal
+        modalVisible={editModalVisible}
+        setModalVisible={setEditModalVisible}
+        exerciseItem={selectedItem}
+        onItemUpdated={handleItemUpdated}
+      />
     </Modal>
   );
 };

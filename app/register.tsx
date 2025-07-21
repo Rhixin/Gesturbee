@@ -20,8 +20,8 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Modal, Pressable } from "react-native";
 
-import StepIndicator from "../components/StepIndicator";
-import CustomDropdown from "../components/GenderDropDown";
+import StepIndicator from "@/components/common/StepIndicator";
+import CustomDropdown from "@/components/common/GenderDropDown";
 import { useGlobal } from "@/context/GlobalContext";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";

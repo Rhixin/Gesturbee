@@ -10,20 +10,25 @@ import {
   ScrollView,
   SafeAreaView,
 } from "react-native";
-import ExerciseDetailsSkeleton from "./skeletons/ExerciseDetailsSkeleton";
-import VideoPlayer from "./VideoPlayer";
+import ExerciseDetailsSkeleton from "@/components/skeletons/ExerciseDetailsSkeleton";
+import VideoPlayer from "@/components/common/VideoPlayer";
+import { Ionicons } from "@expo/vector-icons";
 
 interface AnswerExerciseModalProps {
   visible: boolean;
   exerciseId: any;
   onClose: () => void;
+  studentAnswers: [];
 }
 
 const AnswerExerciseModal: React.FC<AnswerExerciseModalProps> = ({
   visible,
   exerciseId,
   onClose,
+  studentAnswers,
 }) => {
+  console.log("here");
+  console.log(studentAnswers);
   const { showToast } = useToast();
   const [exercise, setExercise] = useState(null);
   const [videos, setVideos] = useState<any[]>([]);
@@ -148,6 +153,18 @@ const AnswerExerciseModal: React.FC<AnswerExerciseModalProps> = ({
                 {/* Description */}
                 {exercise.exerciseDescription && (
                   <View className="mb-6">
+                    <View className="bg-secondary  p-4 rounded-lg mb-4">
+                      <View className="flex-col items-center justify-center text-center">
+                        <Text className="text-sm text-white font-poppins mb-2">
+                          Your Score
+                        </Text>
+                        <Text className="text-2xl font-medium text-white font-poppins">
+                          {studentAnswers.score} /{" "}
+                          {exercise.exerciseItems.length}
+                        </Text>
+                      </View>
+                    </View>
+
                     <Text className="text-lg font-poppins text-gray-800 mb-2">
                       Description
                     </Text>
@@ -204,23 +221,47 @@ const AnswerExerciseModal: React.FC<AnswerExerciseModalProps> = ({
                               <View
                                 key={choice}
                                 className={`flex-row items-center p-5 rounded-md mb-2 ${
-                                  q.correctAnswer === choice
+                                  studentAnswers[index]?.answer === choice &&
+                                  choice !== q.correctAnswer
                                     ? "bg-primary"
+                                    : choice === q.correctAnswer
+                                    ? "bg-secondary"
                                     : "bg-white border border-gray-200"
                                 }`}
                                 style={{ margin: 12, paddingLeft: 12 }}
                               >
                                 <Text
                                   style={
-                                    q.correctAnswer === choice
+                                    choice === q.correctAnswer ||
+                                    (studentAnswers[index]?.answer === choice &&
+                                      choice !== q.correctAnswer)
                                       ? { color: "white" }
                                       : { color: "black" }
                                   }
-                                  className="font-poppins text-base"
+                                  className="font-poppins text-base flex-1"
                                 >
                                   {choice}.{"  "}
                                   {q[`choice${choice}`] || "No answer provided"}
                                 </Text>
+
+                                {/* Correct Answer Icon */}
+                                {choice === q.correctAnswer && (
+                                  <Ionicons
+                                    name="checkmark-circle"
+                                    size={18}
+                                    color="white"
+                                  />
+                                )}
+
+                                {/* Wrong Answer Icon */}
+                                {studentAnswers[index]?.answer === choice &&
+                                  choice !== q.correctAnswer && (
+                                    <Ionicons
+                                      name="close-circle"
+                                      size={18}
+                                      color="white"
+                                    />
+                                  )}
                               </View>
                             ))}
                           </View>
@@ -233,14 +274,75 @@ const AnswerExerciseModal: React.FC<AnswerExerciseModalProps> = ({
                                 {index + 1}
                               </Text>
                             </View>
-                            <Text className="text-lg font-poppins-medium text-gray-800">
+                            <Text className="text-lg font-poppins-medium text-gray-800 flex-1">
                               {q.itemNumber}. {q.question}
                             </Text>
+                            
+                            {/* Status Indicator */}
+                            {(() => {
+                              const studentAnswer = studentAnswers[index]?.answer || studentAnswers[index];
+                              const isCorrect = studentAnswer === q.correctAnswer;
+                              const hasAnswer = studentAnswer != null;
+                              
+                              if (hasAnswer && isCorrect) {
+                                return (
+                                  <View className="bg-green-500 w-8 h-8 rounded-full items-center justify-center">
+                                    <Ionicons name="checkmark" size={16} color="white" />
+                                  </View>
+                                );
+                              } else {
+                                return null;
+                              }
+                            })()}
                           </View>
-                          <View className="bg-white p-4 rounded-lg border border-gray-200">
-                            <Text className="text-gray-700 leading-6">
-                              Letter: {q.correctAnswer}
-                            </Text>
+                          
+                          {/* Answer Details */}
+                          <View className="space-y-3">
+                            {(() => {
+                              const studentAnswer = studentAnswers[index]?.answer || studentAnswers[index];
+                              const hasAnswer = studentAnswer != null;
+                              
+                              return (
+                                <>
+                                  {/* Student Answer */}
+                                  {hasAnswer ? (
+                                    <View className={`flex-row items-center p-3 rounded-lg ${
+                                      studentAnswer === q.correctAnswer ? 'bg-green-100' : 'bg-red-100'
+                                    }`}>
+                                      <Text className="text-gray-600 font-poppins text-sm mr-2">Your answer:</Text>
+                                      <Text className={`font-poppins-bold text-lg ${
+                                        studentAnswer === q.correctAnswer ? 'text-green-700' : 'text-red-700'
+                                      }`}>
+                                        {studentAnswer}
+                                      </Text>
+                                      <View className="ml-2">
+                                        <Ionicons 
+                                          name={studentAnswer === q.correctAnswer ? "checkmark-circle" : "close-circle"} 
+                                          size={18} 
+                                          color={studentAnswer === q.correctAnswer ? "#16a34a" : "#dc2626"} 
+                                        />
+                                      </View>
+                                    </View>
+                                  ) : (
+                                    <View className="flex-row items-center p-3 rounded-lg bg-gray-100">
+                                      <Text className="text-gray-600 font-poppins text-sm mr-2">Your answer:</Text>
+                                      <Text className="text-gray-500 font-poppins">Not answered</Text>
+                                    </View>
+                                  )}
+                                  
+                                  {/* Correct Answer */}
+                                  <View className="flex-row items-center p-3 rounded-lg bg-yellow-100">
+                                    <Text className="text-gray-600 font-poppins text-sm mr-2">Correct answer:</Text>
+                                    <Text className="text-yellow-700 font-poppins-bold text-lg">
+                                      {q.correctAnswer}
+                                    </Text>
+                                    <View className="ml-2">
+                                      <Ionicons name="checkmark-circle" size={18} color="#a16207" />
+                                    </View>
+                                  </View>
+                                </>
+                              );
+                            })()}
                           </View>
                         </View>
                       )}

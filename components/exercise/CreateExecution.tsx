@@ -12,7 +12,7 @@ import {
 import ExerciseService from "@/api/services/exercise-service";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
-import Dropdown from "./Dropdown";
+import Dropdown from "@/components/common/Dropdown";
 
 const { width: screenWidth } = Dimensions.get("window");
 
