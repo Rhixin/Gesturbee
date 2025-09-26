@@ -44,13 +44,19 @@ const AuthService = {
 
   changeProfile: async (userData) => {
     try {
+      console.log('📤 Sending profile update to backend:', userData);
       const response = await api.post("/profile/edit-profile", userData);
+      console.log('📥 Backend response:', response.data);
 
       return {
         success: true,
         data: response.data.data,
       };
     } catch (error) {
+      console.error('❌ Profile update API error:', error);
+      console.error('❌ Error status:', error.response?.status);
+      console.error('❌ Error message:', error.response?.data?.responseType || error.message);
+      
       return {
         success: false,
         error:
@@ -62,7 +68,7 @@ const AuthService = {
 
   logout: async () => {
     try {
-      await TokenService.removeToken();
+      await TokenService.removeToken(); // This also removes user data now
       delete api.defaults.headers.common["Authorization"];
 
       return {
@@ -92,12 +98,24 @@ const AuthService = {
         return null;
       }
 
+      // Set the authorization header for future requests
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      const response = await api.get("/user/profile");
-      return response.data;
+      // Get stored user data from AsyncStorage
+      const userData = await TokenService.getUser();
+
+      if (userData) {
+        return {
+          data: userData
+        };
+      }
+
+      // If no stored user data, return null to indicate user needs to login again
+      return null;
     } catch (error) {
       console.error("Get current user error:", error);
+      await TokenService.removeToken(); // Remove invalid token
+      delete api.defaults.headers.common["Authorization"];
       return null;
     }
   },
@@ -146,6 +164,7 @@ const AuthService = {
   ) => {
     try {
       await TokenService.saveToken(token);
+      await TokenService.saveUser(user); // Save user data to AsyncStorage
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       setCurrentUser(user);

@@ -209,7 +209,7 @@ const CreateActionQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
       >
         <View
           className="bg-white w-[80%] rounded-2xl p-6"
-          style={{ maxHeight: "90%", minHeight: "85%" }}
+          style={{ maxHeight: "90%", minHeight: "85%", overflow: 'visible' }}
         >
           <Text className="text-3xl font-poppins-bold text-titlegray mb-2">
             Create Action Exercise
@@ -312,7 +312,7 @@ const CreateActionQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
                       style={{ width: screenWidth - 60 }}
                       className="pr-2"
                     >
-                      <View style={{ maxHeight: 400 }}>
+                      <View style={{ flex: 1 }}>
                         <View className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                           <View className="flex-row justify-between items-center">
                             <Text className="text-lg font-poppins-bold text-titlegray">
@@ -346,7 +346,7 @@ const CreateActionQuizModal = ({ modalVisible, setModalVisible, loadData }) => {
                           </Text>
 
                           {/* Letter Selection Dropdown */}
-                          <View className="mb-4">
+                          <View className="mb-4" style={{ zIndex: 1000 }}>
                             <Dropdown
                               selectedValue={question.correctAnswer}
                               onValueChange={(value) =>

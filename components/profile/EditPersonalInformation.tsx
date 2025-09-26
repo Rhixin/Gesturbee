@@ -31,19 +31,20 @@ export default function EditProfile({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setFirstName(currentUser.firstName);
-    setLastName(currentUser.lastName);
-    setContactNumber(currentUser.contactNumber);
-    setGender(currentUser.gender);
-    setBirthDate(currentUser.birthDate);
-  }, []);
+    console.log('🔍 Current user data:', currentUser);
+    setFirstName(currentUser?.firstName || "");
+    setLastName(currentUser?.lastName || "");
+    setContactNumber(currentUser?.contactNumber || "");
+    setGender(currentUser?.gender || "");
+    setBirthDate(currentUser?.birthDate || new Date().toISOString());
+  }, [currentUser]);
 
   useEffect(() => {
     setError("");
   }, [firstName, lastName, contactNumber, gender, birthDate]);
 
   const handleSaveChanges = useCallback(async () => {
-    if (!firstName || !lastName || !contactNumber || !gender || !birthDate) {
+    if (!firstName || !lastName || !contactNumber || !gender) {
       setError("Please fill in all fields.");
       return;
     }
@@ -60,14 +61,20 @@ export default function EditProfile({
     };
 
     try {
+      console.log('📤 Sending profile update request:', body);
       const response = await AuthService.changeProfile(body);
+      console.log('📥 Profile update response:', response);
+      
       if (response.success) {
         showToast("Successfully changed Profile Information", "success");
         onSave();
       } else {
-        showToast("Failed to change Profile Information", "error");
+        console.error('❌ Profile update failed:', response.error);
+        showToast(`Backend Error: ${response.error}`, "error");
       }
     } catch (err) {
+      console.error('❌ Profile update error:', err);
+      console.error('❌ Error details:', err.response?.data || err.message);
       showToast("An error occurred while saving.", "error");
     } finally {
       setIsLoading(false);

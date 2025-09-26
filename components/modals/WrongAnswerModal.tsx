@@ -19,22 +19,22 @@ const WrongAnswerModal: React.FC<SuccessModalProps> = ({ isVisible, onContinue }
             </TouchableOpacity>
           </View>
             {/* Success Message */}
-            <View style={{ flexDirection: 'row', backgroundColor: 'white', borderTopLeftRadius: 10, borderTopRightRadius: 10 }}>
+            <View style={{ flexDirection: 'row', backgroundColor: 'white', borderTopLeftRadius: 10, borderTopRightRadius: 10, alignItems: 'center' }}>
             <Image
-            source={require("@/assets/images/Bee.png")} 
-            style={{ width: 100, height: 100, marginLeft: 12 }} 
+            source={require("@/assets/images/Bee/bee4.png")}
+            style={{ width: 100, height: 100, marginLeft: 12 }}
             />
 
-              <View>
-                <Text style={{ color: '#FFAA00', fontWeight: 'bold', fontSize: 30, marginLeft:14 }}>Bee-autiful!</Text>
-                <Text style={{ color: '#4B4B4B',  marginLeft:14, marginTop: 10 }}>Your answer is correct.</Text>
+              <View style={{ flex: 1, marginRight: 12 }}>
+                <Text style={{ color: '#FF6B6B', fontWeight: 'bold', fontSize: 30, marginLeft:14 }}>Oops!</Text>
+                <Text style={{ color: '#4B4B4B', marginLeft:14, marginTop: 10, flexWrap: 'wrap' }}>That's not the correct answer. Please try again!</Text>
               </View>
             </View>
 
             {/* Continue Button */}
             <TouchableOpacity
               style={{
-                backgroundColor: '#FFAA00',
+                backgroundColor: '#FF6B6B',
                 width: '100%',
                 paddingVertical: 16,
                 borderRadius: 30,
@@ -43,7 +43,7 @@ const WrongAnswerModal: React.FC<SuccessModalProps> = ({ isVisible, onContinue }
               onPress={onContinue}
             >
               <Text style={{ color: 'white', fontWeight: '600', textAlign: 'center', fontSize: 18 }}>
-                Continue
+                Try Again
               </Text>
             </TouchableOpacity>
          

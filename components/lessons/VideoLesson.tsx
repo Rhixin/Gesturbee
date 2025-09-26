@@ -13,12 +13,14 @@ export default function VideoLesson({
   videoSource,
   setStatus,
   currentLessonIndex,
+  isViganTheme = false,
 }: {
   title: string;
   videoRef: React.RefObject<any>;
   videoSource: any;
   setStatus: (status: any) => void;
   currentLessonIndex: number;
+  isViganTheme?: boolean;
 }) {
   const {
     userSavedStage,
@@ -74,7 +76,26 @@ export default function VideoLesson({
 
   return (
     <>
-      <View className="w-full bg-white rounded-lg overflow-hidden aspect-video items-center justify-center">
+      <View className="mb-6 mt-6 w-1/2">
+        <View
+          className="p-4 rounded-lg"
+          style={{ backgroundColor: isViganTheme ? "#FFE9C3" : "#01D3C1" }}
+        >
+          <View className="flex-row items-center">
+            <Text
+              className="text-2xl font-poppins-medium ml-2"
+              style={{ color: isViganTheme ? "#875C35" : "white" }}
+            >
+              {title}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View
+        className="w-full rounded-lg overflow-hidden aspect-video items-center mt-4"
+        style={{ backgroundColor: "transparent" }}
+      >
         <Video
           ref={videoRef}
           source={videoSource}
@@ -91,21 +112,13 @@ export default function VideoLesson({
               });
             }
           }}
-          style={{ width: "50%", height: "50%", aspectRatio: 16 / 9 }}
+          style={{
+            width: "50%",
+            height: "50%",
+            aspectRatio: 14 / 9,
+            backgroundColor: "transparent",
+          }}
         />
-      </View>
-
-      <View className="mb-6 w-1/2">
-        <View className="bg-teal-500 p-4 rounded-lg">
-          <View className="flex-row items-center">
-            <TouchableOpacity>
-              <Ionicons name="bookmark-outline" size={24} color="white" />
-            </TouchableOpacity>
-            <Text className="text-white text-2xl font-poppins-medium ml-2">
-              {title}
-            </Text>
-          </View>
-        </View>
       </View>
     </>
   );

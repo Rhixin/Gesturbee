@@ -1,0 +1,104 @@
+@startuml Activity Diagram - Create Exercise Transaction
+title Activity Diagram: Create Exercise Transaction
+
+|#LightBlue|Teacher|
+start
+:Teacher navigates to Create Exercise page;
+:Select exercise type (Multiple Choice/Execution);
+
+if (Exercise Type?) then (Multiple Choice)
+  :Enter exercise title;
+  :Enter question text;
+  :Add answer options;
+  :Mark correct answer;
+  :Set difficulty level;
+else (Execution)
+  :Enter exercise title;
+  :Enter instruction text;
+  :Upload demonstration video;
+  :Set expected gesture/sign;
+  :Set difficulty level;
+endif
+
+:Review exercise details;
+
+if (Validation passed?) then (No)
+  :Display validation errors;
+  :Highlight required fields;
+  stop
+else (Yes)
+endif
+
+:Submit exercise creation request;
+
+|#LightGreen|Frontend|
+:Validate form data;
+:Show loading state;
+:Send POST request to /api/exercises;
+
+|#LightCoral|Backend API|
+:Receive create exercise request;
+:Validate request data;
+:Authenticate teacher;
+
+if (Authentication valid?) then (No)
+  :Return 401 Unauthorized;
+  |#LightGreen|Frontend|
+  :Display auth error;
+  stop
+else (Yes)
+endif
+
+if (Data validation passed?) then (No)
+  :Return 400 Bad Request;
+  |#LightGreen|Frontend|
+  :Display validation errors;
+  stop
+else (Yes)
+endif
+
+:Process file uploads (if any);
+
+if (File upload successful?) then (No)
+  :Return 500 Server Error;
+  |#LightGreen|Frontend|
+  :Display upload error;
+  stop
+else (Yes)
+endif
+
+|#LightYellow|Database|
+:Begin transaction;
+:Insert exercise record;
+:Insert exercise options (if Multiple Choice);
+:Insert exercise media (if any);
+
+if (Database operation successful?) then (No)
+  :Rollback transaction;
+  |#LightCoral|Backend API|
+  :Return 500 Server Error;
+  |#LightGreen|Frontend|
+  :Display creation error;
+  stop
+else (Yes)
+endif
+
+:Commit transaction;
+:Return exercise ID and details;
+
+|#LightCoral|Backend API|
+:Log successful creation;
+:Return 201 Created with exercise data;
+
+|#LightGreen|Frontend|
+:Hide loading state;
+:Display success message;
+:Navigate to exercise list or details;
+
+|#LightBlue|Teacher|
+:View newly created exercise;
+:Exercise available for assignment;
+
+stop
+
+@enduml

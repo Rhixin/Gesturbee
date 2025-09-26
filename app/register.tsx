@@ -51,7 +51,6 @@ const Register = () => {
     gender: "",
     birthday: "",
     contactNumber: "",
-    selectedRole: null,
   });
 
   const genderOptions = [
@@ -62,7 +61,7 @@ const Register = () => {
 
   //Step Indicator Steps
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 2;
 
   //Eye close open states
   const [showPassword, setShowPassword] = useState(false);
@@ -146,10 +145,6 @@ const Register = () => {
     }
 
     if (currentStep === 2) {
-      return userForm.selectedRole;
-    }
-
-    if (currentStep === 3) {
       return (
         userForm.email.trim() &&
         userForm.password &&
@@ -195,14 +190,6 @@ const Register = () => {
     }
 
     if (currentStep === 2) {
-      // Check if role is selected
-      if (!userForm.selectedRole) {
-        showToast("Please select your role (Teacher or Student)", "error");
-        return;
-      }
-    }
-
-    if (currentStep === 3) {
       const emailValidation = validateEmail(userForm.email);
       const passwordValidation = validatePassword(userForm.password);
       const confirmPasswordValidation = validateConfirmPassword(
@@ -290,7 +277,7 @@ const Register = () => {
 
             <Text className="text-2xl font-bold text-primary">Sign Up</Text>
 
-            {currentStep === 3 && (
+            {currentStep === 2 && (
               <View className="mt-6">
                 <Text className="text-lg font-semibold text-titlegray mb-4">
                   Enter your account details
@@ -471,90 +458,6 @@ const Register = () => {
               </View>
             )}
 
-            {currentStep === 2 && (
-              <View className="mt-6">
-                <Text className="text-lg font-semibold text-titlegray mb-4">
-                  I am signing up as a...
-                </Text>
-
-                <TouchableOpacity
-                  onPress={() =>
-                    setUserForm((prev: any) => ({
-                      ...prev,
-                      selectedRole: "teacher",
-                    }))
-                  }
-                  className={`${
-                    userForm.selectedRole === "teacher"
-                      ? "bg-primary text-white"
-                      : "bg-white"
-                  } rounded-xl p-4 mb-4 border border-gray-200 shadow-md`}
-                >
-                  <View className="flex-row items-center">
-                    <Image
-                      source={require("../assets/images/teacher-icon.png")}
-                      className="w-12 h-12 mr-4"
-                    />
-                    <Text
-                      className={`text-base font-medium ${
-                        userForm.selectedRole === "teacher"
-                          ? "text-white"
-                          : "text-gray-600"
-                      }`}
-                    >
-                      Teacher
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() =>
-                    setUserForm((prev: any) => ({
-                      ...prev,
-                      selectedRole: "student",
-                    }))
-                  }
-                  className={`${
-                    userForm.selectedRole === "student"
-                      ? "bg-primary"
-                      : "bg-white"
-                  } rounded-xl p-4 mb-4 border border-gray-200 shadow-md`}
-                >
-                  <View className="flex-row items-center">
-                    <Image
-                      source={require("../assets/images/student-icon.png")}
-                      className="w-12 h-12 mr-4"
-                    />
-                    <Text
-                      className={`text-base font-medium ${
-                        userForm.selectedRole === "student"
-                          ? "text-white"
-                          : "text-gray-600"
-                      }`}
-                    >
-                      Student
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  className={`p-4 rounded-lg flex-row justify-center items-center mb-6 ${
-                    isCurrentStepValid() ? "bg-teal-500" : "bg-gray-400"
-                  }`}
-                  onPress={isCurrentStepValid() ? handleNext : undefined}
-                  activeOpacity={isCurrentStepValid() ? 0.8 : 1}
-                  disabled={!isCurrentStepValid()}
-                >
-                  <Text className="text-white text-lg font-semibold">Next</Text>
-                  <Ionicons
-                    name="arrow-forward"
-                    size={18}
-                    color="white"
-                    className="ml-2"
-                  />
-                </TouchableOpacity>
-              </View>
-            )}
 
             {currentStep === 1 && (
               <View className="mt-6">

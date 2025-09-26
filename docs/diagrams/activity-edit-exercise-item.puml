@@ -1,0 +1,173 @@
+@startuml Activity Diagram - Edit Exercise Item Transaction
+title Activity Diagram: Edit Exercise Item Transaction
+
+|#LightBlue|Teacher|
+start
+:Teacher navigates to exercise list;
+:Select specific exercise to edit;
+:Click "Edit" button;
+
+|#LightGreen|Frontend|
+:Show loading state;
+:Send GET request to /api/exercises/{exerciseId};
+
+|#LightCoral|Backend API|
+:Receive fetch exercise request;
+:Validate exercise ID;
+:Authenticate teacher;
+
+if (Authentication valid?) then (No)
+  :Return 401 Unauthorized;
+  |#LightGreen|Frontend|
+  :Display auth error;
+  stop
+else (Yes)
+endif
+
+if (Exercise exists?) then (No)
+  :Return 404 Not Found;
+  |#LightGreen|Frontend|
+  :Display "Exercise not found";
+  stop
+else (Yes)
+endif
+
+|#LightYellow|Database|
+:Query exercise details;
+:Query exercise options (if Multiple Choice);
+:Query exercise media files;
+:Return exercise data;
+
+|#LightCoral|Backend API|
+:Return 200 OK with exercise data;
+
+|#LightGreen|Frontend|
+:Hide loading state;
+:Populate edit form with existing data;
+
+|#LightBlue|Teacher|
+:Review current exercise details;
+
+if (Exercise Type?) then (Multiple Choice)
+  :Edit exercise title (optional);
+  :Modify question text (optional);
+  :Update answer options (optional);
+  :Change correct answer (optional);
+  :Adjust difficulty level (optional);
+else (Execution)
+  :Edit exercise title (optional);
+  :Modify instruction text (optional);
+  :Replace demonstration video (optional);
+  :Update expected gesture/sign (optional);
+  :Adjust difficulty level (optional);
+endif
+
+:Review modified details;
+
+if (Any changes made?) then (No)
+  :Display "No changes detected";
+  :Option to cancel or continue;
+  
+  if (Teacher choice?) then (Cancel)
+    stop
+  else (Continue)
+  endif
+else (Yes)
+endif
+
+:Submit exercise update request;
+
+|#LightGreen|Frontend|
+:Validate modified form data;
+:Show loading state;
+:Send PUT request to /api/exercises/{exerciseId};
+
+|#LightCoral|Backend API|
+:Receive update exercise request;
+:Validate request data;
+:Authenticate teacher;
+
+if (Authentication valid?) then (No)
+  :Return 401 Unauthorized;
+  |#LightGreen|Frontend|
+  :Display auth error;
+  stop
+else (Yes)
+endif
+
+if (Teacher owns exercise?) then (No)
+  :Return 403 Forbidden;
+  |#LightGreen|Frontend|
+  :Display permission error;
+  stop
+else (Yes)
+endif
+
+if (Data validation passed?) then (No)
+  :Return 400 Bad Request;
+  |#LightGreen|Frontend|
+  :Display validation errors;
+  stop
+else (Yes)
+endif
+
+:Process file uploads (if any new files);
+
+if (File upload successful?) then (No)
+  :Return 500 Server Error;
+  |#LightGreen|Frontend|
+  :Display upload error;
+  stop
+else (Yes)
+endif
+
+|#LightYellow|Database|
+:Begin transaction;
+:Update exercise record;
+
+if (Multiple Choice?) then (Yes)
+  :Delete existing options;
+  :Insert updated options;
+else (Execution)
+  :Update execution details;
+endif
+
+if (New media files?) then (Yes)
+  :Delete old media files;
+  :Insert new media records;
+else (No)
+endif
+
+:Update last_modified timestamp;
+
+if (Database operation successful?) then (No)
+  :Rollback transaction;
+  |#LightCoral|Backend API|
+  :Return 500 Server Error;
+  |#LightGreen|Frontend|
+  :Display update error;
+  stop
+else (Yes)
+endif
+
+:Commit transaction;
+:Return updated exercise details;
+
+|#LightCoral|Backend API|
+:Log successful update;
+:Return 200 OK with updated exercise data;
+
+|#LightGreen|Frontend|
+:Hide loading state;
+:Display success message;
+:Update UI with new exercise details;
+:Navigate to exercise list or details;
+
+|#LightBlue|Teacher|
+:View updated exercise;
+:Confirm changes were applied;
+:Exercise available with modifications;
+
+stop
+
+@enduml

@@ -16,36 +16,59 @@ export interface Stage {
 
 export const stageData: Stage[] = [
   {
-    id: 5,
-    stage: 5,
-    title: "Interpreting a Song",
+    id: 7,
+    stage: 7,
+    title: "Months",
     type: 1,
     levels: [
-      { levelid: 1, levelname: "Song 1", percent: 0 },
-      { levelid: 2, levelname: "Song 2", percent: 0 },
-      { levelid: 3, levelname: "Song 3", percent: 0 },
+      { levelid: 1, levelname: "Jan-Mar", percent: 0 },
+      { levelid: 2, levelname: "Apr-Jun", percent: 0 },
+      { levelid: 3, levelname: "Jul-Sep", percent: 0 },
+      { levelid: 4, levelname: "Oct-Dec", percent: 0 },
+    ],
+  },
+  {
+    id: 6,
+    stage: 6,
+    title: "Days",
+    type: 1,
+    levels: [
+      { levelid: 1, levelname: "Mon-Wed", percent: 0 },
+      { levelid: 2, levelname: "Thu-Fri", percent: 0 },
+      { levelid: 3, levelname: "Sat-Sun", percent: 0 },
+    ],
+  },
+  {
+    id: 5,
+    stage: 5,
+    title: "Questions",
+    type: 1,
+    levels: [
+      { levelid: 1, levelname: "What & Who", percent: 0 },
+      { levelid: 2, levelname: "Where & When", percent: 0 },
+      { levelid: 3, levelname: "Why & How", percent: 0 },
     ],
   },
   {
     id: 4,
     stage: 4,
-    title: "Simple Phrases",
+    title: "Colors",
     type: 1,
     levels: [
-      { levelid: 1, levelname: "Greetings", percent: 0 },
-      { levelid: 2, levelname: "Questions", percent: 0 },
-      { levelid: 3, levelname: "Responses", percent: 0 },
+      { levelid: 1, levelname: "Primary Colors", percent: 0 },
+      { levelid: 2, levelname: "Secondary Colors", percent: 0 },
+      { levelid: 3, levelname: "Mixed Colors", percent: 0 },
     ],
   },
   {
     id: 3,
     stage: 3,
-    title: "Common Words",
+    title: "Greetings",
     type: 1,
     levels: [
-      { levelid: 1, levelname: "People", percent: 0 },
-      { levelid: 2, levelname: "Places", percent: 0 },
-      { levelid: 3, levelname: "Things", percent: 0 },
+      { levelid: 1, levelname: "Basic Greetings", percent: 0 },
+      { levelid: 2, levelname: "Polite Expressions", percent: 0 },
+      { levelid: 3, levelname: "Farewells", percent: 0 },
     ],
   },
   {

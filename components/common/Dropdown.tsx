@@ -5,7 +5,7 @@ const Dropdown = ({ selectedValue, onValueChange, options }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <View className="relative">
+    <View className="relative" style={{ zIndex: isOpen ? 9999 : 1 }}>
       <TouchableOpacity
         onPress={() => setIsOpen(!isOpen)}
         className="border border-gray-300 rounded-lg p-3 bg-white flex-row justify-between items-center"
@@ -15,8 +15,21 @@ const Dropdown = ({ selectedValue, onValueChange, options }) => {
       </TouchableOpacity>
 
       {isOpen && (
-        <View className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-lg mt-1 max-h-48">
-          <ScrollView showsVerticalScrollIndicator={false}>
+        <View 
+          className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg mt-1 shadow-lg"
+          style={{ 
+            zIndex: 10000,
+            elevation: 20,
+            maxHeight: 150,
+          }}
+        >
+          <ScrollView 
+            showsVerticalScrollIndicator={true}
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            style={{ maxHeight: 150 }}
+            contentContainerStyle={{ flexGrow: 1 }}
+          >
             {options.map((option) => (
               <TouchableOpacity
                 key={option}
@@ -24,12 +37,13 @@ const Dropdown = ({ selectedValue, onValueChange, options }) => {
                   onValueChange(option);
                   setIsOpen(false);
                 }}
-                className={`p-3 border-b border-gray-100 ${
+                className={`p-2 border-b border-gray-100 ${
                   selectedValue === option ? "bg-blue-50" : ""
                 }`}
+                activeOpacity={0.7}
               >
                 <Text
-                  className={`text-base ${
+                  className={`text-sm ${
                     selectedValue === option
                       ? "text-blue-600 font-medium"
                       : "text-gray-800"

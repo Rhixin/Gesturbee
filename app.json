@@ -16,7 +16,8 @@
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
-      }
+      },
+      "bundleIdentifier": "com.zian17.gesturbee"
     },
     "android": {
       "package": "com.softeng.gesturbee",
@@ -54,7 +55,9 @@
           "cameraPermission": "This app requires access to the camera for gesture recognition.",
           "microphonePermission": "This app requires access to the microphone for audio features."
         }
-      ]
+      ],
+      "expo-web-browser",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

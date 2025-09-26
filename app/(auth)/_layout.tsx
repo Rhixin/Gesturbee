@@ -28,32 +28,6 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="classes"
-        options={{
-          title: "Classes",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "book" : "book-outline"}
-              size={24}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="quizzes"
-        options={{
-          title: "Exercises",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "document-text" : "document-text-outline"}
-              size={24}
-              color={color}
-            />
-          ),
-        }}
-      />
 
       <Tabs.Screen
         name="profile"

@@ -7,23 +7,22 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // TODO: getCurreent user api from gesturbee
-  //   useEffect(() => {
-  //     const loadUser = async () => {
-  //       try {
-  //         const userResponse = await AuthService.getCurrentUser();
-  //         if (userResponse) {
-  //           setCurrentUser(userResponse.data);
-  //         }
-  //       } catch (error) {
-  //         console.error("Failed to load user:", error);
-  //       } finally {
-  //         setLoading(false);
-  //       }
-  //     };
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userResponse = await AuthService.getCurrentUser();
+        if (userResponse) {
+          setCurrentUser(userResponse.data);
+        }
+      } catch (error) {
+        console.error("Failed to load user:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  //     loadUser();
-  //   }, []);
+    loadUser();
+  }, []);
 
   const login = async (username, password) => {
     const user = await AuthService.login(username, password);
@@ -49,8 +48,7 @@ export const AuthProvider = ({ children }) => {
         getCurrentUser,
         login,
         logout,
-        //TODO: isAuthenticated not done yet
-        isAuthenticated: true,
+        isAuthenticated: !!currentUser,
         loading,
       }}
     >

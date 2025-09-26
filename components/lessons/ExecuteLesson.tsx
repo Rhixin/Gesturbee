@@ -11,10 +11,12 @@ export default function ExecuteLesson({
   title,
   correctAnswer,
   currentLessonIndex,
+  isViganTheme = false,
 }: {
   title: string;
   correctAnswer: string;
   currentLessonIndex: number;
+  isViganTheme?: boolean;
 }) {
   const {
     userSavedStage,
@@ -33,14 +35,45 @@ export default function ExecuteLesson({
 
   // Handle mo next cya bisag humana ani nga level
   const isThisLessonAlreadyDone = () => {
-    if (
-      Number(stageId) == userSavedStage &&
-      Number(levelId) == userSavedLevel &&
-      currentLessonIndex == userSavedLesson
-    ) {
+    const currentStageId = Number(stageId);
+    const currentLevelId = Number(levelId);
+
+    console.log("Checking if lesson is done:");
+    console.log(
+      "Current Stage/Level/Lesson:",
+      currentStageId,
+      currentLevelId,
+      currentLessonIndex
+    );
+    console.log(
+      "Saved Stage/Level/Lesson:",
+      userSavedStage,
+      userSavedLevel,
+      userSavedLesson
+    );
+
+    // If we're on a higher stage or level, this is new content
+    if (currentStageId > userSavedStage || currentLevelId > userSavedLevel) {
+      console.log("Higher stage/level - not done yet");
       return false;
     }
 
+    // If we're on the same stage and level, check lesson progress
+    if (currentStageId == userSavedStage && currentLevelId == userSavedLevel) {
+      const isDone = currentLessonIndex <= userSavedLesson;
+      console.log(
+        "Same stage/level - checking lesson progress:",
+        currentLessonIndex,
+        "<=",
+        userSavedLesson,
+        "=",
+        isDone
+      );
+      return isDone;
+    }
+
+    // If we're on a lower stage/level, it's already done
+    console.log("Lower stage/level - already done");
     return true;
   };
 
@@ -79,24 +112,50 @@ export default function ExecuteLesson({
       const data = JSON.parse(event.nativeEvent.data);
 
       if (data?.type === "prediction") {
-        const predictedLetter = data.data.prediction.prediction;
+        // Handle different possible data structures
+        const predictedLetter =
+          data.data?.prediction?.prediction ||
+          data.data?.prediction ||
+          data.prediction;
         setPrediction(predictedLetter);
 
-        if (correctAnswer == predictedLetter) {
-          if (!isThisLessonAlreadyDone()) {
+        console.log("Predicted:", predictedLetter, "Expected:", correctAnswer);
+
+        if (correctAnswer === predictedLetter) {
+          console.log("Correct answer detected!");
+          const lessonAlreadyDone = isThisLessonAlreadyDone();
+          console.log("Is lesson already done?", lessonAlreadyDone);
+          console.log("Current lesson index:", currentLessonIndex);
+          console.log("User saved lesson:", userSavedLesson);
+          console.log(
+            "User saved stage:",
+            userSavedStage,
+            "Stage ID:",
+            Number(stageId)
+          );
+          console.log(
+            "User saved level:",
+            userSavedLevel,
+            "Level ID:",
+            Number(levelId)
+          );
+
+          if (!lessonAlreadyDone) {
             // Update Database
             if (userSavedLesson === userSavedTotalLesson) {
+              console.log("Level complete! Updating to next level");
               updateLevel(
                 currentUser.id,
                 userSavedStage,
                 userSavedLevel + 1,
                 1,
-                12,
+                userSavedTotalLesson, // Use the same total lessons for next level
                 true
               );
 
               setShowLevelCompleteModal(true);
             } else {
+              console.log("Moving to next lesson:", userSavedLesson + 1);
               updateLevel(
                 currentUser.id,
                 userSavedStage,
@@ -121,14 +180,40 @@ export default function ExecuteLesson({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+    <>
+      {/* Title Section */}
+      <View className="mb-6 mt-6 w-1/2">
+        <View
+          className="p-4 rounded-lg"
+          style={{ backgroundColor: isViganTheme ? "#FFE9C3" : "#01D3C1" }}
+        >
+          <View className="flex-row items-center">
+            <Text
+              className="text-2xl font-poppins-medium"
+              style={{ color: isViganTheme ? "#875C35" : "white" }}
+            >
+              {title}
+            </Text>
+          </View>
+        </View>
+      </View>
 
+      {/* WebView Container */}
       <View style={styles.webViewContainer}>
         {!isWebViewLoaded && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#FBBC05" />
-            <Text style={styles.loadingText}>Loading...</Text>
+            <ActivityIndicator
+              size="large"
+              color={isViganTheme ? "#875C35" : "#01D3C1"}
+            />
+            <Text
+              style={[
+                styles.loadingText,
+                { color: isViganTheme ? "#875C35" : "#01D3C1" },
+              ]}
+            >
+              Loading...
+            </Text>
           </View>
         )}
         <WebView
@@ -151,13 +236,13 @@ export default function ExecuteLesson({
           onMessage={onMessage}
         />
       </View>
-      <Text style={styles.prediction}>{prediction}</Text>
+
       <SuccessModal
         isVisible={showSuccessModal}
         onContinue={handleContinueAndReset}
         message={"You executed it perfectly!"}
       />
-    </View>
+    </>
   );
 }
 
@@ -175,8 +260,8 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   webViewContainer: {
-    width: "100%",
-    flex: 1,
+    width: "80%",
+    height: 300,
     backgroundColor: "black",
     position: "relative",
   },

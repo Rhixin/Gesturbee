@@ -44,14 +44,15 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
               backgroundColor: "white",
               borderTopLeftRadius: 10,
               borderTopRightRadius: 10,
+              alignItems: "center",
             }}
           >
             <Image
-              source={require("@/assets/images/Bee.png")}
+              source={require("@/assets/images/Bee/bee2.png")}
               style={{ width: 100, height: 100, marginLeft: 12 }}
             />
 
-            <View>
+            <View style={{ flex: 1, marginRight: 12 }}>
               <Text
                 style={{
                   color: "#FFAA00",
@@ -62,7 +63,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
               >
                 Bee-autiful!
               </Text>
-              <Text style={{ color: "#4B4B4B", marginLeft: 14, marginTop: 10 }}>
+              <Text style={{ color: "#4B4B4B", marginLeft: 14, marginTop: 10, flexWrap: 'wrap' }}>
                 {message}
               </Text>
             </View>
