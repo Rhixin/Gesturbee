@@ -48,6 +48,55 @@ export default function Stage() {
     router.back();
   };
 
+  // Define theme colors for different stages
+  const getStageThemeColors = () => {
+    const stage = Number(stageId);
+    switch (stage) {
+      case 1: // Vigan
+        return {
+          headerBackground: '#875C35',
+          textColor: '#875C35'
+        };
+      case 2: // Manila
+        return {
+          headerBackground: '#87A248',
+          textColor: '#87A248'
+        };
+      case 3: // Boracay
+        return {
+          headerBackground: '#0277BD',
+          textColor: '#0277BD'
+        };
+      case 4: // Siargao
+        return {
+          headerBackground: '#B8A869',
+          textColor: '#B8A869'
+        };
+      case 5: // Palawan
+        return {
+          headerBackground: '#6A645C',
+          textColor: '#6A645C'
+        };
+      case 6: // Cebu
+        return {
+          headerBackground: '#B65828',
+          textColor: '#B65828'
+        };
+      case 7: // Bohol
+        return {
+          headerBackground: '#6D825A',
+          textColor: '#6D825A'
+        };
+      default: // Fallback to teal
+        return {
+          headerBackground: '#01D3C1',
+          textColor: '#01D3C1'
+        };
+    }
+  };
+
+  const themeColors = getStageThemeColors();
+
   const isLevelLocked = (levelNumber) => {
     if (levelNumber > userSavedLevel) {
       return true;
@@ -130,7 +179,7 @@ export default function Stage() {
 
   return (
     <View className="bg-white h-[100vh] items-center">
-      <SafeAreaView className="bg-primary rounded-b-3xl w-full">
+      <SafeAreaView className="rounded-b-3xl w-full" style={{ backgroundColor: themeColors.headerBackground }}>
         <TouchableOpacity
           className="px-8"
           onPress={() => {
@@ -188,7 +237,7 @@ export default function Stage() {
                   />
                 </View>
                 <View className="flex-1 flex-col justify-between">
-                  <Text className="text-tertiary font-poppins-bold text-xl">
+                  <Text className="font-poppins-bold text-xl" style={{ color: themeColors.textColor }}>
                     {"Level " + (index + 1) + ": " + item.levelname}
                   </Text>
                   <View className="h-auto">
@@ -213,7 +262,7 @@ export default function Stage() {
                           ? "bg-tertiary"
                           : "bg-white"
                       }
-                      fillColor="bg-secondary"
+                      fillColor="bg-yellow-400"
                     />
                   </View>
                 </View>

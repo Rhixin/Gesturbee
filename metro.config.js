@@ -4,9 +4,9 @@ const { withNativeWind } = require("nativewind/metro");
 // Get the default config
 const config = getDefaultConfig(__dirname);
 
-// Ensure asset extensions include 'bin' and 'json' (no duplicates)
+// Ensure asset extensions include 'bin', 'json', and 'MOV'/'mov' (no duplicates)
 config.resolver.assetExts = Array.from(
-  new Set([...config.resolver.assetExts, "bin", "json"])
+  new Set([...config.resolver.assetExts, "bin", "json", "MOV", "mov"])
 );
 
 // Apply NativeWind transformation

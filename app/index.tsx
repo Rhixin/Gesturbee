@@ -45,9 +45,9 @@ export default function LandingPage() {
         />
       )}
 
-      <View className="flex flex-row gap-4">
+      <View className="flex flex-row">
         <Image
-          source={require("../assets/images/Bee.png")}
+          source={require("../assets/images/Bee/bee1.png")}
           style={{ width: 100, height: 100, resizeMode: "contain" }}
         />
         <View className="flex justify-center">

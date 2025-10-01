@@ -25,6 +25,7 @@ export type MinigameType =
   | 'spelling'
   | 'matching'
   | 'falling_letters'
+  | 'balloon_pop'
   | 'memory_cards'
   | 'sequence_builder'
   | 'level_introduction';
@@ -89,4 +90,11 @@ export interface MemoryCardsConfig extends MinigameConfig {
   gridRows: number;
   gridCols: number;
   revealTime: number;
+}
+
+export interface BalloonPopConfig extends MinigameConfig {
+  totalBalloons: number;
+  timeLimit: number;
+  learnedLetters: string[];
+  balloonImages: string[];
 }

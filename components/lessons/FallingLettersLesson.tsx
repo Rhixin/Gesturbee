@@ -19,31 +19,45 @@ import React from "react";
 
 const { width, height } = Dimensions.get("window");
 
-interface FallingLetter {
+interface FallingItem {
   id: string;
-  letter: string;
+  content: string; // Can be letter, number, word, etc.
   x: number;
   y: number;
   speed: number;
   collected: boolean;
 }
 
-// Reanimated Letter Component
-const AnimatedFallingLetter = React.memo(
+// Reanimated Item Component
+const AnimatedFallingItem = React.memo(
   ({
-    letter,
+    item,
     x,
     initialY,
-    letterId,
-    litLanterns,
+    itemId,
+    litItems,
     onReachBottom,
+    isSiargaoTheme = false,
+    isManilaTheme = false,
+    isViganTheme = false,
+    isBoracayTheme = false,
+    isPalawanTheme = false,
+    isCebuTheme = false,
+    isBoholTheme = false,
   }: {
-    letter: FallingLetter;
+    item: FallingItem;
     x: number;
     initialY: number;
-    letterId: string;
-    litLanterns: { [key: string]: boolean };
+    itemId: string;
+    litItems: { [key: string]: boolean };
     onReachBottom: (id: string) => void;
+    isSiargaoTheme?: boolean;
+    isManilaTheme?: boolean;
+    isViganTheme?: boolean;
+    isBoracayTheme?: boolean;
+    isPalawanTheme?: boolean;
+    isCebuTheme?: boolean;
+    isBoholTheme?: boolean;
   }) => {
     const y = useSharedValue(initialY);
 
@@ -64,25 +78,80 @@ const AnimatedFallingLetter = React.memo(
         },
         (finished) => {
           "worklet";
-          if (finished && !letter.collected) {
-            runOnJS(onReachBottom)(letterId);
+          if (finished && !item.collected) {
+            runOnJS(onReachBottom)(itemId);
           }
         }
       );
     }, []);
 
     return (
-      <Animated.View style={[styles.fallingLetter, animatedStyle]}>
+      <Animated.View style={[styles.fallingItem, animatedStyle]}>
         <Image
           source={
-            litLanterns[letterId]
-              ? require("@/assets/images/Lantern/lantern_light.png")
-              : require("@/assets/images/Lantern/lantern_dark.png")
+            isViganTheme
+              ? litItems[itemId]
+                ? require("@/assets/images/Lantern/lantern_light.png")
+                : require("@/assets/images/Lantern/lantern_dark.png")
+              : isSiargaoTheme
+              ? require("@/assets/images/Coconut/coconut.png")
+              : isManilaTheme
+              ? litItems[itemId]
+                ? require("@/assets/images/Balloon/balloon2.png")
+                : require("@/assets/images/Balloon/balloon1.png")
+              : isBoracayTheme
+              ? litItems[itemId]
+                ? require("@/assets/images/Shells/shell_2.png")
+                : require("@/assets/images/Shells/shell_1.png")
+              : isPalawanTheme
+              ? require("@/assets/images/Boat/boat.png")
+              : isCebuTheme
+              ? require("@/assets/images/Mango/mango.png")
+              : isBoholTheme
+              ? require("@/assets/images/Tarsier/tarsier.png")
+              : litItems[itemId]
+                ? require("@/assets/images/Lantern/lantern_light.png")
+                : require("@/assets/images/Lantern/lantern_dark.png")
           }
-          style={styles.lanternImage}
+          style={
+            isViganTheme
+              ? styles.lanternImage
+              : isSiargaoTheme
+              ? styles.coconutImage
+              : isManilaTheme
+              ? styles.balloonImage
+              : isBoracayTheme
+              ? styles.shellImage
+              : isPalawanTheme
+              ? styles.boatImage
+              : isCebuTheme
+              ? styles.mangoImage
+              : isBoholTheme
+              ? styles.tarsierImage
+              : styles.lanternImage
+          }
           resizeMode="contain"
         />
-        <Text style={styles.letterText}>{letter.letter}</Text>
+        <Text style={[
+          styles.contentText,
+          {
+            color: isViganTheme
+              ? "#8B4513"
+              : isSiargaoTheme
+              ? "#9D7C00"
+              : isManilaTheme
+              ? "#87A248"
+              : isBoracayTheme
+              ? "#488DA2"
+              : isPalawanTheme
+              ? "#6A645C"
+              : isCebuTheme
+              ? "#B65828"
+              : isBoholTheme
+              ? "#6D825A"
+              : "#875C35",
+          }
+        ]}>{item.content}</Text>
       </Animated.View>
     );
   }
@@ -91,13 +160,27 @@ const AnimatedFallingLetter = React.memo(
 export default function FallingLettersLesson({
   title,
   currentLessonIndex,
-  learnedLetters,
+  learnedContent,
+  correctAnswer,
   isViganTheme = false,
+  isSiargaoTheme = false,
+  isManilaTheme = false,
+  isBoracayTheme = false,
+  isPalawanTheme = false,
+  isCebuTheme = false,
+  isBoholTheme = false,
 }: {
   title: string;
   currentLessonIndex: number;
-  learnedLetters: string[];
+  learnedContent: string[]; // Can be letters, numbers, words, etc.
+  correctAnswer: string; // The AI answer for checking (mapped letter for Stage 2)
   isViganTheme?: boolean;
+  isSiargaoTheme?: boolean;
+  isManilaTheme?: boolean;
+  isBoracayTheme?: boolean;
+  isPalawanTheme?: boolean;
+  isCebuTheme?: boolean;
+  isBoholTheme?: boolean;
 }) {
   const {
     userSavedStage,
@@ -110,13 +193,13 @@ export default function FallingLettersLesson({
   const { stageId, levelId } = useLocalSearchParams();
   const { currentUser } = useAuth();
 
-  const [fallingLetters, setFallingLetters] = useState<FallingLetter[]>([]);
+  const [fallingItems, setFallingItems] = useState<FallingItem[]>([]);
   const [hearts, setHearts] = useState(3);
   const [score, setScore] = useState(0);
   const [gameActive, setGameActive] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showTryAgainModal, setShowTryAgainModal] = useState(false);
-  const [litLanterns, setLitLanterns] = useState<{ [key: string]: boolean }>(
+  const [litItems, setLitItems] = useState<{ [key: string]: boolean }>(
     {}
   );
   const [prediction, setPrediction] = useState("");
@@ -144,15 +227,15 @@ export default function FallingLettersLesson({
     return true;
   };
 
-  // Generate random letter from learned letters
-  const getRandomLetter = () => {
-    if (learnedLetters.length === 0) return "A";
-    return learnedLetters[Math.floor(Math.random() * learnedLetters.length)];
+  // Generate random content from learned content
+  const getRandomContent = () => {
+    if (learnedContent.length === 0) return "1";
+    return learnedContent[Math.floor(Math.random() * learnedContent.length)];
   };
 
-  // Handle letter reaching bottom
-  const handleLetterReachBottom = useCallback(
-    (letterId: string) => {
+  // Handle item reaching bottom
+  const handleItemReachBottom = useCallback(
+    (itemId: string) => {
       if (!gameActive) return;
 
       // Use setTimeout to avoid setState during render
@@ -165,40 +248,40 @@ export default function FallingLettersLesson({
           }
           return Math.max(0, newHearts);
         });
-        setFallingLetters((prev) => prev.filter((l) => l.id !== letterId));
+        setFallingItems((prev) => prev.filter((item) => item.id !== itemId));
       }, 0);
     },
     [gameActive]
   );
 
-  // Spawn falling letter with Reanimated 3
-  const spawnLetter = useCallback(() => {
+  // Spawn falling item with Reanimated 3
+  const spawnItem = useCallback(() => {
     if (!gameActive) return;
 
-    const letter = getRandomLetter();
-    const newLetter: FallingLetter = {
+    const content = getRandomContent();
+    const newItem: FallingItem = {
       id: `${Date.now()}_${Math.random()}`,
-      letter,
-      x: Math.random() * (width - 100), // Full width game area minus letter width
+      content,
+      x: Math.random() * (width - 100), // Full width game area minus item width
       y: -100,
       speed: 2 + Math.random() * 2, // Speed between 2-4
       collected: false,
     };
 
-    setFallingLetters((prev) => [...prev, newLetter]);
-  }, [gameActive, getRandomLetter]);
+    setFallingItems((prev) => [...prev, newItem]);
+  }, [gameActive, getRandomContent]);
 
   // Start game
   const startGame = () => {
-    setFallingLetters([]);
+    setFallingItems([]);
     setHearts(3);
     setScore(0);
     setGameActive(true);
     setShowTryAgainModal(false);
-    setLitLanterns({});
+    setLitItems({});
 
-    // Spawn letters every 2 seconds for more manageable gameplay
-    spawnTimerRef.current = setInterval(spawnLetter, 2000);
+    // Spawn items every 2 seconds for more manageable gameplay
+    spawnTimerRef.current = setInterval(spawnItem, 2000);
   };
 
   // Stop game
@@ -207,8 +290,17 @@ export default function FallingLettersLesson({
     if (spawnTimerRef.current) {
       clearInterval(spawnTimerRef.current);
     }
-    // Clear all falling letters
-    setFallingLetters([]);
+    // Clear all falling items
+    setFallingItems([]);
+  };
+
+  // Development helper: Map AI letters to numbers for testing
+  const mapLetterToNumber = (letter: string): string => {
+    const letterToNumberMap: { [key: string]: string } = {
+      'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5',
+      'F': '6', 'G': '7', 'H': '8', 'I': '9', 'J': '10'
+    };
+    return letterToNumberMap[letter] || letter;
   };
 
   // Handle WebView prediction
@@ -220,30 +312,38 @@ export default function FallingLettersLesson({
         const predictedLetter = data.data.prediction.prediction.toUpperCase();
         setPrediction(predictedLetter);
 
-        // Check if any falling letter matches
-        const matchingLetter = fallingLetters.find(
-          (letter) => letter.letter === predictedLetter && !letter.collected
+        // For Manila theme (Stage 2): map AI letter to number for display matching
+        // For other themes (Stage 1): use letter directly
+        const targetContent = isManilaTheme
+          ? mapLetterToNumber(predictedLetter)
+          : predictedLetter;
+
+        console.log(`[Development] AI predicted: ${predictedLetter} -> Target: ${targetContent} (Manila: ${isManilaTheme})`);
+
+        // Check if any falling item matches the target content
+        const matchingItem = fallingItems.find(
+          (item) => item.content === targetContent && !item.collected
         );
 
-        if (matchingLetter && gameActive) {
-          // Immediately update falling letters to mark as collected and prevent multiple matches
-          setFallingLetters((prev) =>
-            prev.map((l) =>
-              l.id === matchingLetter.id ? { ...l, collected: true } : l
+        if (matchingItem && gameActive) {
+          // Immediately update falling items to mark as collected and prevent multiple matches
+          setFallingItems((prev) =>
+            prev.map((item) =>
+              item.id === matchingItem.id ? { ...item, collected: true } : item
             )
           );
 
           // Light up animation
-          setLitLanterns((prev) => ({ ...prev, [matchingLetter.id]: true }));
+          setLitItems((prev) => ({ ...prev, [matchingItem.id]: true }));
 
-          // Remove letter after short delay
+          // Remove item after short delay
           setTimeout(() => {
-            setFallingLetters((prev) =>
-              prev.filter((l) => l.id !== matchingLetter.id)
+            setFallingItems((prev) =>
+              prev.filter((item) => item.id !== matchingItem.id)
             );
-            setLitLanterns((prev) => {
+            setLitItems((prev) => {
               const newLit = { ...prev };
-              delete newLit[matchingLetter.id];
+              delete newLit[matchingItem.id];
               return newLit;
             });
           }, 500);
@@ -311,7 +411,14 @@ export default function FallingLettersLesson({
   return (
     <View style={styles.container}>
       {/* Hearts */}
-      <View style={styles.heartsContainer}>
+      <View style={[
+        styles.heartsContainer,
+        {
+          borderColor: isSiargaoTheme
+            ? "rgba(157, 124, 0, 0.3)"
+            : "rgba(135, 92, 53, 0.3)"
+        }
+      ]}>
         {Array.from({ length: 3 }, (_, i) => (
           <Text
             key={i}
@@ -324,15 +431,22 @@ export default function FallingLettersLesson({
 
       {/* Game Area */}
       <View style={styles.gameArea}>
-        {fallingLetters.map((letter) => (
-          <AnimatedFallingLetter
-            key={letter.id}
-            letter={letter}
-            x={letter.x}
-            initialY={letter.y}
-            letterId={letter.id}
-            litLanterns={litLanterns}
-            onReachBottom={handleLetterReachBottom}
+        {fallingItems.map((item) => (
+          <AnimatedFallingItem
+            key={item.id}
+            item={item}
+            x={item.x}
+            initialY={item.y}
+            itemId={item.id}
+            litItems={litItems}
+            onReachBottom={handleItemReachBottom}
+            isSiargaoTheme={isSiargaoTheme}
+            isManilaTheme={isManilaTheme}
+            isViganTheme={isViganTheme}
+            isBoracayTheme={isBoracayTheme}
+            isPalawanTheme={isPalawanTheme}
+            isCebuTheme={isCebuTheme}
+            isBoholTheme={isBoholTheme}
           />
         ))}
       </View>
@@ -341,7 +455,10 @@ export default function FallingLettersLesson({
       <View style={styles.webViewContainer}>
         {!isWebViewLoaded && (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading Camera...</Text>
+            <Text style={[
+              styles.loadingText,
+              { color: isSiargaoTheme ? "#9D7C00" : "#875C35" }
+            ]}>Loading Camera...</Text>
           </View>
         )}
         <WebView
@@ -364,7 +481,7 @@ export default function FallingLettersLesson({
       <SuccessModal
         isVisible={showSuccessModal}
         onContinue={handleSuccess}
-        message="Congratulations! You collected all 10 letters!"
+        message="Congratulations! You collected all 10 items!"
       />
 
       <WrongAnswerModal
@@ -406,7 +523,7 @@ const styles = StyleSheet.create({
     bottom: 80, // Above the hearts/score
     backgroundColor: "transparent", // Transparent background
   },
-  fallingLetter: {
+  fallingItem: {
     position: "absolute",
     width: 80,
     height: 100,
@@ -420,12 +537,57 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
   },
-  letterText: {
-    fontSize: 28,
+  surfboardImage: {
+    width: 70,
+    height: 80,
+    position: "absolute",
+    top: 0,
+  },
+  coconutImage: {
+    width: 60,
+    height: 60,
+    position: "absolute",
+    top: 0,
+  },
+  balloonImage: {
+    width: 70,
+    height: 80,
+    position: "absolute",
+    top: 0,
+  },
+  shellImage: {
+    width: 70,
+    height: 80,
+    position: "absolute",
+    top: 0,
+  },
+  boatImage: {
+    width: 70,
+    height: 80,
+    position: "absolute",
+    top: 0,
+  },
+  mangoImage: {
+    width: 70,
+    height: 80,
+    position: "absolute",
+    top: 0,
+  },
+  tarsierImage: {
+    width: 70,
+    height: 80,
+    position: "absolute",
+    top: 0,
+  },
+  contentText: {
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#875C35", // Vigan theme color
+    color: "#875C35", // Default theme color
     textAlign: "center",
-    marginTop: 25,
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: [{ translateX: -14 }, { translateY: -14 }], // Half of font size for perfect center
     textShadowColor: "#FFFFFF",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,

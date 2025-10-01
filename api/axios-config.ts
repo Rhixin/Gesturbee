@@ -5,7 +5,8 @@ import AuthService from "./services/auth-service";
 const api = axios.create({
   // baseURL: "http://10.122.74.164:5228/api", joshua
   //192.168.0.195 hello wifi cd
-  baseURL: "http://192.168.1.8:5228/api",
+  baseURL: "https://3xx912k6-5228.asse.devtunnels.ms/api",
+  //baseURL: "http://192.168.1.8:5228/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

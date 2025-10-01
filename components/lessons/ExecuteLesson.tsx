@@ -12,11 +12,25 @@ export default function ExecuteLesson({
   correctAnswer,
   currentLessonIndex,
   isViganTheme = false,
+  isSiargaoTheme = false,
+  isManilaTheme = false,
+  isBoracayTheme = false,
+  isPalawanTheme = false,
+  isCebuTheme = false,
+  isBoholTheme = false,
+  contentWord = null,
 }: {
   title: string;
   correctAnswer: string;
   currentLessonIndex: number;
   isViganTheme?: boolean;
+  isSiargaoTheme?: boolean;
+  isManilaTheme?: boolean;
+  isBoracayTheme?: boolean;
+  isPalawanTheme?: boolean;
+  isCebuTheme?: boolean;
+  isBoholTheme?: boolean;
+  contentWord?: string | null;
 }) {
   const {
     userSavedStage,
@@ -110,6 +124,8 @@ export default function ExecuteLesson({
   const onMessage = (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
+      console.log("=== WEBVIEW MESSAGE RECEIVED ===");
+      console.log("Raw data:", JSON.stringify(data, null, 2));
 
       if (data?.type === "prediction") {
         // Handle different possible data structures
@@ -119,7 +135,11 @@ export default function ExecuteLesson({
           data.prediction;
         setPrediction(predictedLetter);
 
-        console.log("Predicted:", predictedLetter, "Expected:", correctAnswer);
+        console.log("=== AI PREDICTION DEBUG ===");
+        console.log("Predicted:", predictedLetter, "Type:", typeof predictedLetter);
+        console.log("Expected:", correctAnswer, "Type:", typeof correctAnswer);
+        console.log("Are they equal?", correctAnswer === predictedLetter);
+        console.log("Stage ID:", stageId, "Level ID:", levelId);
 
         if (correctAnswer === predictedLetter) {
           console.log("Correct answer detected!");
@@ -185,14 +205,14 @@ export default function ExecuteLesson({
       <View className="mb-6 mt-6 w-1/2">
         <View
           className="p-4 rounded-lg"
-          style={{ backgroundColor: isViganTheme ? "#FFE9C3" : "#01D3C1" }}
+          style={{ backgroundColor: isViganTheme ? "#FFE9C3" : isSiargaoTheme ? "#B8A869" : isManilaTheme ? "#87A248" : isBoracayTheme ? "#488DA2" : isPalawanTheme ? "#D4C8B8" : isCebuTheme ? "#F4D9C6" : isBoholTheme ? "#D4E5C7" : "#01D3C1" }}
         >
           <View className="flex-row items-center">
             <Text
               className="text-2xl font-poppins-medium"
-              style={{ color: isViganTheme ? "#875C35" : "white" }}
+              style={{ color: isViganTheme ? "#875C35" : isManilaTheme ? "white" : isBoracayTheme ? "white" : isPalawanTheme ? "#6A645C" : isCebuTheme ? "#B65828" : isBoholTheme ? "#6D825A" : "white" }}
             >
-              {title}
+              Sign "{contentWord || title}"
             </Text>
           </View>
         </View>
@@ -204,12 +224,12 @@ export default function ExecuteLesson({
           <View style={styles.loadingContainer}>
             <ActivityIndicator
               size="large"
-              color={isViganTheme ? "#875C35" : "#01D3C1"}
+              color={isViganTheme ? "#875C35" : isManilaTheme ? "#87A248" : "#01D3C1"}
             />
             <Text
               style={[
                 styles.loadingText,
-                { color: isViganTheme ? "#875C35" : "#01D3C1" },
+                { color: isViganTheme ? "#875C35" : isManilaTheme ? "#87A248" : "#01D3C1" },
               ]}
             >
               Loading...

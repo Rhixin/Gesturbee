@@ -121,15 +121,14 @@ const Login = () => {
   return (
     <View className="bg-primary h-[100vh] flex ">
       {/* Top Message */}
-      <View className="min-h-[100px] flex flex-row items-center justify-start gap-6 px-6 mt-20">
+      <View className="min-h-[100px] flex flex-row items-center justify-start px-6 mt-20">
+        <Image
+          source={require("../assets/images/Bee/bee2.png")}
+          style={{ width: 70, height: 70, resizeMode: "contain" }}
+        />
         <Text className="text-white font-poppins-bold text-3xl">
           Welcome Back!
         </Text>
-
-        <Image
-          source={require("../assets/images/Bee.png")}
-          style={{ width: 70, height: 70, resizeMode: "contain" }}
-        />
       </View>
 
       {/* White Container */}

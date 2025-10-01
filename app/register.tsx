@@ -248,14 +248,14 @@ const Register = () => {
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
     >
       <View className="bg-primary flex-1">
-        <View className="min-h-[100px] flex flex-row items-center justify-start gap-6 px-6 mt-20">
+        <View className="min-h-[100px] flex flex-row items-center justify-start px-6 mt-20">
+          <Image
+            source={require("../assets/images/Bee/bee3.png")}
+            style={{ width: 70, height: 70, resizeMode: "contain" }}
+          />
           <Text className="text-white font-poppins-bold text-3xl">
             Register
           </Text>
-          <Image
-            source={require("../assets/images/Bee.png")}
-            style={{ width: 70, height: 70, resizeMode: "contain" }}
-          />
         </View>
 
         <View className="bg-white flex-1 w-full rounded-t-3xl">
@@ -457,7 +457,6 @@ const Register = () => {
                 )}
               </View>
             )}
-
 
             {currentStep === 1 && (
               <View className="mt-6">

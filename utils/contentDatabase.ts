@@ -1,76 +1,9 @@
 import { MinigameContent, MinigameCategory } from "../types/minigame";
+import { generateAlphabetContentFromCSV } from "./alphabetContent";
 
 // Comprehensive content database for all stages
 export const CONTENT_DATABASE: Record<MinigameCategory, MinigameContent[]> = {
-  alphabets: [
-    // A-C
-    {
-      id: "a1",
-      word: "A",
-      videoPath: "a.mp4",
-      category: "alphabets",
-      difficulty: "easy",
-    },
-    {
-      id: "b1",
-      word: "B",
-      videoPath: "b.mp4",
-      category: "alphabets",
-      difficulty: "easy",
-    },
-    {
-      id: "c1",
-      word: "C",
-      videoPath: "c.mp4",
-      category: "alphabets",
-      difficulty: "easy",
-    },
-    // D-F
-    {
-      id: "d1",
-      word: "D",
-      videoPath: "d.mp4",
-      category: "alphabets",
-      difficulty: "easy",
-    },
-    {
-      id: "e1",
-      word: "E",
-      videoPath: "e.mp4",
-      category: "alphabets",
-      difficulty: "easy",
-    },
-    {
-      id: "f1",
-      word: "F",
-      videoPath: "f.mp4",
-      category: "alphabets",
-      difficulty: "easy",
-    },
-    // G-I
-    {
-      id: "g1",
-      word: "G",
-      videoPath: "g.mp4",
-      category: "alphabets",
-      difficulty: "medium",
-    },
-    {
-      id: "h1",
-      word: "H",
-      videoPath: "h.mp4",
-      category: "alphabets",
-      difficulty: "medium",
-    },
-    {
-      id: "i1",
-      word: "I",
-      videoPath: "i.mp4",
-      category: "alphabets",
-      difficulty: "medium",
-    },
-    // Continue for all letters...
-  ],
+  alphabets: generateAlphabetContentFromCSV(),
 
   numbers: [
     // 1-10

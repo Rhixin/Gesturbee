@@ -9,8 +9,9 @@ import VideoLesson from './VideoLesson';
 import MultipleChoiceLesson from './MultipleChoiceLesson';
 import ExecuteLesson from './ExecuteLesson';
 import SpellingLesson from './SpellingLesson';
-// import FallingLettersGame from '../minigames/FallingLettersGame';
-// import MatchingGame from '../minigames/MatchingGame';
+import FallingLettersLesson from './FallingLettersLesson';
+import BalloonPopLesson from './BalloonPopLesson';
+import MatchingGameLesson from './MatchingGameLesson';
 
 // Import types and utilities
 import {
@@ -58,8 +59,10 @@ const DynamicLessonManager: React.FC<DynamicLessonManagerProps> = ({
     spelling: ["Complete the Word", "Fill in the Blanks", "Spelling Challenge"],
     matching: ["Match the Signs", "Find the Pairs", "Memory Match"],
     falling_letters: ["Catch the Letters", "Letter Rain", "Spelling Drop"],
+    balloon_pop: ["Pop the Balloons", "Balloon Challenge", "Time to Pop"],
     memory_cards: ["Memory Game", "Card Match", "Remember the Signs"],
     sequence_builder: ["Build the Sequence", "Order the Signs", "Arrange Correctly"],
+    level_introduction: ["Welcome", "Let's Begin", "Level Introduction"],
   };
 
   useEffect(() => {
@@ -193,21 +196,60 @@ const DynamicLessonManager: React.FC<DynamicLessonManagerProps> = ({
         );
 
       case 'falling_letters':
+        const fallingLettersData = generateLearnedLetters();
         return (
-          <View className="flex-1 justify-center items-center">
-            <Text className="text-lg font-poppins">
-              Falling Letters game coming soon!
-            </Text>
-          </View>
+          <FallingLettersLesson
+            title="Catch the Letters"
+            currentLessonIndex={currentLessonIndex}
+            learnedLetters={fallingLettersData}
+            isViganTheme={Number(stageId) === 1}
+          />
+        );
+
+      case 'balloon_pop':
+        const balloonLettersData = generateLearnedLetters();
+        return (
+          <BalloonPopLesson
+            title="Pop the Balloons"
+            currentLessonIndex={currentLessonIndex}
+            learnedLetters={balloonLettersData}
+            isViganTheme={Number(stageId) === 1}
+          />
         );
 
       case 'matching':
+        const matchingLettersData = generateLearnedLetters();
+
+        // Fallback to multiple choice if less than 3 letters learned
+        if (matchingLettersData.length < 3) {
+          const choices = generateMultipleChoiceOptions(content.word);
+          return (
+            <MultipleChoiceLesson
+              title="What sign is this?"
+              videoSource={{ uri: content.videoPath }}
+              choices={choices}
+              correctAnswer={content.word}
+              videoRef={videoRef}
+              setStatus={setStatus}
+              currentLessonIndex={currentLessonIndex}
+            />
+          );
+        }
+
+        const matchingPairs = matchingLettersData.slice(0, 3).map((letter, index) => ({
+          id: `pair_${index}`,
+          videoPath: `${letter.toLowerCase()}.mp4`,
+          word: letter,
+          isMatched: false,
+        }));
+
         return (
-          <View className="flex-1 justify-center items-center">
-            <Text className="text-lg font-poppins">
-              Matching game coming soon!
-            </Text>
-          </View>
+          <MatchingGameLesson
+            title="Match the Signs"
+            currentLessonIndex={currentLessonIndex}
+            pairs={matchingPairs}
+            isViganTheme={Number(stageId) === 1}
+          />
         );
 
       // Add other minigame types as needed
@@ -238,6 +280,15 @@ const DynamicLessonManager: React.FC<DynamicLessonManagerProps> = ({
     return options.sort(() => Math.random() - 0.5);
   };
 
+  const generateLearnedLetters = (): string[] => {
+    // Generate learned letters based on current stage and level
+    const category = ContentGenerator.getCategoryForStage(Number(stageId));
+    const levelContent = ContentGenerator.getContentForLevel(Number(stageId), Number(levelId));
+    return [...new Set(
+      levelContent.flatMap(content => content.word.split(''))
+    )];
+  };
+
   const generateSpellingData = (word: string) => {
     const letters = word.split('');
     const questionWord = letters.map((letter, index) => {
@@ -264,12 +315,7 @@ const DynamicLessonManager: React.FC<DynamicLessonManagerProps> = ({
       }
     });
 
-    // Generate learned letters based on current stage and level
-    const category = ContentGenerator.getCategoryForStage(Number(stageId));
-    const levelContent = ContentGenerator.getContentForLevel(Number(stageId), Number(levelId));
-    const learnedLetters = [...new Set(
-      levelContent.flatMap(content => content.word.split(''))
-    )];
+    const learnedLetters = generateLearnedLetters();
 
     return {
       correctWord: letters,

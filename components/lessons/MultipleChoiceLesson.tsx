@@ -17,6 +17,12 @@ export default function MultipleChoiceLesson({
   setStatus,
   currentLessonIndex,
   isViganTheme = false,
+  isSiargaoTheme = false,
+  isManilaTheme = false,
+  isBoracayTheme = false,
+  isPalawanTheme = false,
+  isCebuTheme = false,
+  isBoholTheme = false,
 }: {
   title: string;
   videoSource: any;
@@ -26,6 +32,12 @@ export default function MultipleChoiceLesson({
   setStatus: React.Dispatch<React.SetStateAction<any>>;
   currentLessonIndex: number;
   isViganTheme?: boolean;
+  isSiargaoTheme?: boolean;
+  isManilaTheme?: boolean;
+  isBoracayTheme?: boolean;
+  isPalawanTheme?: boolean;
+  isCebuTheme?: boolean;
+  isBoholTheme?: boolean;
 }) {
   const {
     userSavedStage,
@@ -134,7 +146,7 @@ export default function MultipleChoiceLesson({
         <Text
           className="text-3xl font-poppins-bold text-center"
           style={{
-            color: isViganTheme ? "#6E6D6D" : "#374151",
+            color: isViganTheme ? "#6E6D6D" : isSiargaoTheme ? "#9D7C00" : isManilaTheme ? "#875C35" : isBoracayTheme ? "#488DA2" : isPalawanTheme ? "#6A645C" : isCebuTheme ? "#B65828" : isBoholTheme ? "#6D825A" : "#374151",
             marginTop: 20,
           }}
         >
@@ -185,9 +197,49 @@ export default function MultipleChoiceLesson({
                     ? isCorrect
                       ? isViganTheme
                         ? "#875C35"
+                        : isSiargaoTheme
+                        ? "#B8A869"
+                        : isManilaTheme
+                        ? "#87A248"
+                        : isBoracayTheme
+                        ? "#488DA2"
+                        : isPalawanTheme
+                        ? "#6A645C"
+                        : isCebuTheme
+                        ? "#B65828"
+                        : isBoholTheme
+                        ? "#6D825A"
                         : "#01D3C1"
-                      : "#FFE9C3"
-                    : "#FFE9C3",
+                      : isViganTheme
+                        ? "#FFE9C3"
+                        : isSiargaoTheme
+                        ? "#F0E7C9"
+                        : isManilaTheme
+                        ? "#E8F2D9"
+                        : isBoracayTheme
+                        ? "#E3F2FD"
+                        : isPalawanTheme
+                        ? "#D4C8B8"
+                        : isCebuTheme
+                        ? "#F4D9C6"
+                        : isBoholTheme
+                        ? "#D4E5C7"
+                        : "#FFE9C3"
+                    : isViganTheme
+                      ? "#FFE9C3"
+                      : isSiargaoTheme
+                      ? "#F0E7C9"
+                      : isManilaTheme
+                      ? "#E8F2D9"
+                      : isBoracayTheme
+                      ? "#E3F2FD"
+                      : isPalawanTheme
+                      ? "#D4C8B8"
+                      : isCebuTheme
+                      ? "#F4D9C6"
+                      : isBoholTheme
+                      ? "#D4E5C7"
+                      : "#FFE9C3",
                 }}
                 onPress={() => handleSelectAnswer(option)}
               >
@@ -199,6 +251,18 @@ export default function MultipleChoiceLesson({
                         ? "white"
                         : isViganTheme
                         ? "#875C35"
+                        : isSiargaoTheme
+                        ? "#9D7C00"
+                        : isManilaTheme
+                        ? "#875C35"
+                        : isBoracayTheme
+                        ? "#488DA2"
+                        : isPalawanTheme
+                        ? "#6A645C"
+                        : isCebuTheme
+                        ? "#B65828"
+                        : isBoholTheme
+                        ? "#6D825A"
                         : "#01D3C1",
                   }}
                 >
@@ -233,9 +297,49 @@ export default function MultipleChoiceLesson({
                     ? isCorrect
                       ? isViganTheme
                         ? "#875C35"
+                        : isSiargaoTheme
+                        ? "#B8A869"
+                        : isManilaTheme
+                        ? "#87A248"
+                        : isBoracayTheme
+                        ? "#488DA2"
+                        : isPalawanTheme
+                        ? "#6A645C"
+                        : isCebuTheme
+                        ? "#B65828"
+                        : isBoholTheme
+                        ? "#6D825A"
                         : "#01D3C1"
-                      : "#FFE9C3"
-                    : "#FFE9C3",
+                      : isViganTheme
+                        ? "#FFE9C3"
+                        : isSiargaoTheme
+                        ? "#F0E7C9"
+                        : isManilaTheme
+                        ? "#E8F2D9"
+                        : isBoracayTheme
+                        ? "#E3F2FD"
+                        : isPalawanTheme
+                        ? "#D4C8B8"
+                        : isCebuTheme
+                        ? "#F4D9C6"
+                        : isBoholTheme
+                        ? "#D4E5C7"
+                        : "#FFE9C3"
+                    : isViganTheme
+                      ? "#FFE9C3"
+                      : isSiargaoTheme
+                      ? "#F0E7C9"
+                      : isManilaTheme
+                      ? "#E8F2D9"
+                      : isBoracayTheme
+                      ? "#E3F2FD"
+                      : isPalawanTheme
+                      ? "#D4C8B8"
+                      : isCebuTheme
+                      ? "#F4D9C6"
+                      : isBoholTheme
+                      ? "#D4E5C7"
+                      : "#FFE9C3",
                 }}
                 onPress={() => handleSelectAnswer(option)}
               >
@@ -247,6 +351,18 @@ export default function MultipleChoiceLesson({
                         ? "white"
                         : isViganTheme
                         ? "#875C35"
+                        : isSiargaoTheme
+                        ? "#9D7C00"
+                        : isManilaTheme
+                        ? "#875C35"
+                        : isBoracayTheme
+                        ? "#488DA2"
+                        : isPalawanTheme
+                        ? "#6A645C"
+                        : isCebuTheme
+                        ? "#B65828"
+                        : isBoholTheme
+                        ? "#6D825A"
                         : "#01D3C1",
                   }}
                 >

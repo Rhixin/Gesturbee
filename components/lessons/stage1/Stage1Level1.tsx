@@ -8,6 +8,8 @@ import { useLocalSearchParams } from "expo-router";
 import SpellingLesson from "../SpellingLesson";
 import LevelIntroduction from "../LevelIntroduction";
 import FallingLettersLesson from "../FallingLettersLesson";
+import BalloonPopLesson from "../BalloonPopLesson";
+import MatchingGameLesson from "../MatchingGameLesson";
 import React from "react";
 import {
   getVideoPathForLetter,
@@ -16,7 +18,8 @@ import {
   generateSpellingPuzzle,
   getWordsForLetter,
   generateLetterSpellingPuzzle,
-  generateProgressiveSpellingPuzzle
+  generateProgressiveSpellingPuzzle,
+  getImagePathForWord
 } from "@/utils/alphabetContent";
 import { ContentGenerator } from "@/utils/contentGenerator";
 
@@ -206,6 +209,7 @@ export default function Stage1Level1({
             currentLessonIndex={currentLessonIndex}
             videoSource={content ? getVideoPathForLetter(content.word) : getVideoPathForLetter('A')}
             isViganTheme={isViganTheme}
+            contentWord={content?.word}
           />
         );
 
@@ -289,6 +293,7 @@ export default function Stage1Level1({
             correctAnswer={targetLetter}
             currentLessonIndex={currentLessonIndex}
             isViganTheme={isViganTheme}
+            contentWord={targetLetter}
           />
         );
 
@@ -332,6 +337,8 @@ export default function Stage1Level1({
             : currentLetterWords[Math.floor(Math.random() * currentLetterWords.length)];
 
           puzzle = generateProgressiveSpellingPuzzle(selectedWord, currentLetterBeingLearned, learnedLetters);
+          // Store selectedWord in puzzle for image path
+          puzzle.selectedWord = selectedWord;
           setSpellingCache(prev => ({...prev, [spellingCacheKey]: puzzle}));
         }
 
@@ -344,6 +351,7 @@ export default function Stage1Level1({
             isViganTheme={isViganTheme}
             blankPositions={puzzle.blankPositions}
             learnedLetters={puzzle.learnedLetters}
+            wordForImage={puzzle.selectedWord}
           />
         );
 
@@ -353,7 +361,108 @@ export default function Stage1Level1({
           <FallingLettersLesson
             title={currentLesson.title}
             currentLessonIndex={currentLessonIndex}
-            learnedLetters={learnedLettersForFalling}
+            learnedContent={learnedLettersForFalling} // Updated prop name
+            correctAnswer={currentLesson.correctAnswer} // Add correct answer prop
+            isViganTheme={isViganTheme}
+            isSiargaoTheme={false} // Stage 1 is not Siargao themed
+          />
+        );
+
+      case 'balloon_pop':
+        const learnedLettersForBalloon = getLearnedLetters();
+        return (
+          <BalloonPopLesson
+            title={currentLesson.title}
+            currentLessonIndex={currentLessonIndex}
+            learnedContent={learnedLettersForBalloon} // Updated prop name
+            correctAnswer={currentLesson.correctAnswer} // Add correct answer prop
+            isViganTheme={isViganTheme}
+            isSiargaoTheme={false} // Stage 1 is not Siargao themed
+          />
+        );
+
+      case 'matching':
+        const learnedLettersForMatching = getLearnedLetters();
+
+        // Only show matching game if there are at least 3 learned letters
+        if (learnedLettersForMatching.length < 3) {
+          // Fallback to multiple choice instead
+          const learnedLettersForMC = getLearnedLetters();
+          let mcTargetLetter = content?.word;
+
+          // Ensure target is a single letter only
+          if (mcTargetLetter && mcTargetLetter.length > 1) {
+            mcTargetLetter = mcTargetLetter[0];
+          }
+
+          // If content letter hasn't been learned, use the most recent learned letter
+          if (!mcTargetLetter || (!isContentValid({word: mcTargetLetter}) && learnedLettersForMC.length > 0)) {
+            mcTargetLetter = learnedLettersForMC[learnedLettersForMC.length - 1];
+          }
+
+          // Fallback to 'A' if no letters learned
+          mcTargetLetter = mcTargetLetter || 'A';
+
+          // Generate or retrieve cached multiple choice options
+          const cacheKey = `${currentLessonIndex}-${mcTargetLetter}`;
+          let mcOptions: string[];
+          if (mcOptionsCache[cacheKey]) {
+            mcOptions = mcOptionsCache[cacheKey];
+          } else {
+            // Generate options using only single learned letters + target letter
+            const availableLetters = [...new Set([...learnedLettersForMC, mcTargetLetter])].filter(letter => letter.length === 1);
+            mcOptions = [mcTargetLetter];
+
+            // Add other single learned letters as wrong options
+            const otherOptions = availableLetters.filter(l => l !== mcTargetLetter && l.length === 1);
+            while (mcOptions.length < 4 && otherOptions.length > 0) {
+              const randomIndex = Math.floor(Math.random() * otherOptions.length);
+              mcOptions.push(otherOptions.splice(randomIndex, 1)[0]);
+            }
+
+            // Fill remaining slots with single letters if needed
+            while (mcOptions.length < 4) {
+              const singleLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+              const remaining = singleLetters.filter(l => !mcOptions.includes(l));
+              if (remaining.length > 0) {
+                mcOptions.push(remaining[Math.floor(Math.random() * remaining.length)]);
+              } else {
+                break;
+              }
+            }
+
+            // Ensure all options are single letters and shuffle
+            mcOptions = mcOptions.filter(option => option.length === 1).sort(() => Math.random() - 0.5);
+            setMcOptionsCache(prev => ({...prev, [cacheKey]: mcOptions}));
+          }
+
+          return (
+            <MultipleChoiceLesson
+              title="What sign is this?"
+              videoSource={getVideoPathForLetter(mcTargetLetter)}
+              choices={mcOptions}
+              correctAnswer={mcTargetLetter}
+              videoRef={videoRef}
+              setStatus={setStatus}
+              currentLessonIndex={currentLessonIndex}
+              isViganTheme={isViganTheme}
+            />
+          );
+        }
+
+        // Generate matching pairs from learned letters
+        const matchingPairs = learnedLettersForMatching.slice(0, 3).map((letter, index) => ({
+          id: `pair_${index}`,
+          videoPath: getVideoPathForLetter(letter),
+          word: letter,
+          isMatched: false,
+        }));
+
+        return (
+          <MatchingGameLesson
+            title={currentLesson.title}
+            currentLessonIndex={currentLessonIndex}
+            pairs={matchingPairs}
             isViganTheme={isViganTheme}
           />
         );
@@ -367,6 +476,7 @@ export default function Stage1Level1({
             currentLessonIndex={currentLessonIndex}
             videoSource={content ? getVideoPathForLetter(content.word) : getVideoPathForLetter('A')}
             isViganTheme={isViganTheme}
+            contentWord={content?.word}
           />
         );
     }

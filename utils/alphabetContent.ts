@@ -240,40 +240,87 @@ export function generateProgressiveSpellingWords(levelId: number, count: number 
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
-// Words that contain each letter for spelling lessons
+// Words that contain each letter for spelling lessons - Updated from CSV
 const LETTER_WORDS: { [key: string]: string[] } = {
-  'A': ['APPLE', 'BALL', 'CAR', 'HAND', 'WATER', 'AGAIN'],
-  'B': ['BALL', 'BOOK', 'BIRD', 'TABLE', 'NUMBER', 'MAYBE'],
-  'C': ['CAT', 'CAR', 'CALL', 'SCHOOL', 'SCIENCE', 'PICTURE'],
-  'D': ['DOG', 'DAY', 'DOOR', 'WORD', 'NEED', 'MADE'],
-  'E': ['EAR', 'TREE', 'PEOPLE', 'EVERY', 'THERE', 'SEVEN'],
-  'F': ['FIRE', 'FISH', 'FACE', 'BEFORE', 'AFTER', 'LIFE'],
-  'G': ['GAME', 'GOOD', 'GIVE', 'LONG', 'NIGHT', 'FINGER'],
-  'H': ['HAND', 'HAVE', 'HEAD', 'HELP', 'HOUSE', 'HAPPY'],
-  'I': ['ICE', 'TIME', 'FIRE', 'WRITE', 'BIRD', 'INSIDE'],
-  'J': ['JUMP', 'JUST', 'JAIL', 'JUICE', 'ENJOY', 'MAJOR'],
-  'K': ['KEEP', 'KIND', 'KNOW', 'WORK', 'BOOK', 'MAKE'],
-  'L': ['LIKE', 'LIVE', 'LOOK', 'BALL', 'SMILE', 'EXAMPLE'],
-  'M': ['MAKE', 'MANY', 'MORE', 'NAME', 'TIME', 'FAMILY'],
-  'N': ['NAME', 'NEED', 'NEW', 'LONG', 'HAND', 'LEARN'],
-  'O': ['OPEN', 'OVER', 'OTHER', 'DOOR', 'WORK', 'SCHOOL'],
-  'P': ['PLAY', 'PART', 'PLACE', 'APPLE', 'PAPER', 'PEOPLE'],
-  'Q': ['QUICK', 'QUIET', 'QUEEN', 'QUESTION', 'EQUAL', 'SQUARE'],
-  'R': ['READ', 'REAL', 'RIGHT', 'ROOM', 'FIRE', 'WATER'],
-  'S': ['SHOW', 'SOME', 'SAME', 'SIDE', 'SMALL', 'START'],
-  'T': ['TAKE', 'TELL', 'TIME', 'TREE', 'WRITE', 'WATER'],
-  'U': ['UNDER', 'UNTIL', 'UPON', 'MUSIC', 'HOUSE', 'SURE'],
-  'V': ['VERY', 'VOICE', 'VISIT', 'LOVE', 'HAVE', 'SEVEN'],
-  'W': ['WANT', 'WAYS', 'WATER', 'WORLD', 'WRITE', 'WHITE'],
-  'X': ['EXTRA', 'EXAMPLE', 'EXCEPT', 'EXACT', 'EXPERT', 'NEXT'],
-  'Y': ['YEAR', 'YOUNG', 'YOUR', 'YELLOW', 'MAYBE', 'HAPPY'],
-  'Z': ['ZERO', 'ZONE', 'ZEBRA', 'ZIGZAG', 'PUZZLE', 'FROZEN']
+  'A': ['APPLE', 'ANT', 'CAMERA', 'PLATE', 'GRAPE', 'AVOCADO'],
+  'B': ['BOOK', 'TABLE', 'BAT', 'RABBIT', 'BANANA', 'BULB'],
+  'C': ['CIRCLE', 'CAR', 'CAT', 'DOCTOR', 'SCHOOL', 'CACTUS'],
+  'D': ['DOG', 'CANDLE', 'DIAMOND', 'DONUT', 'LADDER', 'DOOR'],
+  'E': ['EGG', 'CHEESE', 'BEE', 'LETTER', 'TREE', 'ENVELOPE'],
+  'F': ['FISH', 'FAN', 'LEAF', 'FORK', 'COFFEE', 'ROOF'],
+  'G': ['GOLD', 'GUITAR', 'GIFT', 'EGG', 'FLAG', 'GOAT'],
+  'H': ['HOUSE', 'EARTH', 'WHALE', 'CHAIR', 'HAMMER', 'HONEY'],
+  'I': ['ICE', 'MILK', 'RING', 'KITE', 'IRON', 'SHIP'],
+  'J': ['JAR', 'JEEP', 'JACKET', 'NINJA', 'JOLLIBEE', 'JUICE'],
+  'K': ['KEY', 'MONKEY', 'BOOK', 'BASKET', 'CAKE', 'KALESA'],
+  'L': ['LAMP', 'LION', 'LEG', 'LOCK', 'TABLE', 'BALUT'],
+  'M': ['MILK', 'LEMON', 'MOON', 'CAMEL', 'DRUM', 'MIRROR'],
+  'N': ['NIPA', 'NOSE', 'NEST', 'BANANA', 'PEN', 'RAIN'],
+  'O': ['OWL', 'DOOR', 'SCHOOL', 'OCTOPUS', 'TOMATO', 'ROBOT'],
+  'P': ['PEN', 'PIG', 'MAP', 'PAPER', 'PENCIL', 'PIZZA'],
+  'Q': ['QUARTZ', 'QUILL', 'LIQUID', 'QUIZ', 'QUAIL', 'QUESTION'],
+  'R': ['ROSE', 'RAT', 'RABBIT', 'RAINBOW', 'RICE', 'STAR'],
+  'S': ['SOCK', 'HOUSE', 'STAR', 'SPOON', 'BUS', 'DRESS'],
+  'T': ['TABLE', 'TOY', 'BALUT', 'TIGER', 'CAT', 'TICKET'],
+  'U': ['UMBRELLA', 'UTENSILS', 'FRUIT', 'UNICORN', 'GLUE', 'UKULELE'],
+  'V': ['VEST', 'VOLLEYBALL', 'CAVE', 'VASE', 'OVEN', 'VIOLIN'],
+  'W': ['WINDOW', 'WEB', 'TOWEL', 'WATER', 'WOLF', 'SNOW'],
+  'X': ['X-RAY', 'BOX', 'FOX', 'XYLOPHONE', 'TAXI', 'XMAS'],
+  'Y': ['YARN', 'YACHT', 'TOY', 'CANDY', 'JELLY', 'YO-YO'],
+  'Z': ['ZEBRA', 'ZERO', 'PIZZA', 'ZOO', 'ZIP', 'ZIGZAG']
 };
 
 // Get words that contain a specific letter
 export function getWordsForLetter(letter: string): string[] {
   const upperLetter = letter?.toUpperCase();
   return LETTER_WORDS[upperLetter] || ['WORD'];
+}
+
+// Get image path for a word
+export function getImagePathForWord(word: string): string {
+  // Convert word to lowercase and replace spaces/special characters for filename
+  const fileName = word.toLowerCase().replace(/\s+/g, '-');
+  return `@/assets/images/alphabet-images/${fileName}.png`;
+}
+
+// Get word with image data
+export function getWordWithImage(word: string): { word: string; imagePath: string } {
+  return {
+    word,
+    imagePath: getImagePathForWord(word)
+  };
+}
+
+// Generate alphabet content from CSV word bank for content database
+export function generateAlphabetContentFromCSV() {
+  const content: any[] = [];
+
+  // Add all letters first (A-Z)
+  ALPHABET_LETTERS.forEach((letter, index) => {
+    content.push({
+      id: `${letter.toLowerCase()}1`,
+      word: letter,
+      videoPath: `${letter.toLowerCase()}.mp4`,
+      category: "alphabets",
+      difficulty: "easy",
+    });
+  });
+
+  // Add all words from CSV with images
+  Object.entries(LETTER_WORDS).forEach(([letter, words]) => {
+    words.forEach((word, wordIndex) => {
+      content.push({
+        id: `${letter.toLowerCase()}_word_${wordIndex + 1}`,
+        word: word,
+        videoPath: `combination/${word.toLowerCase().replace(/\s+/g, '_')}.mp4`, // For combination videos
+        imagePath: getImagePathForWord(word),
+        category: "alphabets",
+        difficulty: word.length <= 3 ? "easy" : word.length <= 6 ? "medium" : "hard",
+      });
+    });
+  });
+
+  return content;
 }
 
 // Generate progressive spelling puzzle with multiple blanks

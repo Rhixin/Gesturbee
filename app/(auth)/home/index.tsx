@@ -77,15 +77,26 @@ const MovingCloud = ({
   );
 };
 
-// Stage place images mapping
+// Stage place images mapping - locked versions
 const stageImages = {
   1: require("@/assets/images/Stages/Vigan_1.png"),
-  2: require("@/assets/images/Stages/Siargao_2.png"),
-  3: require("@/assets/images/Stages/Palawan_3.png"),
-  4: require("@/assets/images/Stages/Manila_4.png"),
-  5: require("@/assets/images/Stages/Cebu_5.png"),
-  6: require("@/assets/images/Stages/Boracay_6.png"),
+  2: require("@/assets/images/Stages/Manila_4.png"),
+  3: require("@/assets/images/Stages/Boracay_6.png"),
+  4: require("@/assets/images/Stages/Siargao_2.png"),
+  5: require("@/assets/images/Stages/Palawan_3.png"),
+  6: require("@/assets/images/Stages/Cebu_5.png"),
   7: require("@/assets/images/Stages/Bohol_7.png"),
+};
+
+// Stage place images mapping - unlocked versions
+const stageUnlockedImages = {
+  1: require("@/assets/images/Stages/Vigan_1.png"), // Add Vigan_Unlocked.png when available
+  2: require("@/assets/images/Stages/Manila_Unlocked.png"),
+  3: require("@/assets/images/Stages/Boracay_Unlocked.png"),
+  4: require("@/assets/images/Stages/Siargao_Unlocked.png"),
+  5: require("@/assets/images/Stages/Palawan_Unlocked.png"),
+  6: require("@/assets/images/Stages/Cebu_Unlocked.png"),
+  7: require("@/assets/images/Stages/Bohol_Unlocked.png"),
 };
 
 // Stage positions ordered from top to bottom (1-7), scattered on x-axis
@@ -102,39 +113,39 @@ const stagePositions = {
 // Stage descriptions
 const stageDescriptions = {
   1: {
-    title: "Vigan Heritage",
+    title: "Vigan Alphabets",
     description:
       "Begin your journey learning the FSL alphabet in the historic cobblestone streets of Vigan. Master the foundation of Filipino sign language with beautiful colonial architecture as your backdrop.",
     theme: "Learn the fundamentals of FSL alphabets",
   },
   2: {
-    title: "Siargao Numbers",
+    title: "Manila Numbers",
     description:
-      "Surf through the numerical waves of Siargao while mastering FSL numbers. Practice counting and numerical expressions in this tropical island paradise.",
+      "Count through the bustling streets of Manila while mastering FSL numbers. Practice numerical expressions in the vibrant capital city with its urban energy.",
     theme: "Master FSL numbers and counting",
   },
   3: {
-    title: "Palawan Greetings",
+    title: "Boracay Greetings",
     description:
-      "Explore the underground river of communication by learning essential FSL greetings. Connect with others through welcoming gestures in this natural wonder.",
+      "Relax on white sand beaches while learning essential FSL greetings. Connect with others through welcoming gestures in this tropical paradise.",
     theme: "Express greetings and basic interactions",
   },
   4: {
-    title: "Manila Colors",
+    title: "Siargao Colors",
     description:
-      "Paint the vibrant cityscape of Manila with colorful FSL expressions. Learn to communicate colors and visual descriptions in the bustling capital.",
+      "Surf through the colorful waves of Siargao while learning FSL color expressions. Discover vibrant hues in this tropical island paradise.",
     theme: "Describe colors and visual elements",
   },
   5: {
-    title: "Cebu Questions",
+    title: "Palawan Family",
     description:
-      "Navigate the Queen City of the South by mastering FSL question formations. Learn to ask, inquire, and engage in meaningful conversations.",
-    theme: "Ask questions and seek information",
+      "Explore the underground river of family connections by learning FSL family terms. Build relationships through sign language in this natural wonder.",
+    theme: "Express family relationships and bonds",
   },
   6: {
-    title: "Boracay Days",
+    title: "Cebu Days",
     description:
-      "Relax on white sand beaches while learning to express days of the week in FSL. Plan activities and discuss time in this tropical getaway.",
+      "Navigate the Queen City of the South by mastering FSL days of the week. Plan activities and discuss time in this historic trading hub.",
     theme: "Communicate days and time concepts",
   },
   7: {
@@ -635,7 +646,7 @@ export default function Home() {
                       {stageData.map((stage) => {
                         const locked = isStageLocked(stage.id);
                         const position = stagePositions[stage.id];
-                        const stageImage = stageImages[stage.id];
+                        const stageImage = locked ? stageImages[stage.id] : stageUnlockedImages[stage.id];
 
                         const isSelected = selectedStage === stage.id;
 
@@ -668,7 +679,7 @@ export default function Home() {
                                 backgroundColor: locked
                                   ? "#9CA3AF"
                                   : isSelected
-                                  ? "#01D3C1" // Teal when selected
+                                  ? "#FBBC05" // Yellow when selected
                                   : "#FBBC05",
                                 shadowColor: "#000",
                                 shadowOffset: { width: 0, height: 2 },
@@ -700,7 +711,7 @@ export default function Home() {
                                 elevation: 5,
                                 borderWidth: isSelected ? 3 : 0,
                                 borderColor: isSelected
-                                  ? "#01D3C1"
+                                  ? "#FBBC05"
                                   : "transparent",
                               }}
                             >
@@ -724,7 +735,7 @@ export default function Home() {
                                 backgroundColor: locked
                                   ? "rgba(209, 213, 219, 0.9)"
                                   : isSelected
-                                  ? "rgba(1, 211, 193, 0.9)" // Teal when selected
+                                  ? "rgba(251, 188, 5, 0.9)" // Yellow when selected
                                   : "rgba(255, 255, 255, 0.9)",
                               }}
                             >
@@ -745,34 +756,6 @@ export default function Home() {
                               </Text>
                             </View>
 
-                            {/* Progress indicator - Dynamic width based on zoom */}
-                            {!locked && (
-                              <View
-                                style={{
-                                  marginTop: 6,
-                                  width: getDynamicFontSize(56, stage.id),
-                                  height: getDynamicFontSize(6, stage.id),
-                                  backgroundColor: "#E5E7EB",
-                                  borderRadius: 3,
-                                  overflow: "hidden",
-                                }}
-                              >
-                                <View
-                                  style={{
-                                    height: "100%",
-                                    backgroundColor: isSelected
-                                      ? "#01D3C1"
-                                      : "#FBBC05",
-                                    borderRadius: 3,
-                                    width: `${Math.min(
-                                      (userSavedLevel / userSavedTotalLesson) *
-                                        100,
-                                      100
-                                    )}%`,
-                                  }}
-                                />
-                              </View>
-                            )}
                           </TouchableOpacity>
                         );
                       })}
@@ -1044,12 +1027,12 @@ export default function Home() {
                         borderRadius: 12,
                         backgroundColor: isStageLocked(selectedStage)
                           ? "#9CA3AF"
-                          : "#01D3C1",
+                          : "#FBBC05",
                         flexDirection: "row",
                         alignItems: "center",
                         shadowColor: isStageLocked(selectedStage)
-                          ? "#9CA3AF"
-                          : "#01D3C1",
+                          ? "#01D3C1"
+                          : "#FBBC05",
                         shadowOffset: { width: 0, height: 4 },
                         shadowOpacity: 0.3,
                         shadowRadius: 8,

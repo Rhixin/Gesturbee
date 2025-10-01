@@ -14,6 +14,13 @@ export default function VideoLesson({
   setStatus,
   currentLessonIndex,
   isViganTheme = false,
+  isSiargaoTheme = false,
+  isManilaTheme = false,
+  isBoracayTheme = false,
+  isPalawanTheme = false,
+  isCebuTheme = false,
+  isBoholTheme = false,
+  contentWord = null,
 }: {
   title: string;
   videoRef: React.RefObject<any>;
@@ -21,6 +28,13 @@ export default function VideoLesson({
   setStatus: (status: any) => void;
   currentLessonIndex: number;
   isViganTheme?: boolean;
+  isSiargaoTheme?: boolean;
+  isManilaTheme?: boolean;
+  isBoracayTheme?: boolean;
+  isPalawanTheme?: boolean;
+  isCebuTheme?: boolean;
+  isBoholTheme?: boolean;
+  contentWord?: string | null;
 }) {
   const {
     userSavedStage,
@@ -79,14 +93,14 @@ export default function VideoLesson({
       <View className="mb-6 mt-6 w-1/2">
         <View
           className="p-4 rounded-lg"
-          style={{ backgroundColor: isViganTheme ? "#FFE9C3" : "#01D3C1" }}
+          style={{ backgroundColor: isViganTheme ? "#FFE9C3" : isSiargaoTheme ? "#B8A869" : isManilaTheme ? "#87A248" : isBoracayTheme ? "#488DA2" : isPalawanTheme ? "#D4C8B8" : isCebuTheme ? "#F4D9C6" : isBoholTheme ? "#D4E5C7" : "#01D3C1" }}
         >
           <View className="flex-row items-center">
             <Text
               className="text-2xl font-poppins-medium ml-2"
-              style={{ color: isViganTheme ? "#875C35" : "white" }}
+              style={{ color: isViganTheme ? "#875C35" : isManilaTheme ? "white" : isBoracayTheme ? "white" : isPalawanTheme ? "#6A645C" : isCebuTheme ? "#B65828" : isBoholTheme ? "#6D825A" : "white" }}
             >
-              {title}
+              This is "{contentWord || title}"
             </Text>
           </View>
         </View>
