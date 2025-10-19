@@ -1,13 +1,13 @@
 import { useLevel } from "@/context/LevelContext";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState, useMemo } from "react";
-import { View, Text, ActivityIndicator, StyleSheet, Dimensions, useWindowDimensions, Image, ImageBackground } from "react-native";
+import { View, Text, ActivityIndicator, StyleSheet, useWindowDimensions, Image } from "react-native";
 import { WebView } from "react-native-webview";
 import SuccessModal from "@/components/modals/SuccessModal";
 import { useAuth } from "@/context/AuthContext";
 import React from "react";
 
-export default function ExecuteLesson({
+export default function ColorExecuteLesson({
   title,
   correctAnswer,
   currentLessonIndex,
@@ -18,8 +18,7 @@ export default function ExecuteLesson({
   isPalawanTheme = false,
   isCebuTheme = false,
   isBoholTheme = false,
-  contentWord = null,
-  backgroundImage = null,
+  colorImage,
 }: {
   title: string;
   correctAnswer: string;
@@ -31,8 +30,7 @@ export default function ExecuteLesson({
   isPalawanTheme?: boolean;
   isCebuTheme?: boolean;
   isBoholTheme?: boolean;
-  contentWord?: string | null;
-  backgroundImage?: any;
+  colorImage: any;
 }) {
   const {
     userSavedStage,
@@ -53,25 +51,14 @@ export default function ExecuteLesson({
   const { width, height } = useWindowDimensions();
   const isPortrait = height > width;
 
-  // Randomize bee and message box images
-  const beeVariants = [
-    require("@/assets/images/Bee/bee1.png"),
-    require("@/assets/images/Bee/bee2.png"),
-    require("@/assets/images/Bee/bee3.png"),
-    require("@/assets/images/Bee/bee4.png"),
-  ];
-
+  // Randomize message box images
   const messageBoxVariants = [
     require("@/assets/images/Message/messagebox1.png"),
     require("@/assets/images/Message/messagebox2.png"),
     require("@/assets/images/Message/messagebox3.png"),
   ];
 
-  // Select random variants (memoized to keep consistent during re-renders)
-  const selectedBee = useMemo(() => {
-    return beeVariants[Math.floor(Math.random() * beeVariants.length)];
-  }, []);
-
+  // Select random message box variant (memoized to keep consistent during re-renders)
   const selectedMessageBox = useMemo(() => {
     return messageBoxVariants[Math.floor(Math.random() * messageBoxVariants.length)];
   }, []);
@@ -120,88 +107,42 @@ export default function ExecuteLesson({
     return true;
   };
 
-  // const onMessage = (event) => {
-  //   try {
-  //     const data = JSON.parse(event.nativeEvent.data);
-  //     if (data?.type === "prediction") {
-  //       console.log(data);
-  //       setPrediction(data.data.prediction);
-
-  //       if (correctAnswer == data.data.prediction) {
-  //         if (!isThisLessonAlreadyDone()) {
-  //           // Update Database
-  //           if (userSavedLesson === userSavedTotalLesson) {
-  //             updateLevel(userSavedStage, userSavedLevel + 1, 1, 10);
-  //           } else {
-  //             updateLevel(
-  //               userSavedStage,
-  //               userSavedLevel,
-  //               userSavedLesson + 1,
-  //               userSavedTotalLesson
-  //             );
-  //           }
-  //         } else {
-  //           // Show modal u did it
-  //         }
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.log("Error parsing message:", error);
-  //   }
-  // };
-
   const onMessage = (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      console.log("=== WEBVIEW MESSAGE RECEIVED ===");
+      console.log("=== COLOR EXECUTE - WEBVIEW MESSAGE ===");
       console.log("Raw data:", JSON.stringify(data, null, 2));
 
       if (data?.type === "prediction") {
         // Handle different possible data structures
         // For /words endpoint: data.data.prediction.top_prediction
-        // For /alphabets endpoint: data.data.prediction.prediction or data.data.prediction
-        let predictedLetter;
+        let predictedColor;
 
         if (data.data?.prediction?.top_prediction) {
           // Words endpoint - extract top_prediction
-          predictedLetter = data.data.prediction.top_prediction;
+          predictedColor = data.data.prediction.top_prediction;
         } else if (data.data?.prediction?.prediction) {
-          // Alphabets endpoint - nested prediction
-          predictedLetter = data.data.prediction.prediction;
+          // Nested prediction
+          predictedColor = data.data.prediction.prediction;
         } else if (typeof data.data?.prediction === 'string') {
           // Direct string prediction
-          predictedLetter = data.data.prediction;
+          predictedColor = data.data.prediction;
         } else if (typeof data.prediction === 'string') {
           // Fallback
-          predictedLetter = data.prediction;
+          predictedColor = data.prediction;
         }
 
-        setPrediction(predictedLetter);
+        setPrediction(predictedColor);
 
-        console.log("=== AI PREDICTION DEBUG ===");
-        console.log("Predicted:", predictedLetter, "Type:", typeof predictedLetter);
+        console.log("=== COLOR EXECUTE - PREDICTION DEBUG ===");
+        console.log("Predicted:", predictedColor, "Type:", typeof predictedColor);
         console.log("Expected:", correctAnswer, "Type:", typeof correctAnswer);
-        console.log("Are they equal?", correctAnswer === predictedLetter);
-        console.log("Stage ID:", stageId, "Level ID:", levelId);
+        console.log("Are they equal?", correctAnswer === predictedColor);
 
-        if (correctAnswer === predictedLetter) {
-          console.log("Correct answer detected!");
+        if (correctAnswer === predictedColor) {
+          console.log("Correct color detected!");
           const lessonAlreadyDone = isThisLessonAlreadyDone();
           console.log("Is lesson already done?", lessonAlreadyDone);
-          console.log("Current lesson index:", currentLessonIndex);
-          console.log("User saved lesson:", userSavedLesson);
-          console.log(
-            "User saved stage:",
-            userSavedStage,
-            "Stage ID:",
-            Number(stageId)
-          );
-          console.log(
-            "User saved level:",
-            userSavedLevel,
-            "Level ID:",
-            Number(levelId)
-          );
 
           if (!lessonAlreadyDone) {
             // Update Database
@@ -212,7 +153,7 @@ export default function ExecuteLesson({
                 userSavedStage,
                 userSavedLevel + 1,
                 1,
-                userSavedTotalLesson, // Use the same total lessons for next level
+                userSavedTotalLesson,
                 true
               );
 
@@ -242,14 +183,14 @@ export default function ExecuteLesson({
     setShowSuccessModal(false);
   };
 
-  const content = (
+  return (
     <>
-      {/* Title Section with Bee and Message Box */}
+      {/* Title Section with Color Image and Message Box */}
       <View style={styles.titleContainer}>
-        {/* Bee Image on the Left */}
+        {/* Color Image on the Left (replacing bee) */}
         <Image
-          source={selectedBee}
-          style={styles.beeImage}
+          source={colorImage}
+          style={styles.colorImageLeft}
           resizeMode="contain"
         />
 
@@ -267,7 +208,7 @@ export default function ExecuteLesson({
                 { color: isViganTheme ? "#875C35" : isSiargaoTheme ? "#9D7C00" : isManilaTheme ? "#87A248" : isBoracayTheme ? "#488DA2" : isPalawanTheme ? "#6A645C" : isCebuTheme ? "#B65828" : isBoholTheme ? "#6D825A" : "#01D3C1" }
               ]}
             >
-              Can you execute "{contentWord || correctAnswer}"?
+              What color is this?
             </Text>
           </View>
         </View>
@@ -299,9 +240,7 @@ export default function ExecuteLesson({
         )}
         <WebView
           source={{
-            uri: contentWord
-              ? "https://gesturbee-app-model.vercel.app/words"
-              : "https://gesturbee-app-model.vercel.app/alphabets"
+            uri: "https://gesturbee-app-model.vercel.app/words"
           }}
           style={{
             width: "100%",
@@ -329,27 +268,9 @@ export default function ExecuteLesson({
       />
     </>
   );
-
-  return backgroundImage ? (
-    <ImageBackground
-      source={backgroundImage}
-      style={styles.backgroundImage}
-      resizeMode="cover"
-    >
-      {content}
-    </ImageBackground>
-  ) : (
-    content
-  );
 }
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-  },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -357,7 +278,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     width: '80%',
   },
-  beeImage: {
+  colorImageLeft: {
     width: 120,
     height: 120,
     marginRight: -20,

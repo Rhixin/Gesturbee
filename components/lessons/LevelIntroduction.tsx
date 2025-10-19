@@ -37,106 +37,98 @@ export default function LevelIntroduction({
 
     if (isViganTheme) {
       const viganMessages = [
-        `¡Maayong aga! Ready to explore the colonial letters ${letterList}? Let's journey through Vigan's cobblestone paths of learning!`,
-        `Welcome, young explorer! In this heritage level, we'll master the letters ${letterList} like the scholars of old Vigan.`,
-        `¡Hola, amigo! Time to discover ${letterCount} beautiful letters: ${letterList}. Let's make history together in Vigan!`,
-        `Greetings from the UNESCO city! Today's adventure features the letters ${letterList}. Ready to sign like a true Ilocano?`,
-        `Welcome to our Spanish colonial classroom! We'll learn ${letterList} while walking through Vigan's historic streets.`,
-        `¡Buenos días! Let's explore ${letterCount} letters in this heritage level: ${letterList}. Vigan's wisdom awaits!`,
-        `Step into history! In Level ${levelId}, we'll master ${letterList} with the spirit of Vigan's ancestors.`,
-        `Welcome, heritage learner! Today we discover ${letterList} in the beautiful setting of historic Vigan.`,
-        `¡Kamusta! Ready for a colonial learning adventure? We'll explore letters ${letterList} together!`
+        `Welcome to Vigan! Let's learn ${letterList} together!`,
+        `Maayong aga! Ready to master ${letterList} in historic Vigan?`,
+        `Let's discover ${letterList} in beautiful Vigan!`,
+        `Welcome! Time to learn ${letterList} like a true Ilocano.`,
+        `Ready to explore ${letterList} in Vigan?`,
+        `Heritage vibes! Let's master ${letterList} together!`,
+        `Kumusta! Let's learn ${letterList} with Vigan's wisdom.`,
+        `Welcome! Ready for a heritage adventure with ${letterList}?`
       ];
       return viganMessages[levelId % viganMessages.length];
     } else if (isManilaTheme) {
       const manilaMessages = [
-        `Kumusta! Welcome to the bustling capital! Ready to count through ${letterList} in the heart of Manila?`,
-        `Mabuhay from Metro Manila! Let's explore ${letterCount} numbers: ${letterList} in the city that never sleeps!`,
-        `Welcome to the urban jungle! Today we'll master ${letterList} with the energy of Manila's streets.`,
-        `Hello from the Pearl of the Orient! Ready to learn ${letterList} in the Philippines' vibrant capital?`,
-        `Greetings from Maynila! Let's navigate through numbers ${letterList} like traversing the city's busy roads.`,
-        `Welcome to the capital city! Time to discover ${letterCount} numbers: ${letterList} in metropolitan Manila!`,
-        `Kamusta from the big city! In Level ${levelId}, we'll master ${letterList} with Manila's urban spirit.`,
-        `Welcome, city learner! Today we explore ${letterList} in the dynamic atmosphere of Manila.`,
-        `Mabuhay! Ready for a metropolitan learning adventure? We'll count through ${letterList} together!`
+        `Welcome to Manila! Let's learn ${letterList} together!`,
+        `Mabuhay! Ready to master the numbers: ${letterList}?`,
+        `Let's explore ${letterList} in the capital city!`,
+        `Welcome! Time to learn ${letterList} in Manila.`,
+        `Ready to discover ${letterList} in the big city?`,
+        `City vibes! Let's master ${letterList} together!`,
+        `Kumusta! Let's learn ${letterList} with Manila's energy.`,
+        `Welcome! Ready for a number adventure with ${letterList}?`
       ];
       return manilaMessages[levelId % manilaMessages.length];
     } else if (isSiargaoTheme) {
       const siargaoMessages = [
-        `Surf's up! Welcome to Siargao's colorful paradise! Ready to ride the waves of learning with ${letterList}?`,
-        `Aloha from the surfing capital! Let's catch some knowledge waves with ${letterCount} vibrant colors: ${letterList}!`,
-        `Welcome to island life! Today we'll paint the sky with colors ${letterList} in beautiful Siargao.`,
-        `Hang ten, color explorer! In Level ${levelId}, we'll master ${letterList} like a true island surfer.`,
-        `Greetings from paradise! Ready to dive into the colorful world of ${letterList} in Siargao?`,
-        `Welcome to the Cloud 9 of learning! Let's surf through colors ${letterList} together!`,
-        `Island vibes activated! Time to discover ${letterCount} amazing colors: ${letterList} in tropical Siargao.`,
-        `Aloha, beach learner! Today we explore ${letterList} with the spirit of Siargao's waves.`,
-        `Welcome to our island classroom! Ready for a colorful adventure with ${letterList}?`
+        `Welcome to Siargao! Let's learn ${letterList} together!`,
+        `Surf's up! Ready to master the colors: ${letterList}?`,
+        `Let's paint the sky with ${letterList} in Siargao!`,
+        `Welcome! Time to learn ${letterList} like an island surfer.`,
+        `Ready to discover ${letterList} in paradise?`,
+        `Island vibes! Let's explore ${letterList} together!`,
+        `Aloha! Let's learn ${letterList} with Siargao's waves.`,
+        `Welcome! Ready for a colorful adventure with ${letterList}?`
       ];
       return siargaoMessages[levelId % siargaoMessages.length];
     } else if (isBoracayTheme) {
       const boracayMessages = [
-        `Kamusta from White Beach! Welcome to Boracay's greeting paradise! Ready to learn ${letterList} by the crystal clear waters?`,
-        `Mabuhay from the world's best beach! Let's master ${letterCount} beautiful greetings: ${letterList} in tropical Boracay!`,
-        `Welcome to island hospitality! Today we'll spread warmth with greetings ${letterList} in stunning Boracay.`,
-        `Greetings from paradise! In Level ${levelId}, we'll learn ${letterList} like a true Boracay local.`,
-        `Hello from the sunset capital! Ready to welcome the world with ${letterList} in beautiful Boracay?`,
-        `Welcome to the friendliest island! Let's master greetings ${letterList} together by the white sand!`,
-        `Beach vibes activated! Time to discover ${letterCount} warm greetings: ${letterList} in tropical Boracay.`,
-        `Kumusta, beach lover! Today we explore ${letterList} with the hospitality of Boracay's shores.`,
-        `Welcome to our beachside classroom! Ready for a greeting adventure with ${letterList}?`
+        `Welcome to Boracay! Let's learn ${letterList} by the beach!`,
+        `Mabuhay! Ready to master ${letterList} in paradise?`,
+        `Let's spread warmth with ${letterList} in beautiful Boracay!`,
+        `Welcome! Time to learn ${letterList} like a Boracay local.`,
+        `Ready to learn ${letterList} by the white sand?`,
+        `Beach vibes! Let's discover ${letterList} together!`,
+        `Kumusta! Let's explore ${letterList} with island hospitality.`,
+        `Welcome to paradise! Ready to learn ${letterList}?`
       ];
       return boracayMessages[levelId % boracayMessages.length];
     } else if (isPalawanTheme) {
       const palawanMessages = [
-        `Kamusta from the pristine islands! Welcome to Palawan's family paradise! Ready to learn about ${letterList} in the Philippines' last frontier?`,
-        `Mabuhay from the underground river! Let's explore ${letterCount} beautiful family words: ${letterList} in stunning Palawan!`,
-        `Welcome to nature's sanctuary! Today we'll bond with family words ${letterList} in breathtaking Palawan.`,
-        `Greetings from paradise! In Level ${levelId}, we'll learn about ${letterList} like a true Palawan family.`,
-        `Hello from the island province! Ready to sail through family connections with ${letterList} in beautiful Palawan?`,
-        `Welcome to the wildlife haven! Let's discover family bonds with ${letterList} together by the crystal waters!`,
-        `Island family vibes activated! Time to explore ${letterCount} loving family words: ${letterList} in tropical Palawan.`,
-        `Kumusta, nature lover! Today we explore ${letterList} with the warmth of Palawan's families.`,
-        `Welcome to our island family classroom! Ready for a family adventure with ${letterList}?`
+        `Welcome to Palawan! Let's learn about ${letterList} together!`,
+        `Mabuhay! Ready to explore family words: ${letterList}?`,
+        `Let's discover ${letterList} in beautiful Palawan!`,
+        `Welcome! Time to learn ${letterList} like a Palawan family.`,
+        `Ready to learn family connections with ${letterList}?`,
+        `Nature vibes! Let's explore ${letterList} together!`,
+        `Kumusta! Let's learn ${letterList} with family warmth.`,
+        `Welcome! Ready for a family adventure with ${letterList}?`
       ];
       return palawanMessages[levelId % palawanMessages.length];
     } else if (isCebuTheme) {
       const cebuMessages = [
-        `Kamusta from the Queen City! Welcome to Cebu's days adventure! Ready to learn ${letterList} in the heart of the Visayas?`,
-        `Mabuhay from Cebu! Let's explore ${letterCount} days of the week: ${letterList} in the mango capital!`,
-        `Welcome to the heritage city! Today we'll master ${letterList} with the warmth of Cebu's culture.`,
-        `Greetings from Cebu! In Level ${levelId}, we'll learn ${letterList} like a true Cebuano.`,
-        `Hello from the gateway to the south! Ready to discover the days with ${letterList} in beautiful Cebu?`,
-        `Welcome to the cradle of Christianity! Let's learn ${letterList} together in historic Cebu!`,
-        `Cebu vibes activated! Time to explore ${letterCount} important days: ${letterList} in tropical Cebu.`,
-        `Kumusta, island learner! Today we explore ${letterList} with the spirit of Cebu's hospitality.`,
-        `Welcome to our Cebu classroom! Ready for a days adventure with ${letterList}?`
+        `Welcome to Cebu! Let's learn ${letterList} together!`,
+        `Mabuhay! Ready to explore the days: ${letterList}?`,
+        `Let's master ${letterList} in beautiful Cebu!`,
+        `Welcome! Time to learn ${letterList} like a Cebuano.`,
+        `Ready to discover ${letterList} in Cebu?`,
+        `Cebu vibes! Let's explore ${letterList} together!`,
+        `Kumusta! Let's learn ${letterList} with Cebu's hospitality.`,
+        `Welcome! Ready for an adventure with ${letterList}?`
       ];
       return cebuMessages[levelId % cebuMessages.length];
     } else if (isBoholTheme) {
       const boholMessages = [
-        `Kamusta from the Chocolate Hills! Welcome to Bohol's months adventure! Ready to learn ${letterList} in the land of tarsiers?`,
-        `Mabuhay from Bohol! Let's explore ${letterCount} months of the year: ${letterList} in this natural wonder!`,
-        `Welcome to the tarsier sanctuary! Today we'll master ${letterList} with the charm of Bohol's nature.`,
-        `Greetings from Bohol! In Level ${levelId}, we'll learn ${letterList} like a true Boholano.`,
-        `Hello from the land of natural wonders! Ready to discover the months with ${letterList} in beautiful Bohol?`,
-        `Welcome to the biodiversity paradise! Let's learn ${letterList} together in historic Bohol!`,
-        `Bohol vibes activated! Time to explore ${letterCount} months: ${letterList} in this tropical wonderland.`,
-        `Kumusta, nature explorer! Today we explore ${letterList} with the spirit of Bohol's wildlife.`,
-        `Welcome to our Bohol classroom! Ready for a months adventure with ${letterList}?`
+        `Welcome to Bohol! Let's learn ${letterList} together!`,
+        `Mabuhay! Ready to explore the months: ${letterList}?`,
+        `Let's master ${letterList} in beautiful Bohol!`,
+        `Welcome! Time to learn ${letterList} like a Boholano.`,
+        `Ready to discover ${letterList} in Bohol?`,
+        `Bohol vibes! Let's explore ${letterList} together!`,
+        `Kumusta! Let's learn ${letterList} with Bohol's nature.`,
+        `Welcome! Ready for a months adventure with ${letterList}?`
       ];
       return boholMessages[levelId % boholMessages.length];
     } else {
       const regularMessages = [
-        `Welcome to Level ${levelId}! Ready to master ${letterCount} amazing letters: ${letterList}? Let's begin this exciting journey!`,
-        `Hello there, learner! In Level ${levelId}, we'll explore the letters ${letterList}. Are you ready to sign your way to success?`,
-        `Great to see you again! This level focuses on ${letterList}. Let's make these ${letterCount} letters your new best friends!`,
-        `Welcome back, champion! Level ${levelId} brings us ${letterList}. Time to show these letters what you're made of!`,
-        `Hey there, sign language star! Ready to tackle ${letterList} in Level ${levelId}? Let's make some magic happen!`,
-        `Welcome to your next adventure! We'll be learning ${letterList} today. Are you excited to expand your signing skills?`,
-        `Hello, future signing expert! Level ${levelId} is all about mastering ${letterList}. Let's dive right in!`,
-        `Welcome to the learning zone! Today's mission: conquer the letters ${letterList}. Ready to accept the challenge?`,
-        `Hey there, dedicated learner! In Level ${levelId}, we'll perfect our skills with ${letterList}. Let's get started!`
+        `Welcome to Level ${levelId}! Let's learn ${letterList} together!`,
+        `Hello! Ready to master ${letterList}?`,
+        `Let's explore ${letterList} in this level!`,
+        `Welcome! Time to learn ${letterList}.`,
+        `Ready to discover ${letterList}?`,
+        `Let's master ${letterList} together!`,
+        `Welcome! Let's learn ${letterList}!`,
+        `Ready for an adventure with ${letterList}?`
       ];
       return regularMessages[levelId % regularMessages.length];
     }

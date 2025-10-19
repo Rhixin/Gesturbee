@@ -21,20 +21,11 @@ const LEVEL_MONTHS_MAP: { [key: number]: string[] } = {
   4: ['OCTOBER', 'NOVEMBER', 'DECEMBER']                 // Level 4: Oct-Dec (3 words)
 };
 
-// Map months words to letters for AI testing (since AI only recognizes A-Z)
-// This is a temporary workaround: JANUARY=A, FEBRUARY=B, MARCH=C, etc.
-const MONTHS_TO_LETTER_MAP: { [key: string]: string } = {
-  'JANUARY': 'A', 'FEBRUARY': 'B', 'MARCH': 'C',
-  'APRIL': 'D', 'MAY': 'E', 'JUNE': 'F',
-  'JULY': 'G', 'AUGUST': 'H', 'SEPTEMBER': 'I',
-  'OCTOBER': 'J', 'NOVEMBER': 'K', 'DECEMBER': 'L'
-};
-
-// Helper function to get AI test letter for a months word
-const getAITestLetter = (monthsWord: string): string => {
-  const letter = MONTHS_TO_LETTER_MAP[monthsWord];
-  console.log(`[Stage7] Months word "${monthsWord}" mapped to letter ${letter} for AI testing`);
-  return letter || 'A'; // Fallback to 'A'
+// AI recognizes actual months words (no mapping needed)
+// Helper function that returns the months word itself for AI
+const getAIWord = (monthsWord: string): string => {
+  console.log(`[Stage7] Using months word "${monthsWord}" for AI recognition`);
+  return monthsWord; // Return the months word as-is
 };
 
 // Static mapping for months word videos (React Native requires static paths)
@@ -104,7 +95,7 @@ export default function Stage7Level1({
       currentLevelId,
       currentLevelMonths,
       getVideoPathForMonths,
-      getAITestLetter
+      getAIWord
     );
     console.log(`[Stage7Level1] Generated ${generatedLessons.length} lessons`);
     return generatedLessons;
@@ -254,12 +245,36 @@ export default function Stage7Level1({
     case "matching":
       const learnedMonthsForMatching = getLearnedMonths();
 
+      // Check if we have enough learned months for matching game (≥3)
+      if (learnedMonthsForMatching.length < 3 || !currentLesson.content) {
+        // Fallback to execute test if not enough content
+        return (
+          <ExecuteLesson
+            title={currentLesson.title}
+            correctAnswer={currentLesson.correctAnswer || 'JANUARY'}
+            currentLessonIndex={currentLessonIndex}
+            contentWord={content?.word}
+            isBoholTheme={true}
+          />
+        );
+      }
+
+      // Use the matching pairs from the generated lesson content (exactly 3 items)
+      const matchingPairs = currentLesson.content.map((item: any, index: number) => ({
+        id: `pair_${index}`,
+        videoPath: getVideoPathForMonths(item.word), // Convert word to proper require() path
+        word: item.word,
+        isMatched: false,
+      }));
+
+      console.log('[MATCHING] Using pairs from lesson content:', matchingPairs);
+
       return (
         <MatchingGameLesson
           title={currentLesson.title}
           currentLessonIndex={currentLessonIndex}
-          learnedContent={learnedMonthsForMatching}
-          getVideoPath={getVideoPathForMonths}
+          pairs={matchingPairs}
+          isBoholTheme={true}
         />
       );
 

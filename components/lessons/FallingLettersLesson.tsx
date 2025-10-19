@@ -294,14 +294,7 @@ export default function FallingLettersLesson({
     setFallingItems([]);
   };
 
-  // Development helper: Map AI letters to numbers for testing
-  const mapLetterToNumber = (letter: string): string => {
-    const letterToNumberMap: { [key: string]: string } = {
-      'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5',
-      'F': '6', 'G': '7', 'H': '8', 'I': '9', 'J': '10'
-    };
-    return letterToNumberMap[letter] || letter;
-  };
+  // Removed dummy mapLetterToNumber - now using actual AI predictions
 
   // Handle WebView prediction
   const onMessage = (event) => {
@@ -309,16 +302,31 @@ export default function FallingLettersLesson({
       const data = JSON.parse(event.nativeEvent.data);
 
       if (data?.type === "prediction") {
-        const predictedLetter = data.data.prediction.prediction.toUpperCase();
+        // Handle different possible data structures
+        // For /words endpoint: data.data.prediction.top_prediction
+        // For /alphabets endpoint: data.data.prediction.prediction or data.data.prediction
+        let predictedLetter;
+
+        if (data.data?.prediction?.top_prediction) {
+          // Words endpoint - extract top_prediction
+          predictedLetter = data.data.prediction.top_prediction.toUpperCase();
+        } else if (data.data?.prediction?.prediction) {
+          // Alphabets endpoint - nested prediction
+          predictedLetter = data.data.prediction.prediction.toUpperCase();
+        } else if (typeof data.data?.prediction === 'string') {
+          // Direct string prediction
+          predictedLetter = data.data.prediction.toUpperCase();
+        } else if (typeof data.prediction === 'string') {
+          // Fallback
+          predictedLetter = data.prediction.toUpperCase();
+        }
+
         setPrediction(predictedLetter);
 
-        // For Manila theme (Stage 2): map AI letter to number for display matching
-        // For other themes (Stage 1): use letter directly
-        const targetContent = isManilaTheme
-          ? mapLetterToNumber(predictedLetter)
-          : predictedLetter;
+        // Use AI prediction directly - no mapping needed with proper endpoints
+        const targetContent = predictedLetter;
 
-        console.log(`[Development] AI predicted: ${predictedLetter} -> Target: ${targetContent} (Manila: ${isManilaTheme})`);
+        console.log(`[AI Prediction] Predicted: ${predictedLetter}`);
 
         // Check if any falling item matches the target content
         const matchingItem = fallingItems.find(
@@ -462,7 +470,11 @@ export default function FallingLettersLesson({
           </View>
         )}
         <WebView
-          source={{ uri: "https://gesturbee-app-model.vercel.app/" }}
+          source={{
+            uri: Number(stageId) === 1
+              ? "https://gesturbee-app-model.vercel.app/alphabets"
+              : "https://gesturbee-app-model.vercel.app/words"
+          }}
           style={styles.webView}
           allowsInlineMediaPlayback={true}
           mediaPlaybackRequiresUserAction={false}
@@ -471,7 +483,7 @@ export default function FallingLettersLesson({
           cameraAccessibilityLabel="Allow Camera Access"
           geolocationEnabled={true}
           useWebKit={true}
-          originWhitelist={[""]}
+          originWhitelist={["*"]}
           androidHardwareAccelerationDisabled={false}
           onLoad={() => setIsWebViewLoaded(true)}
           onMessage={onMessage}

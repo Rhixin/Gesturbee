@@ -19,18 +19,11 @@ const LEVEL_GREETINGS_MAP: { [key: number]: string[] } = {
   2: ['IM FINE', 'NICE TO MEET YOU', 'THANK YOU', 'YOURE WELCOME', 'SEE YOU TOMORROW']    // Level 2: Social Expressions
 };
 
-// Map greetings to letters for AI testing (since AI only recognizes A-Z)
-// This is a temporary workaround: GOOD MORNING=A, GOOD AFTERNOON=B, etc.
-const GREETING_TO_LETTER_MAP: { [key: string]: string } = {
-  'GOOD MORNING': 'A', 'GOOD AFTERNOON': 'B', 'GOOD EVENING': 'C', 'HELLO': 'D', 'HOW ARE YOU': 'E',
-  'IM FINE': 'F', 'NICE TO MEET YOU': 'G', 'THANK YOU': 'H', 'YOURE WELCOME': 'I', 'SEE YOU TOMORROW': 'J'
-};
-
-// Helper function to get AI test letter for a greeting
-const getAITestLetter = (greeting: string): string => {
-  const letter = GREETING_TO_LETTER_MAP[greeting];
-  console.log(`[Stage3] Greeting "${greeting}" mapped to letter ${letter} for AI testing`);
-  return letter || 'A'; // Fallback to 'A'
+// AI recognizes actual greeting words (no mapping needed)
+// Helper function that returns the greeting word itself for AI
+const getAIWord = (greeting: string): string => {
+  console.log(`[Stage3] Using greeting "${greeting}" for AI recognition`);
+  return greeting; // Return the greeting as-is
 };
 
 // Static mapping for greeting videos (React Native requires static paths)
@@ -123,7 +116,7 @@ const Stage3Level1 = React.memo(function Stage3Level1({
       Number(levelId),
       currentLevelGreetings,
       getVideoPathForGreeting,
-      getAITestLetter
+      getAIWord
     );
 
     return lessons;
@@ -182,6 +175,8 @@ const Stage3Level1 = React.memo(function Stage3Level1({
         );
 
       case "video_learning":
+        // Don't pass backgroundImage since the full screen already has the background
+        // (unique backgrounds for GOOD MORNING/AFTERNOON/EVENING, Boracay for others)
         return (
           <VideoLesson
             title={currentLesson.title}
@@ -215,6 +210,7 @@ const Stage3Level1 = React.memo(function Stage3Level1({
         );
 
       case "execute":
+        // Don't pass backgroundImage since the full screen already has the background
         return (
           <ExecuteLesson
             title={currentLesson.title}
@@ -308,16 +304,15 @@ const Stage3Level1 = React.memo(function Stage3Level1({
           );
         }
 
-        // Limit to maximum 4 pairs for better gameplay
-        const maxPairs = 4;
-        const greetingsToMatch = learnedGreetingsForMatching.slice(0, maxPairs);
-
-        const matchingPairs = greetingsToMatch.map((greeting, index) => ({
+        // Use the matching pairs from the generated lesson content (exactly 3 items)
+        const matchingPairs = currentLesson.content.map((item: any, index: number) => ({
           id: `pair_${index}`,
-          videoPath: getVideoPathForGreeting(greeting),
-          word: greeting,
+          videoPath: getVideoPathForGreeting(item.word), // Convert word to proper require() path
+          word: item.word,
           isMatched: false,
         }));
+
+        console.log('[MATCHING] Using pairs from lesson content:', matchingPairs);
 
         return (
           <MatchingGameLesson

@@ -1,7 +1,14 @@
 import { useLevel } from "@/context/LevelContext";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { View, Text, StyleSheet, Dimensions, Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  Image,
+  useWindowDimensions,
+} from "react-native";
 import { WebView } from "react-native-webview";
 import SuccessModal from "@/components/modals/SuccessModal";
 import WrongAnswerModal from "@/components/modals/WrongAnswerModal";
@@ -210,8 +217,14 @@ export default function BalloonPopLesson({
   const [prediction, setPrediction] = useState("");
   const [isWebViewLoaded, setIsWebViewLoaded] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30); // 30 seconds timer
-  const [totalItems] = useState(12); // Total items to pop
+  const [totalItems] = useState(7); // Total items to pop (limited to 7)
   const [gameStarted, setGameStarted] = useState(false);
+
+  // Get window dimensions for responsive WebView sizing (smaller than balloon counting)
+  const windowDimensions = useWindowDimensions();
+  const isPortrait = windowDimensions.height > windowDimensions.width;
+  const webViewWidth = isPortrait ? 150 : 200;
+  const webViewHeight = isPortrait ? 200 : 150;
 
   const gameTimerRef = useRef<NodeJS.Timeout>();
   const spawnTimerRef = useRef<NodeJS.Timeout>();
@@ -232,10 +245,35 @@ export default function BalloonPopLesson({
     return true;
   };
 
+  // Number to word mapping for Stage 2
+  const numberToWord = (num: string): string => {
+    const mapping: { [key: string]: string } = {
+      "1": "ONE",
+      "2": "TWO",
+      "3": "THREE",
+      "4": "FOUR",
+      "5": "FIVE",
+      "6": "SIX",
+      "7": "SEVEN",
+      "8": "EIGHT",
+      "9": "NINE",
+      "10": "TEN",
+    };
+    return mapping[num] || num;
+  };
+
   // Generate random content from learned content
   const getRandomContent = () => {
     if (learnedContent.length === 0) return "1";
-    return learnedContent[Math.floor(Math.random() * learnedContent.length)];
+    const content =
+      learnedContent[Math.floor(Math.random() * learnedContent.length)];
+
+    // For Stage 2+, convert numbers to words for AI matching
+    if (Number(stageId) >= 2) {
+      return numberToWord(content);
+    }
+
+    return content;
   };
 
   // No item reach top handler needed for static items
@@ -244,24 +282,42 @@ export default function BalloonPopLesson({
   const spawnAllItems = useCallback(() => {
     const items: FloatingItem[] = [];
 
-    // Better distribution across available space
-    // Available area: avoid WebView (left 0-180) and timer (right width-180 to width)
-    const minX = 50; // Increased left margin for better spacing
-    const maxX = width - 120; // Reduced timer area avoidance to use more width
-    const minY = 50; // Higher up with more margin
-    const maxY = height - 600; // Adjust vertical range
+    // Use dynamic window dimensions instead of static
+    const screenWidth = windowDimensions.width;
+    const screenHeight = windowDimensions.height;
 
-    const usedPositions: { x: number; y: number }[] = [];
-    const minDistance = 140; // Increased minimum distance between items for better spacing
+    // Center the balloon spawn area on the screen
+    const balloonWidth = 80; // Width of balloon item
+    const balloonHeight = 120; // Height of balloon item
+    const spawnWidth = 240; // Total spawn area width for good distribution
 
-    // Use grid-based approach for better distribution
+    // Shift spawn area to the left (offset from center)
+    const centerX = screenWidth / 2;
+    const leftOffset = 40; // Shift 40px to the left
+    const minX = centerX - spawnWidth / 2 - leftOffset;
+    const maxX = centerX + spawnWidth / 2 - leftOffset;
+
+    const minY = 160; // Move spawn area higher - below instructions box with more margin
+    // Reserve much more space for navigation buttons at bottom
+    // Trim the spawn area aggressively to prevent balloons going below visible area
+    const maxY = screenHeight - 520; // Much more trimming - ensure balloons stay above nav buttons
+
+    console.log("=== BALLOON SPAWN DEBUG ===");
+    console.log("Screen dimensions:", screenWidth, "x", screenHeight);
+    console.log("Spawn area - X:", minX, "to", maxX, "| Width:", maxX - minX);
+    console.log("Spawn area - Y:", minY, "to", maxY, "| Height:", maxY - minY);
+
+    // Fixed grid: 4 columns x 2 rows for 7 items (more horizontal spread)
+    const cols = 4;
+    const rows = 2;
+
     const availableWidth = maxX - minX;
     const availableHeight = maxY - minY;
-    const cols = Math.ceil(Math.sqrt(totalItems * (availableWidth / availableHeight)));
-    const rows = Math.ceil(totalItems / cols);
-
     const cellWidth = availableWidth / cols;
     const cellHeight = availableHeight / rows;
+
+    console.log("Cell size:", cellWidth, "x", cellHeight);
+    console.log("Grid:", cols, "cols x", rows, "rows");
 
     for (let i = 0; i < totalItems; i++) {
       const content = getRandomContent();
@@ -274,18 +330,28 @@ export default function BalloonPopLesson({
       const cellCenterX = minX + (col + 0.5) * cellWidth;
       const cellCenterY = minY + (row + 0.5) * cellHeight;
 
-      // Randomize position within cell (±25% of cell size)
-      const randomOffsetX = (Math.random() - 0.5) * cellWidth * 0.5;
-      const randomOffsetY = (Math.random() - 0.5) * cellHeight * 0.5;
+      // Randomize position within cell (±30% of cell size for more variation)
+      const randomOffsetX = (Math.random() - 0.5) * cellWidth * 0.6;
+      const randomOffsetY = (Math.random() - 0.5) * cellHeight * 0.6;
 
-      const x = Math.max(minX + 30, Math.min(maxX - 30, cellCenterX + randomOffsetX));
-      const y = Math.max(minY + 30, Math.min(maxY - 30, cellCenterY + randomOffsetY));
+      const x = Math.max(
+        minX + 30,
+        Math.min(maxX - 30, cellCenterX + randomOffsetX)
+      );
+      const y = Math.max(
+        minY + 30,
+        Math.min(maxY - 30, cellCenterY + randomOffsetY)
+      );
 
-      usedPositions.push({ x, y });
+      console.log(
+        `Item ${i}: col=${col}, row=${row}, x=${x.toFixed(0)}, y=${y.toFixed(
+          0
+        )}`
+      );
 
       const item: FloatingItem = {
         id: `item_${i}_${Date.now()}`,
-        content,
+        content: content.toUpperCase(), // Normalize to uppercase for consistency
         x,
         y,
         speed: 0,
@@ -296,7 +362,7 @@ export default function BalloonPopLesson({
     }
 
     setFloatingItems(items);
-  }, [totalItems, getRandomContent]);
+  }, [totalItems, getRandomContent, windowDimensions]);
 
   // Start game
   const startGame = () => {
@@ -315,10 +381,12 @@ export default function BalloonPopLesson({
     gameTimerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          // Time's up!
-          setGameActive(false);
-          setGameStarted(false);
-          setShowRetryModal(true);
+          // Time's up! - Only end game for Stage 1, not Stage 2+
+          if (Number(stageId) === 1) {
+            setGameActive(false);
+            setGameStarted(false);
+            setShowRetryModal(true);
+          }
           return 0;
         }
         return prev - 1;
@@ -336,51 +404,69 @@ export default function BalloonPopLesson({
     setFloatingItems([]);
   };
 
-  // Development helper: Map AI letters to numbers for testing
-  const mapLetterToNumber = (letter: string): string => {
-    const letterToNumberMap: { [key: string]: string } = {
-      A: "1",
-      B: "2",
-      C: "3",
-      D: "4",
-      E: "5",
-      F: "6",
-      G: "7",
-      H: "8",
-      I: "9",
-      J: "10",
-    };
-    return letterToNumberMap[letter] || letter;
-  };
+  // Removed dummy mapLetterToNumber - now using actual AI predictions
 
   // Handle WebView prediction
   const onMessage = (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
+      console.log("=== BALLOON POP - WEBVIEW MESSAGE ===");
+      console.log("Raw data:", JSON.stringify(data, null, 2));
 
       if (data?.type === "prediction") {
-        const predictedLetter =
-          data?.data?.prediction?.prediction?.toUpperCase?.();
+        // Handle different possible data structures
+        // For /words endpoint: data.data.prediction.top_prediction
+        // For /alphabets endpoint: data.data.prediction.prediction or data.data.prediction
+        let predictedLetter;
+
+        if (data.data?.prediction?.top_prediction) {
+          // Words endpoint - extract top_prediction
+          predictedLetter = data.data.prediction.top_prediction.toUpperCase();
+        } else if (data.data?.prediction?.prediction) {
+          // Alphabets endpoint - nested prediction
+          predictedLetter = data.data.prediction.prediction.toUpperCase();
+        } else if (typeof data.data?.prediction === "string") {
+          // Direct string prediction
+          predictedLetter = data.data.prediction.toUpperCase();
+        } else if (typeof data.prediction === "string") {
+          // Fallback
+          predictedLetter = data.prediction.toUpperCase();
+        }
+
         if (!predictedLetter) return;
 
         setPrediction(predictedLetter);
 
-        // For Manila theme (Stage 2): map AI letter to number for display matching
-        // For other themes (Stage 1): use letter directly
-        const targetContent = isManilaTheme
-          ? mapLetterToNumber(predictedLetter)
-          : predictedLetter;
+        // Use AI prediction directly - no mapping needed with proper endpoints
+        const targetContent = predictedLetter;
 
+        console.log("=== BALLOON POP - PREDICTION DEBUG ===");
+        console.log(`Predicted: "${predictedLetter}"`);
         console.log(
-          `[Development] AI predicted: ${predictedLetter} -> Target: ${targetContent} (Manila: ${isManilaTheme})`
+          "Current floating items:",
+          floatingItems.map((item) => ({
+            content: item.content,
+            popped: item.popped,
+          }))
         );
+        console.log("Stage ID:", stageId);
 
-        // Check if any floating item matches the target content
+        // Check if any floating item matches the target content (both are uppercase now)
         const matchingItem = floatingItems.find(
           (item) => item.content === targetContent && !item.popped
         );
 
+        if (matchingItem) {
+          console.log(
+            `✅ Match found! Item: "${matchingItem.content}", Predicted: "${predictedLetter}"`
+          );
+        } else {
+          console.log(`❌ No match found for prediction: "${predictedLetter}"`);
+        }
+
         if (matchingItem && gameActive) {
+          console.log("Popping balloon!");
+
           // Mark item as popped
           setFloatingItems((prev) =>
             prev.map((item) =>
@@ -465,49 +551,109 @@ export default function BalloonPopLesson({
 
   return (
     <View style={styles.container}>
-      {/* Timer Progress Bar - Upper Right */}
+      {/* Instructions Box - Upper Right */}
       <View
         style={[
-          styles.timerContainer,
+          styles.instructionsContainer,
           {
-            backgroundColor: isSiargaoTheme
+            backgroundColor: isViganTheme
+              ? "rgba(255, 233, 195, 0.95)"
+              : isSiargaoTheme
               ? "rgba(240, 231, 201, 0.95)"
-              : "rgba(255, 233, 195, 0.95)",
+              : isManilaTheme
+              ? "rgba(135, 162, 72, 0.95)"
+              : isBoracayTheme
+              ? "rgba(72, 141, 162, 0.95)"
+              : isPalawanTheme
+              ? "rgba(212, 200, 184, 0.95)"
+              : isCebuTheme
+              ? "rgba(244, 217, 198, 0.95)"
+              : isBoholTheme
+              ? "rgba(212, 229, 199, 0.95)"
+              : "rgba(1, 211, 193, 0.95)",
           },
         ]}
       >
         <Text
           style={[
-            styles.timerText,
-            { color: isSiargaoTheme ? "#9D7C00" : "#875C35" },
-          ]}
-        >
-          Time: {timeLeft}s
-        </Text>
-        <View
-          style={[
-            styles.progressBarContainer,
+            styles.instructionsTitle,
             {
-              backgroundColor: isSiargaoTheme ? "#F0E7C9" : "#FFE9C3",
-              borderColor: isSiargaoTheme ? "#9D7C00" : "#875C35",
+              color: isViganTheme
+                ? "#875C35"
+                : isSiargaoTheme
+                ? "#9D7C00"
+                : isManilaTheme
+                ? "white"
+                : isBoracayTheme
+                ? "white"
+                : isPalawanTheme
+                ? "#6A645C"
+                : isCebuTheme
+                ? "#B65828"
+                : isBoholTheme
+                ? "#6D825A"
+                : "white",
             },
           ]}
         >
-          <View
+          How to Play:
+        </Text>
+        <Text
+          style={[
+            styles.instructionsText,
+            {
+              color: isViganTheme
+                ? "#875C35"
+                : isSiargaoTheme
+                ? "#9D7C00"
+                : isManilaTheme
+                ? "white"
+                : isBoracayTheme
+                ? "white"
+                : isPalawanTheme
+                ? "#6A645C"
+                : isCebuTheme
+                ? "#B65828"
+                : isBoholTheme
+                ? "#6D825A"
+                : "white",
+            },
+          ]}
+        >
+          Sign the{" "}
+          {isSiargaoTheme
+            ? "coconut"
+            : isViganTheme
+            ? "lantern"
+            : isBoracayTheme
+            ? "shell"
+            : isPalawanTheme
+            ? "boat"
+            : isCebuTheme
+            ? "mango"
+            : isBoholTheme
+            ? "tarsier"
+            : "balloon"}{" "}
+          labels to pop them all!
+        </Text>
+        {Number(stageId) === 1 && (
+          <Text
             style={[
-              styles.progressBar,
+              styles.instructionsText,
               {
-                width: `${progressPercentage}%`,
-                backgroundColor:
-                  progressPercentage > 30
-                    ? isSiargaoTheme
-                      ? "#9D7C00"
-                      : "#875C35"
-                    : "#D97706",
+                color: isViganTheme
+                  ? "#875C35"
+                  : isSiargaoTheme
+                  ? "#9D7C00"
+                  : "white",
+                marginTop: 8,
+                fontWeight: "bold",
               },
             ]}
-          />
-        </View>
+          >
+            Time: {timeLeft}s
+          </Text>
+        )}
       </View>
 
       {/* Game Area */}
@@ -532,7 +678,15 @@ export default function BalloonPopLesson({
       </View>
 
       {/* WebView */}
-      <View style={styles.webViewContainer}>
+      <View
+        style={[
+          styles.webViewContainer,
+          {
+            width: webViewWidth,
+            height: webViewHeight,
+          },
+        ]}
+      >
         {!isWebViewLoaded && (
           <View style={styles.loadingContainer}>
             <Text
@@ -546,16 +700,21 @@ export default function BalloonPopLesson({
           </View>
         )}
         <WebView
-          source={{ uri: "https://gesturbee-app-model.vercel.app/" }}
+          source={{
+            uri:
+              Number(stageId) === 1
+                ? "https://gesturbee-app-model.vercel.app/alphabets"
+                : "https://gesturbee-app-model.vercel.app/words",
+          }}
           style={styles.webView}
-          allowsInlineMediaPlaybook={true}
+          allowsInlineMediaPlayback={true}
           mediaPlaybackRequiresUserAction={false}
           javaScriptEnabled={true}
           domStorageEnabled={true}
           cameraAccessibilityLabel="Allow Camera Access"
           geolocationEnabled={true}
           useWebKit={true}
-          originWhitelist={[""]}
+          originWhitelist={["*"]}
           androidHardwareAccelerationDisabled={false}
           onLoad={() => setIsWebViewLoaded(true)}
           onMessage={onMessage}
@@ -585,38 +744,34 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     backgroundColor: "transparent",
   },
-  timerContainer: {
+  instructionsContainer: {
     position: "absolute",
     top: 20,
     right: 20,
-    width: 160,
+    width: 150,
     zIndex: 200,
-    backgroundColor: "rgba(255, 233, 195, 0.95)", // Vigan theme background
     borderRadius: 12,
     padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  timerText: {
-    fontSize: 16,
+  instructionsTitle: {
+    fontSize: 14,
     fontWeight: "bold",
-    color: "#875C35",
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  progressBarContainer: {
-    height: 12,
-    backgroundColor: "#FFE9C3",
-    borderRadius: 6,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#875C35",
-  },
-  progressBar: {
-    height: "100%",
-    borderRadius: 6,
+  instructionsText: {
+    fontSize: 11,
+    textAlign: "center",
+    lineHeight: 16,
   },
   gameArea: {
     position: "absolute",
-    top: 200, // Below WebView and timer
+    top: 100, // Below WebView and instructions box
     left: 0,
     right: 0,
     bottom: 80,
@@ -690,8 +845,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 20,
     left: 20,
-    width: 160,
-    height: 160,
     backgroundColor: "#000000",
     borderRadius: 12,
     zIndex: 1,

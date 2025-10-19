@@ -5,7 +5,7 @@ import { Video, ResizeMode } from "expo-av";
 import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import { useEffect } from "react";
-import { TouchableOpacity, View, Text } from "react-native";
+import { TouchableOpacity, View, Text, Image, StyleSheet, ImageBackground } from "react-native";
 
 export default function VideoLesson({
   title,
@@ -21,6 +21,10 @@ export default function VideoLesson({
   isCebuTheme = false,
   isBoholTheme = false,
   contentWord = null,
+  backgroundImage = null,
+  colorTextImage = null,
+  colorImage = null,
+  isColorStage = false,
 }: {
   title: string;
   videoRef: React.RefObject<any>;
@@ -35,6 +39,10 @@ export default function VideoLesson({
   isCebuTheme?: boolean;
   isBoholTheme?: boolean;
   contentWord?: string | null;
+  backgroundImage?: any;
+  colorTextImage?: any;
+  colorImage?: any;
+  isColorStage?: boolean;
 }) {
   const {
     userSavedStage,
@@ -88,17 +96,84 @@ export default function VideoLesson({
     }
   }, []);
 
-  return (
+  // Stage 4 Color layout - no title, video → color text → color image
+  const colorStageContent = (
     <>
-      <View className="mb-6 mt-6 w-1/2">
-        <View
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: isViganTheme ? "#FFE9C3" : isSiargaoTheme ? "#B8A869" : isManilaTheme ? "#87A248" : isBoracayTheme ? "#488DA2" : isPalawanTheme ? "#D4C8B8" : isCebuTheme ? "#F4D9C6" : isBoholTheme ? "#D4E5C7" : "#01D3C1" }}
-        >
-          <View className="flex-row items-center">
+      {/* Video at top */}
+      <View
+        className="w-full rounded-lg overflow-hidden items-center"
+        style={{ backgroundColor: "transparent", marginTop: 16, marginBottom: 0 }}
+      >
+        <Video
+          ref={videoRef}
+          source={videoSource}
+          useNativeControls
+          resizeMode={ResizeMode.COVER}
+          shouldPlay
+          isLooping
+          isMuted={true}
+          onPlaybackStatusUpdate={(status) => setStatus(status)}
+          onEnd={async () => {
+            if (videoRef?.current) {
+              await videoRef.current.setStatusAsync({
+                shouldPlay: true,
+                positionMillis: 0,
+              });
+            }
+          }}
+          style={{
+            width: "58%",
+            height: undefined,
+            aspectRatio: 14 / 9,
+            backgroundColor: "transparent",
+          }}
+        />
+      </View>
+
+      {/* Color text image (e.g., black_text.png) - smaller */}
+      {colorTextImage && (
+        <Image
+          source={colorTextImage}
+          style={styles.colorTextImage}
+          resizeMode="contain"
+        />
+      )}
+
+      {/* Color image (e.g., black.png) - more visible */}
+      {colorImage && (
+        <Image
+          source={colorImage}
+          style={styles.colorImage}
+          resizeMode="contain"
+        />
+      )}
+    </>
+  );
+
+  // Regular stages layout - with title
+  const regularContent = (
+    <>
+      <View style={styles.titleContainer}>
+        {/* Bee Image on the Left */}
+        <Image
+          source={require("@/assets/images/Bee/bee2.png")}
+          style={styles.beeImage}
+          resizeMode="contain"
+        />
+
+        {/* Message Box with Title Text */}
+        <View style={styles.messageBoxContainer}>
+          <Image
+            source={require("@/assets/images/Message/messagebox1.png")}
+            style={styles.messageBoxImage}
+            resizeMode="contain"
+          />
+          <View style={styles.messageTextContainer}>
             <Text
-              className="text-2xl font-poppins-medium ml-2"
-              style={{ color: isViganTheme ? "#875C35" : isManilaTheme ? "white" : isBoracayTheme ? "white" : isPalawanTheme ? "#6A645C" : isCebuTheme ? "#B65828" : isBoholTheme ? "#6D825A" : "white" }}
+              style={[
+                styles.messageText,
+                { color: isViganTheme ? "#875C35" : isSiargaoTheme ? "#9D7C00" : isManilaTheme ? "#87A248" : isBoracayTheme ? "#488DA2" : isPalawanTheme ? "#6A645C" : isCebuTheme ? "#B65828" : isBoholTheme ? "#6D825A" : "#01D3C1" }
+              ]}
             >
               This is "{contentWord || title}"
             </Text>
@@ -117,6 +192,7 @@ export default function VideoLesson({
           resizeMode={ResizeMode.COVER}
           shouldPlay
           isLooping
+          isMuted={true}
           onPlaybackStatusUpdate={(status) => setStatus(status)}
           onEnd={async () => {
             if (videoRef?.current) {
@@ -136,4 +212,78 @@ export default function VideoLesson({
       </View>
     </>
   );
+
+  const content = isColorStage ? colorStageContent : regularContent;
+
+  return backgroundImage ? (
+    <ImageBackground
+      source={backgroundImage}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      {content}
+    </ImageBackground>
+  ) : (
+    content
+  );
 }
+
+const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+  },
+  colorTextImage: {
+    width: 180,
+    height: 50,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  colorImage: {
+    width: 160,
+    height: 160,
+    marginTop: 0,
+    marginBottom: 20,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 24,
+    width: '80%',
+  },
+  beeImage: {
+    width: 120,
+    height: 120,
+    marginRight: -20,
+    zIndex: 2,
+  },
+  messageBoxContainer: {
+    flex: 1,
+    position: 'relative',
+    height: 120,
+  },
+  messageBoxImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  messageTextContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+    paddingLeft: 40,
+  },
+  messageText: {
+    fontSize: 20,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+});

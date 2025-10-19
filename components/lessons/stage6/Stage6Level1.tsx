@@ -20,19 +20,11 @@ const LEVEL_DAYS_MAP: { [key: number]: string[] } = {
   3: ['TODAY', 'TOMORROW', 'YESTERDAY']                    // Level 3: Time References (3 words)
 };
 
-// Map days words to letters for AI testing (since AI only recognizes A-Z)
-// This is a temporary workaround: MONDAY=A, TUESDAY=B, WEDNESDAY=C, etc.
-const DAYS_TO_LETTER_MAP: { [key: string]: string } = {
-  'MONDAY': 'A', 'TUESDAY': 'B', 'WEDNESDAY': 'C',
-  'THURSDAY': 'D', 'FRIDAY': 'E', 'SATURDAY': 'F', 'SUNDAY': 'G',
-  'TODAY': 'H', 'TOMORROW': 'I', 'YESTERDAY': 'J'
-};
-
-// Helper function to get AI test letter for a days word
-const getAITestLetter = (daysWord: string): string => {
-  const letter = DAYS_TO_LETTER_MAP[daysWord];
-  console.log(`[Stage6] Days word "${daysWord}" mapped to letter ${letter} for AI testing`);
-  return letter || 'A'; // Fallback to 'A'
+// AI recognizes actual days words (no mapping needed)
+// Helper function that returns the days word itself for AI
+const getAIWord = (daysWord: string): string => {
+  console.log(`[Stage6] Using days word "${daysWord}" for AI recognition`);
+  return daysWord; // Return the days word as-is
 };
 
 // Static mapping for days word videos (React Native requires static paths)
@@ -100,7 +92,7 @@ export default function Stage6Level1({
       currentLevelId,
       currentLevelDays,
       getVideoPathForDays,
-      getAITestLetter
+      getAIWord
     );
     console.log(`[Stage6Level1] Generated ${generatedLessons.length} lessons`);
     return generatedLessons;
@@ -250,12 +242,36 @@ export default function Stage6Level1({
     case "matching":
       const learnedDaysForMatching = getLearnedDays();
 
+      // Check if we have enough learned days for matching game (≥3)
+      if (learnedDaysForMatching.length < 3 || !currentLesson.content) {
+        // Fallback to execute test if not enough content
+        return (
+          <ExecuteLesson
+            title={currentLesson.title}
+            correctAnswer={currentLesson.correctAnswer || 'MONDAY'}
+            currentLessonIndex={currentLessonIndex}
+            contentWord={content?.word}
+            isCebuTheme={true}
+          />
+        );
+      }
+
+      // Use the matching pairs from the generated lesson content (exactly 3 items)
+      const matchingPairs = currentLesson.content.map((item: any, index: number) => ({
+        id: `pair_${index}`,
+        videoPath: getVideoPathForDays(item.word), // Convert word to proper require() path
+        word: item.word,
+        isMatched: false,
+      }));
+
+      console.log('[MATCHING] Using pairs from lesson content:', matchingPairs);
+
       return (
         <MatchingGameLesson
           title={currentLesson.title}
           currentLessonIndex={currentLessonIndex}
-          learnedContent={learnedDaysForMatching}
-          getVideoPath={getVideoPathForDays}
+          pairs={matchingPairs}
+          isCebuTheme={true}
         />
       );
 

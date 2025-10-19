@@ -9,6 +9,7 @@ import SpellingLesson from "../SpellingLesson";
 import LevelIntroduction from "../LevelIntroduction";
 import FallingLettersLesson from "../FallingLettersLesson";
 import BalloonPopLesson from "../BalloonPopLesson";
+import BalloonCountingLesson from "../BalloonCountingLesson";
 import MatchingGameLesson from "../MatchingGameLesson";
 import React from "react";
 import { ContentGenerator } from "@/utils/contentGenerator";
@@ -19,18 +20,17 @@ const LEVEL_NUMBERS_MAP: { [key: number]: string[] } = {
   2: ['6', '7', '8', '9', '10']    // Level 2: Numbers 6-10
 };
 
-// Map numbers to letters for AI testing (since AI only recognizes A-Z)
-// This is a temporary workaround: 1=A, 2=B, 3=C, 4=D, 5=E, 6=F, 7=G, 8=H, 9=I, 10=J
-const NUMBER_TO_LETTER_MAP: { [key: string]: string } = {
-  '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E',
-  '6': 'F', '7': 'G', '8': 'H', '9': 'I', '10': 'J'
+// Map numbers to actual word labels that AI recognizes
+const NUMBER_TO_WORD_MAP: { [key: string]: string } = {
+  '1': 'ONE', '2': 'TWO', '3': 'THREE', '4': 'FOUR', '5': 'FIVE',
+  '6': 'SIX', '7': 'SEVEN', '8': 'EIGHT', '9': 'NINE', '10': 'TEN'
 };
 
-// Helper function to get AI test letter for a number
-const getAITestLetter = (number: string): string => {
-  const letter = NUMBER_TO_LETTER_MAP[number];
-  console.log(`[Stage2] Number ${number} mapped to letter ${letter} for AI testing`);
-  return letter || 'A'; // Fallback to 'A'
+// Helper function to get AI word for a number
+const getAIWord = (number: string): string => {
+  const word = NUMBER_TO_WORD_MAP[number];
+  console.log(`[Stage2] Number ${number} mapped to AI word ${word}`);
+  return word || 'ONE'; // Fallback to 'ONE'
 };
 
 // Static mapping for number videos (React Native requires static paths)
@@ -123,7 +123,7 @@ const Stage2Level1 = React.memo(function Stage2Level1({
       Number(levelId),
       currentLevelNumbers,
       getVideoPathForNumber,
-      getAITestLetter
+      getAIWord
     );
 
     return lessons;
@@ -249,6 +249,17 @@ const Stage2Level1 = React.memo(function Stage2Level1({
           />
         );
 
+      case "balloon_counting":
+        return (
+          <BalloonCountingLesson
+            title={currentLesson.title}
+            currentLessonIndex={currentLessonIndex}
+            correctAnswer={currentLesson.correctAnswer} // AI mapped letter for checking
+            balloonCount={currentLesson.balloonCount || 1} // Number of balloons to display
+            isManilaTheme={true} // Enable Manila theme colors
+          />
+        );
+
       case "matching":
         const learnedNumbersForMatching = getLearnedNumbers();
 
@@ -294,16 +305,15 @@ const Stage2Level1 = React.memo(function Stage2Level1({
           );
         }
 
-        // Limit to maximum 4 pairs for better gameplay
-        const maxPairs = 4;
-        const numbersToMatch = learnedNumbersForMatching.slice(0, maxPairs);
-
-        const matchingPairs = numbersToMatch.map((number, index) => ({
+        // Use the matching pairs from the generated lesson content (exactly 3 items)
+        const matchingPairs = currentLesson.content.map((item: any, index: number) => ({
           id: `pair_${index}`,
-          videoPath: getVideoPathForNumber(number),
-          word: number,
+          videoPath: getVideoPathForNumber(item.word), // Convert word to proper require() path
+          word: item.word,
           isMatched: false,
         }));
+
+        console.log('[MATCHING] Using pairs from lesson content:', matchingPairs);
 
         return (
           <MatchingGameLesson

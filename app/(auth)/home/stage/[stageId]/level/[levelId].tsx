@@ -143,6 +143,43 @@ export default function Level() {
     goBack();
   };
 
+  // Get current greeting for Stage 3 background
+  const getCurrentGreetingBackground = () => {
+    if (Number(stageId) !== 3) return null;
+
+    try {
+      const { ContentGenerator } = require('@/utils/contentGenerator');
+      const LEVEL_GREETINGS_MAP: { [key: number]: string[] } = {
+        1: ['GOOD MORNING', 'GOOD AFTERNOON', 'GOOD EVENING', 'HELLO', 'HOW ARE YOU'],
+        2: ['IM FINE', 'NICE TO MEET YOU', 'THANK YOU', 'YOURE WELCOME', 'SEE YOU TOMORROW']
+      };
+
+      const currentLevelGreetings = LEVEL_GREETINGS_MAP[Number(levelId)] || [];
+      const getVideoPathForGreeting = (greeting: string) => null;
+      const getAIWord = (greeting: string) => greeting;
+
+      const lessons = ContentGenerator.generateDynamicGreetingLessons(
+        Number(levelId),
+        currentLevelGreetings,
+        getVideoPathForGreeting,
+        getAIWord
+      );
+
+      const currentLesson = lessons[currentLessonIndex - 1];
+      const greetingWord = currentLesson?.content?.[0]?.word;
+
+      const GREETING_BACKGROUND_MAP: { [key: string]: any } = {
+        'GOOD MORNING': require("@/assets/images/Greetings/morning.png"),
+        'GOOD AFTERNOON': require("@/assets/images/Greetings/afternoon.png"),
+        'GOOD EVENING': require("@/assets/images/Greetings/evening.png"),
+      };
+
+      return GREETING_BACKGROUND_MAP[greetingWord] || null;
+    } catch (error) {
+      return null;
+    }
+  };
+
   return (
     <>
       <LevelCompleteModal
@@ -429,7 +466,7 @@ export default function Level() {
         </ImageBackground>
       ) : Number(stageId) === 3 ? (
         <ImageBackground
-          source={require("@/assets/images/background_places/boracay.png")}
+          source={getCurrentGreetingBackground() || require("@/assets/images/background_places/boracay.png")}
           className="h-[100vh] items-center"
           resizeMode="cover"
         >

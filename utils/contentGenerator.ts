@@ -518,6 +518,31 @@ export class ContentGenerator {
     return levelLetterMapping[levelId] || ["A", "B", "C"];
   }
 
+  // Get all letters learned from level 1 up to current level (progressive learning)
+  private static getLearnedLettersUpToLevel(levelId: number): string[] {
+    const levelLetterMapping: { [key: number]: string[] } = {
+      1: ["A", "B", "C"],
+      2: ["D", "E", "F"],
+      3: ["G", "H", "I"],
+      4: ["J", "K", "L"],
+      5: ["M", "N", "O"],
+      6: ["P", "Q", "R"],
+      7: ["S", "T", "U"],
+      8: ["V", "W", "X"],
+      9: ["Y", "Z"],
+    };
+
+    const learnedLetters: string[] = [];
+
+    // Add all letters from levels 1 up to current level
+    for (let level = 1; level <= levelId; level++) {
+      const levelLetters = levelLetterMapping[level] || [];
+      learnedLetters.push(...levelLetters);
+    }
+
+    return learnedLetters;
+  }
+
   // Generate dynamic lesson content for Stage 1 Level 1 component integration
   static generateDynamicAlphabetLessons(levelId: number): any[] {
     const currentLevelLetters = this.getLettersForLevel(levelId);
@@ -540,7 +565,7 @@ export class ContentGenerator {
       ],
       config: {
         type: "level_introduction",
-        title: `Welcome to Level ${levelId}`,
+        title: levelId === 1 ? "Learn Basic Letters" : levelId === 2 ? "Master More Letters" : levelId === 3 ? "Advanced Letters Part 1" : "Master All Letters",
         instructions: `Get ready to learn letters ${currentLevelLetters.join(
           ", "
         )}!`,
@@ -579,6 +604,7 @@ export class ContentGenerator {
     ];
 
     let titleIndex = 0;
+    let progressionIndex = 0; // Global index for progression (separate from titleIndex)
 
     // For each letter, add video lesson and minigames with random execution placement
     currentLevelLetters.forEach((letter, letterIndex) => {
@@ -651,37 +677,111 @@ export class ContentGenerator {
       const minigamesToAdd = 2;
       for (
         let i = 0;
-        i < minigamesToAdd && titleIndex < nonVideoProgression.length;
+        i < minigamesToAdd && progressionIndex < nonVideoProgression.length;
         i++
       ) {
-        const type = nonVideoProgression[titleIndex];
+        const type = nonVideoProgression[progressionIndex];
         // Skip gesture_recognition since we have the execution lesson
         if (type === "gesture_recognition") {
-          titleIndex++;
+          progressionIndex++;
           i--; // Don't count this iteration
           continue;
         }
 
-        const session = this.generateMinigameSession(
-          1,
-          levelId,
-          lessons.length +
-            letterLessons.length +
-            additionalMinigames.length +
+        // Skip matching if not enough previous letters (need at least 3 to randomize from)
+        if (type === "matching") {
+          const previousLevelLetters = levelId > 1
+            ? this.getLearnedLettersUpToLevel(levelId - 1)
+            : [];
+          const currentLevelLettersSoFar = currentLevelLetters.slice(0, letterIndex);
+          const allPreviousLetters = [...previousLevelLetters, ...currentLevelLettersSoFar];
+
+          if (allPreviousLetters.length < 3) {
+            progressionIndex++;
+            i--; // Don't count this iteration, try next type
+            continue;
+          }
+        }
+
+        let lesson: any;
+        if (type === "matching") {
+          // Matching game - current letter + 2 random from all previously learned
+          const previousLevelLetters = levelId > 1
+            ? this.getLearnedLettersUpToLevel(levelId - 1)
+            : [];
+          const currentLevelLettersSoFar = currentLevelLetters.slice(0, letterIndex);
+          const allPreviousLetters = [...previousLevelLetters, ...currentLevelLettersSoFar];
+
+          console.log(`[MATCHING DEBUG] Learning letter: ${letter}`);
+          console.log(`[MATCHING DEBUG] Previous level letters:`, previousLevelLetters);
+          console.log(`[MATCHING DEBUG] Current level so far:`, currentLevelLettersSoFar);
+          console.log(`[MATCHING DEBUG] All previous letters:`, allPreviousLetters);
+
+          // Select current letter + 2 random from previous letters
+          const matchingLetters = [letter]; // Always include current letter
+
+          // Fisher-Yates shuffle for proper randomization
+          const shuffled = [...allPreviousLetters];
+          for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+          }
+          matchingLetters.push(shuffled[0], shuffled[1]);
+
+          console.log(`[MATCHING DEBUG] Selected matching letters:`, matchingLetters);
+
+          lesson = {
+            id: `matching_${levelId}_${letterIndex}_${i}`,
+            stageId: 1,
+            levelId: levelId,
+            lessonIndex: lessons.length + letterLessons.length + additionalMinigames.length + 1,
+            content: matchingLetters.map(ltr => ({
+              id: `matching_${ltr.toLowerCase()}`,
+              word: ltr,
+              videoPath: `${ltr.toLowerCase()}.mp4`,
+              category: "alphabets" as any,
+              difficulty: "easy" as any,
+            })),
+            config: {
+              type: "matching",
+              title: "Match the Letters!",
+              instructions: "Match the sign language videos with their corresponding letters.",
+              pointsReward: 35,
+              experienceReward: 18,
+            },
+            randomSeed: this.getRandomSeed(),
+            isCompleted: false,
+            score: 0,
+            attempts: 0,
+            startTime: new Date(),
+            title: viganTitles[titleIndex] || `Heritage Challenge ${titleIndex + 1}`,
+            type: "matching",
+            isProgressive: true,
+            isIntroduction: false,
+          };
+        } else {
+          // Use generateMinigameSession for other types
+          const session = this.generateMinigameSession(
             1,
-          type,
-          true
-        );
-        const lesson = {
-          ...session,
-          title:
-            viganTitles[titleIndex] || `Heritage Challenge ${titleIndex + 1}`,
-          type,
-          isProgressive: true,
-          isIntroduction: false,
-        };
+            levelId,
+            lessons.length +
+              letterLessons.length +
+              additionalMinigames.length +
+              1,
+            type,
+            true
+          );
+          lesson = {
+            ...session,
+            title:
+              viganTitles[titleIndex] || `Heritage Challenge ${titleIndex + 1}`,
+            type,
+            isProgressive: true,
+            isIntroduction: false,
+          };
+        }
         additionalMinigames.push(lesson);
-        titleIndex++;
+        progressionIndex++; // Move to next type in progression
       }
 
       // Randomly place execution lesson among the minigames (positions 1, 2, or 3 after video)
@@ -838,7 +938,7 @@ export class ContentGenerator {
       score: 0,
       attempts: 0,
       startTime: new Date(),
-      title: `Numbers ${currentLevelNumbers.join(", ")}`,
+      title: levelId === 1 ? "Learn to Count 1-5" : levelId === 2 ? "Master Numbers 6-10" : "Advanced Counting Skills",
       type: "level_introduction",
       isProgressive: true,
       isIntroduction: true,
@@ -863,12 +963,23 @@ export class ContentGenerator {
       "Metropolitan test",
     ];
 
-    // Get randomized progression for numbers (exclude video_learning since we handle it separately)
-    const nonVideoProgression = this.generateNumberProgression(2, levelId);
     let titleIndex = 0;
 
     // For each number, add video lesson and randomized minigames with random execution placement
     currentLevelNumbers.forEach((number, numberIndex) => {
+      // Get ALL numbers learned from previous levels + current level so far
+      const previousLevelNumbers = levelId > 1
+        ? this.getLearnedNumbersUpToLevel(levelId - 1)
+        : [];
+      const currentLevelNumbersSoFar = currentLevelNumbers.slice(0, numberIndex + 1);
+      const numbersLearnedSoFar = [...previousLevelNumbers, ...currentLevelNumbersSoFar];
+
+      // Generate progression based on numbers learned so far
+      const nonVideoProgression = this.generateNumberProgressionDynamic(
+        2,
+        levelId,
+        numbersLearnedSoFar
+      );
       const numberLessons: any[] = [];
 
       // Add video lesson for this number
@@ -904,7 +1015,7 @@ export class ContentGenerator {
         isIntroduction: true,
       };
       numberLessons.push(videoLesson);
-      titleIndex++; // Increment after video lesson
+      // Don't increment titleIndex here - video lessons aren't in nonVideoProgression
 
       // Create execution lesson for this number
       const executionLesson = {
@@ -939,22 +1050,38 @@ export class ContentGenerator {
         isIntroduction: false,
         correctAnswer: getAITestLetter(number), // Map to letter for AI
       };
-      titleIndex++; // Increment after execute lesson
+      // Don't increment titleIndex here - we'll handle it when consuming from nonVideoProgression
 
       // Create 2 additional minigames for this number
       const additionalMinigames: any[] = [];
       const minigamesToAdd = 2;
+      let progressionIndex = 0; // Local index for this number's progression
       for (
         let i = 0;
-        i < minigamesToAdd && titleIndex < nonVideoProgression.length;
+        i < minigamesToAdd && progressionIndex < nonVideoProgression.length;
         i++
       ) {
-        const type = nonVideoProgression[titleIndex];
+        const type = nonVideoProgression[progressionIndex];
         // Skip execute since we have the execution lesson
         if (type === "execute") {
-          titleIndex++;
+          progressionIndex++;
           i--; // Don't count this iteration
           continue;
+        }
+
+        // Skip matching if not enough previous numbers (need at least 3 to randomize from)
+        if (type === "matching") {
+          const previousLevelNumbers = levelId > 1
+            ? this.getLearnedNumbersUpToLevel(levelId - 1)
+            : [];
+          const currentLevelNumbersSoFar = currentLevelNumbers.slice(0, numberIndex);
+          const allPreviousNumbers = [...previousLevelNumbers, ...currentLevelNumbersSoFar];
+
+          if (allPreviousNumbers.length < 3) {
+            progressionIndex++;
+            i--; // Don't count this iteration, try next type
+            continue;
+          }
         }
 
         let lesson: any;
@@ -996,6 +1123,96 @@ export class ContentGenerator {
             choices: choices,
             correctAnswer: number,
           };
+        } else if (type === "balloon_counting") {
+          // Balloon counting game - count balloons and sign the number
+          lesson = {
+            id: `balloon_counting_${number}_${levelId}_${i}`,
+            stageId: 2,
+            levelId: levelId,
+            lessonIndex: lessons.length + numberLessons.length + additionalMinigames.length + 1,
+            content: [
+              {
+                id: `counting_${number}_${i}`,
+                word: number,
+                videoPath: getVideoPathForNumber(number),
+                category: "numbers" as any,
+                difficulty: "easy" as any,
+              },
+            ],
+            config: {
+              type: "balloon_counting",
+              title: `Count the Balloons`,
+              instructions: `Count the balloons and sign the number!`,
+              pointsReward: 30,
+              experienceReward: 15,
+            },
+            randomSeed: this.getRandomSeed(),
+            isCompleted: false,
+            score: 0,
+            attempts: 0,
+            startTime: new Date(),
+            title: manilaTitles[titleIndex] || `Metro Challenge ${titleIndex + 1}`,
+            type: "balloon_counting",
+            isProgressive: true,
+            isIntroduction: false,
+            balloonCount: parseInt(number),
+            correctAnswer: getAITestLetter(number), // Map to letter for AI
+          };
+        } else if (type === "matching") {
+          // Matching game - current number + 2 random from all previously learned
+          const previousLevelNumbers = levelId > 1
+            ? this.getLearnedNumbersUpToLevel(levelId - 1)
+            : [];
+          const currentLevelNumbersSoFar = currentLevelNumbers.slice(0, numberIndex);
+          const allPreviousNumbers = [...previousLevelNumbers, ...currentLevelNumbersSoFar];
+
+          console.log(`[MATCHING DEBUG] Learning number: ${number}`);
+          console.log(`[MATCHING DEBUG] Previous level numbers:`, previousLevelNumbers);
+          console.log(`[MATCHING DEBUG] Current level so far:`, currentLevelNumbersSoFar);
+          console.log(`[MATCHING DEBUG] All previous numbers:`, allPreviousNumbers);
+
+          // Select current number + 2 random from previous numbers (we know there are at least 3)
+          const matchingNumbers = [number]; // Always include current number
+
+          // Fisher-Yates shuffle for proper randomization
+          const shuffled = [...allPreviousNumbers];
+          for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+          }
+          matchingNumbers.push(shuffled[0], shuffled[1]);
+
+          console.log(`[MATCHING DEBUG] Selected matching numbers:`, matchingNumbers);
+
+          lesson = {
+            id: `matching_${levelId}_${numberIndex}_${i}`,
+            stageId: 2,
+            levelId: levelId,
+            lessonIndex: lessons.length + numberLessons.length + additionalMinigames.length + 1,
+            content: matchingNumbers.map(num => ({
+              id: `matching_${num}`,
+              word: num,
+              videoPath: getVideoPathForNumber(num),
+              category: "numbers" as any,
+              difficulty: "easy" as any,
+            })),
+            config: {
+              type: "matching",
+              title: "Match the Numbers!",
+              instructions: "Match the sign language videos with their corresponding numbers.",
+              pointsReward: 35,
+              experienceReward: 18,
+            },
+            randomSeed: this.getRandomSeed(),
+            isCompleted: false,
+            score: 0,
+            attempts: 0,
+            startTime: new Date(),
+            title: manilaTitles[titleIndex] || `Metro Challenge ${titleIndex + 1}`,
+            type: "matching",
+            isProgressive: true,
+            isIntroduction: false,
+          };
         } else {
           // Generic lesson for other types
           lesson = {
@@ -1032,7 +1249,8 @@ export class ContentGenerator {
         }
 
         additionalMinigames.push(lesson);
-        titleIndex++;
+        progressionIndex++; // Move to next type in this number's progression
+        titleIndex++; // Move to next Manila title
       }
 
       // Randomly place execution lesson among the minigames (positions 1, 2, or 3 after video)
@@ -1056,39 +1274,8 @@ export class ContentGenerator {
       lessons.push(...numberLessons);
     });
 
-    // Add final matching game if we have enough numbers
-    if (currentLevelNumbers.length >= 3) {
-      const matchingLesson = {
-        id: `matching_${levelId}`,
-        stageId: 2,
-        levelId: levelId,
-        lessonIndex: lessons.length + 1,
-        content: currentLevelNumbers.map(number => ({
-          id: `matching_${number}`,
-          word: number,
-          videoPath: getVideoPathForNumber(number),
-          category: "numbers" as any,
-          difficulty: "easy" as any,
-        })),
-        config: {
-          type: "matching",
-          title: "Match the Numbers!",
-          instructions: "Match the sign language videos with their corresponding numbers.",
-          pointsReward: 35,
-          experienceReward: 18,
-        },
-        randomSeed: this.getRandomSeed(),
-        isCompleted: false,
-        score: 0,
-        attempts: 0,
-        startTime: new Date(),
-        title: "Manila Number Matching!",
-        type: "matching",
-        isProgressive: true,
-        isIntroduction: false,
-      };
-      lessons.push(matchingLesson);
-    }
+    // Matching games now appear dynamically as regular minigames once 3+ numbers are learned
+    // No need for a separate final matching game
 
     // Update lesson indices to be sequential after all numbers are processed
     lessons.forEach((lesson, index) => {
@@ -1096,6 +1283,39 @@ export class ContentGenerator {
     });
 
     return lessons;
+  }
+
+  // Generate progression dynamically based on numbers learned so far
+  private static generateNumberProgressionDynamic(
+    stageId: number,
+    levelId: number,
+    numbersLearnedSoFar: string[]
+  ): string[] {
+    // Enable matching only if 3+ numbers have been learned
+    const matchingEnabled = numbersLearnedSoFar.length >= 3;
+
+    const baseProgression = [
+      "multiple_choice",
+      "execute",
+      "balloon_counting",
+      "balloon_pop",
+      ...(matchingEnabled ? ["matching"] : []),
+    ];
+
+    const randomSeed = this.getRandomSeed();
+
+    // Generate 4-6 random lessons per number
+    const lessonCount = 4 + Math.floor(Math.random() * 3); // 4-6 lessons
+    const progression: string[] = [];
+
+    // Fill lessons by cycling through shuffled types
+    const shuffled = this.shuffleArray(baseProgression, randomSeed);
+    for (let i = 0; i < lessonCount; i++) {
+      const typeIndex = i % shuffled.length;
+      progression.push(shuffled[typeIndex]);
+    }
+
+    return progression;
   }
 
   // Generate progression for numbers (similar to generateNonVideoProgression but for Stage 2)
@@ -1107,7 +1327,7 @@ export class ContentGenerator {
     const baseProgression = [
       "multiple_choice",
       "execute",
-      "falling_letters",
+      "balloon_counting",
       "balloon_pop",
       ...(matchingEnabled ? ["matching"] : []),
     ];
@@ -1131,9 +1351,8 @@ export class ContentGenerator {
   // Get all numbers learned up to current level (progressive learning)
   private static getLearnedNumbersUpToLevel(levelId: number): string[] {
     const levelNumberMapping: { [key: number]: string[] } = {
-      1: ['1', '2', '3', '4'],
-      2: ['5', '6', '7', '8'],
-      3: ['9', '10']
+      1: ['1', '2', '3', '4', '5'],    // Level 1: Numbers 1-5
+      2: ['6', '7', '8', '9', '10']    // Level 2: Numbers 6-10
     };
 
     const learnedNumbers: string[] = [];
@@ -1153,12 +1372,11 @@ export class ContentGenerator {
 
     // Use all numbers from current level for wrong answer choices to maintain difficulty
     const levelNumberMapping: { [key: number]: string[] } = {
-      1: ['1', '2', '3', '4'],
-      2: ['5', '6', '7', '8'],
-      3: ['9', '10']
+      1: ['1', '2', '3', '4', '5'],    // Level 1: Numbers 1-5
+      2: ['6', '7', '8', '9', '10']    // Level 2: Numbers 6-10
     };
 
-    const currentLevelNumbers = levelNumberMapping[levelId] || ['1', '2', '3', '4'];
+    const currentLevelNumbers = levelNumberMapping[levelId] || ['1', '2', '3', '4', '5'];
     const availableChoices = currentLevelNumbers.filter(num => num !== targetNumber);
 
     // If we need more choices and don't have enough from current level, use numbers from other levels
@@ -1233,7 +1451,7 @@ export class ContentGenerator {
       score: 0,
       attempts: 0,
       startTime: new Date(),
-      title: `Greetings: ${currentLevelGreetings.join(", ")}`,
+      title: levelId === 1 ? "Learn Basic Greetings" : "Master Social Expressions",
       type: "level_introduction",
       isProgressive: true,
       isIntroduction: true,
@@ -1261,6 +1479,7 @@ export class ContentGenerator {
     // Get randomized progression for greetings (exclude video_learning since we handle it separately)
     const nonVideoProgression = this.generateGreetingProgression(3, levelId);
     let titleIndex = 0;
+    let progressionIndex = 0; // Global index for progression (separate from titleIndex)
 
     // For each greeting, add video lesson and randomized minigames with random execution placement
     currentLevelGreetings.forEach((greeting, greetingIndex) => {
@@ -1341,15 +1560,30 @@ export class ContentGenerator {
       const minigamesToAdd = 2;
       for (
         let i = 0;
-        i < minigamesToAdd && titleIndex < nonVideoProgression.length;
+        i < minigamesToAdd && progressionIndex < nonVideoProgression.length;
         i++
       ) {
-        const type = nonVideoProgression[titleIndex];
+        const type = nonVideoProgression[progressionIndex];
         // Skip execute since we have the execution lesson
         if (type === "execute") {
-          titleIndex++;
+          progressionIndex++;
           i--; // Don't count this iteration
           continue;
+        }
+
+        // Skip matching if not enough previous greetings (need at least 3 to randomize from)
+        if (type === "matching") {
+          const previousLevelGreetings = levelId > 1
+            ? this.getLearnedGreetingsUpToLevel(levelId - 1)
+            : [];
+          const currentLevelGreetingsSoFar = currentLevelGreetings.slice(0, greetingIndex);
+          const allPreviousGreetings = [...previousLevelGreetings, ...currentLevelGreetingsSoFar];
+
+          if (allPreviousGreetings.length < 3) {
+            progressionIndex++;
+            i--; // Don't count this iteration, try next type
+            continue;
+          }
         }
 
         let lesson: any;
@@ -1391,6 +1625,54 @@ export class ContentGenerator {
             choices: choices,
             correctAnswer: greeting,
           };
+        } else if (type === "matching") {
+          // Matching game - current greeting + 2 random from all previously learned
+          const previousLevelGreetings = levelId > 1
+            ? this.getLearnedGreetingsUpToLevel(levelId - 1)
+            : [];
+          const currentLevelGreetingsSoFar = currentLevelGreetings.slice(0, greetingIndex);
+          const allPreviousGreetings = [...previousLevelGreetings, ...currentLevelGreetingsSoFar];
+
+          // Select current greeting + 2 random from previous greetings
+          const matchingGreetings = [greeting]; // Always include current greeting
+
+          // Fisher-Yates shuffle for proper randomization
+          const shuffled = [...allPreviousGreetings];
+          for (let idx = shuffled.length - 1; idx > 0; idx--) {
+            const j = Math.floor(Math.random() * (idx + 1));
+            [shuffled[idx], shuffled[j]] = [shuffled[j], shuffled[idx]];
+          }
+          matchingGreetings.push(shuffled[0], shuffled[1]);
+
+          lesson = {
+            id: `matching_${levelId}_${greetingIndex}_${i}`,
+            stageId: 3,
+            levelId: levelId,
+            lessonIndex: lessons.length + greetingLessons.length + additionalMinigames.length + 1,
+            content: matchingGreetings.map(greet => ({
+              id: `matching_${greet.toLowerCase().replace(/\s+/g, '_')}`,
+              word: greet,
+              videoPath: getVideoPathForGreeting(greet),
+              category: "greetings" as any,
+              difficulty: "easy" as any,
+            })),
+            config: {
+              type: "matching",
+              title: "Match the Greetings!",
+              instructions: "Match the sign language videos with their corresponding greetings.",
+              pointsReward: 35,
+              experienceReward: 18,
+            },
+            randomSeed: this.getRandomSeed(),
+            isCompleted: false,
+            score: 0,
+            attempts: 0,
+            startTime: new Date(),
+            title: boracayTitles[titleIndex] || `Beach Challenge ${titleIndex + 1}`,
+            type: "matching",
+            isProgressive: true,
+            isIntroduction: false,
+          };
         } else {
           // Generic lesson for other types
           lesson = {
@@ -1427,7 +1709,7 @@ export class ContentGenerator {
         }
 
         additionalMinigames.push(lesson);
-        titleIndex++;
+        progressionIndex++; // Move to next type in progression
       }
 
       // Randomly place execution lesson among the minigames (positions 1, 2, or 3 after video)
@@ -1451,40 +1733,6 @@ export class ContentGenerator {
       lessons.push(...greetingLessons);
     });
 
-    // Add final matching game if we have enough greetings
-    if (currentLevelGreetings.length >= 3) {
-      const matchingLesson = {
-        id: `matching_${levelId}`,
-        stageId: 3,
-        levelId: levelId,
-        lessonIndex: lessons.length + 1,
-        content: currentLevelGreetings.map(greeting => ({
-          id: `matching_${greeting.toLowerCase().replace(/\s+/g, '_')}`,
-          word: greeting,
-          videoPath: getVideoPathForGreeting(greeting),
-          category: "greetings" as any,
-          difficulty: "easy" as any,
-        })),
-        config: {
-          type: "matching",
-          title: "Match the Greetings!",
-          instructions: "Match the sign language videos with their corresponding greetings.",
-          pointsReward: 35,
-          experienceReward: 18,
-        },
-        randomSeed: this.getRandomSeed(),
-        isCompleted: false,
-        score: 0,
-        attempts: 0,
-        startTime: new Date(),
-        title: "Boracay Greeting Matching!",
-        type: "matching",
-        isProgressive: true,
-        isIntroduction: false,
-      };
-      lessons.push(matchingLesson);
-    }
-
     // Update lesson indices to be sequential after all greetings are processed
     lessons.forEach((lesson, index) => {
       lesson.lessonIndex = index + 1;
@@ -1502,8 +1750,6 @@ export class ContentGenerator {
     const baseProgression = [
       "multiple_choice",
       "execute",
-      "falling_letters",
-      "balloon_pop",
       ...(matchingEnabled ? ["matching"] : []),
     ];
 
@@ -1620,7 +1866,7 @@ export class ContentGenerator {
       score: 0,
       attempts: 0,
       startTime: new Date(),
-      title: `Colors: ${currentLevelColors.join(", ")}`,
+      title: levelId === 1 ? "Learn Basic Colors" : levelId === 2 ? "Discover More Colors" : "Master All Color Signs",
       type: "level_introduction",
       isProgressive: true,
       isIntroduction: true,
@@ -1912,8 +2158,6 @@ export class ContentGenerator {
     const baseProgression = [
       "multiple_choice",
       "execute",
-      "falling_letters",
-      "balloon_pop",
       ...(matchingEnabled ? ["matching"] : []),
     ];
 
@@ -2048,7 +2292,7 @@ export class ContentGenerator {
       score: 0,
       attempts: 0,
       startTime: new Date(),
-      title: `Palawan Family Level ${levelId}`,
+      title: levelId === 1 ? "Learn Immediate Family" : levelId === 2 ? "Meet Extended Family" : "Master Family Signs",
       type: "level_introduction",
       isProgressive: true,
       isIntroduction: true,
@@ -2341,8 +2585,6 @@ export class ContentGenerator {
     const baseProgression = [
       "multiple_choice",
       "execute",
-      "falling_letters",
-      "balloon_pop",
       ...(matchingEnabled ? ["matching"] : []),
     ];
 
@@ -2485,9 +2727,9 @@ export class ContentGenerator {
    */
   static getCebuDaysLevelTitle(levelId: number): string {
     const titles = [
-      "Welcome to Cebu's Weekdays!",           // Level 1
-      "More Days in Beautiful Cebu!",          // Level 2
-      "Time References in Cebu!",              // Level 3
+      "Learn the Week Part 1",           // Level 1
+      "Master the Full Week",            // Level 2
+      "Learn Time References",           // Level 3
     ];
     return titles[levelId - 1] || `Cebu Days Level ${levelId}`;
   }
@@ -2562,8 +2804,6 @@ export class ContentGenerator {
   ): any[] {
     // Available minigame types
     const minigameTypes = [
-      'falling_letters',
-      'balloon_pop',
       'multiple_choice',
       'matching',
       'spelling',
@@ -2749,10 +2989,10 @@ export class ContentGenerator {
    */
   static getBoholMonthsLevelTitle(levelId: number): string {
     const titles = [
-      "Welcome to Bohol's First Quarter!",      // Level 1: Jan-Mar
-      "Bohol's Second Quarter Journey!",        // Level 2: Apr-Jun
-      "Explore Bohol's Third Quarter!",         // Level 3: Jul-Sep
-      "Complete the Year in Bohol!",            // Level 4: Oct-Dec
+      "Learn the Year Part 1",      // Level 1: Jan-Mar
+      "Learn the Year Part 2",      // Level 2: Apr-Jun
+      "Learn the Year Part 3",      // Level 3: Jul-Sep
+      "Master All Months",          // Level 4: Oct-Dec
     ];
     return titles[levelId - 1] || `Bohol Months Level ${levelId}`;
   }
@@ -2827,8 +3067,6 @@ export class ContentGenerator {
   ): any[] {
     // Available minigame types
     const minigameTypes = [
-      'falling_letters',
-      'balloon_pop',
       'multiple_choice',
       'matching',
       'spelling',

@@ -244,7 +244,7 @@ export default function MultipleChoiceLesson({
                 onPress={() => handleSelectAnswer(option)}
               >
                 <Text
-                  className="text-xl font-medium"
+                  className={isBoracayTheme ? "text-sm font-medium" : "text-xl font-medium"}
                   style={{
                     color:
                       isSelected && isCorrect
@@ -344,7 +344,7 @@ export default function MultipleChoiceLesson({
                 onPress={() => handleSelectAnswer(option)}
               >
                 <Text
-                  className="text-xl font-medium"
+                  className={isBoracayTheme ? "text-sm font-medium" : "text-xl font-medium"}
                   style={{
                     color:
                       isSelected && isCorrect

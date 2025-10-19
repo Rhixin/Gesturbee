@@ -293,7 +293,6 @@ export default function Stage1Level1({
             correctAnswer={targetLetter}
             currentLessonIndex={currentLessonIndex}
             isViganTheme={isViganTheme}
-            contentWord={targetLetter}
           />
         );
 
@@ -450,13 +449,15 @@ export default function Stage1Level1({
           );
         }
 
-        // Generate matching pairs from learned letters
-        const matchingPairs = learnedLettersForMatching.slice(0, 3).map((letter, index) => ({
+        // Use the matching pairs from the generated lesson content
+        const matchingPairs = currentLesson.content.map((item: any, index: number) => ({
           id: `pair_${index}`,
-          videoPath: getVideoPathForLetter(letter),
-          word: letter,
+          videoPath: getVideoPathForLetter(item.word), // Convert word to proper require() path
+          word: item.word,
           isMatched: false,
         }));
+
+        console.log('[MATCHING] Using pairs from lesson content:', matchingPairs);
 
         return (
           <MatchingGameLesson

@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { View, Text } from "react-native";
 import VideoLesson from "../VideoLesson";
 import ExecuteLesson from "../ExecuteLesson";
+import ColorExecuteLesson from "../ColorExecuteLesson";
 import MultipleChoiceLesson from "../MultipleChoiceLesson";
 import { useLocalSearchParams } from "expo-router";
 import SpellingLesson from "../SpellingLesson";
@@ -13,27 +14,19 @@ import MatchingGameLesson from "../MatchingGameLesson";
 import React from "react";
 import { ContentGenerator } from "@/utils/contentGenerator";
 
-// Define color groups for each level - 13 colors total divided into 4 levels (better pacing)
+// Define color groups for each level - 11 colors total divided into 4 levels
 const LEVEL_COLORS_MAP: { [key: number]: string[] } = {
-  1: ['BLUE', 'GREEN', 'RED'],                          // Level 1: Primary Colors (3 colors)
-  2: ['BROWN', 'BLACK', 'WHITE', 'YELLOW'],             // Level 2: Basic Colors (4 colors)
-  3: ['ORANGE', 'GRAY', 'PINK'],                        // Level 3: Secondary Colors (3 colors)
-  4: ['VIOLET', 'LIGHT', 'DARK']                        // Level 4: Advanced Colors (3 colors)
+  1: ['RED', 'BLUE', 'YELLOW'],                         // Level 1: Primary Colors (3 colors)
+  2: ['ORANGE', 'GREEN', 'VIOLET'],                     // Level 2: Secondary Colors (3 colors)
+  3: ['BLACK', 'WHITE', 'GRAY'],                        // Level 3: Neutral Colors (3 colors)
+  4: ['BROWN', 'PINK'],                                 // Level 4: Other Colors (2 colors)
 };
 
-// Map colors to letters for AI testing (since AI only recognizes A-Z)
-// This is a temporary workaround: BLUE=A, GREEN=B, RED=C, etc.
-const COLOR_TO_LETTER_MAP: { [key: string]: string } = {
-  'BLUE': 'A', 'GREEN': 'B', 'RED': 'C', 'BROWN': 'D', 'BLACK': 'E',
-  'WHITE': 'F', 'YELLOW': 'G', 'ORANGE': 'H', 'GRAY': 'I', 'PINK': 'J',
-  'VIOLET': 'K', 'LIGHT': 'L', 'DARK': 'M'
-};
-
-// Helper function to get AI test letter for a color
-const getAITestLetter = (color: string): string => {
-  const letter = COLOR_TO_LETTER_MAP[color];
-  console.log(`[Stage4] Color "${color}" mapped to letter ${letter} for AI testing`);
-  return letter || 'A'; // Fallback to 'A'
+// AI recognizes actual color words (no mapping needed)
+// Helper function that returns the color word itself for AI
+const getAIWord = (color: string): string => {
+  console.log(`[Stage4] Using color "${color}" for AI recognition`);
+  return color; // Return the color as-is
 };
 
 // Static mapping for color videos (React Native requires static paths)
@@ -49,13 +42,51 @@ const COLOR_VIDEO_MAP: { [key: string]: any } = {
   'GRAY': require("@/assets/videos/gray.MOV"),
   'PINK': require("@/assets/videos/pink.MOV"),
   'VIOLET': require("@/assets/videos/violet.MOV"),
-  'LIGHT': require("@/assets/videos/light.MOV"),
-  'DARK': require("@/assets/videos/dark.MOV"),
 };
 
 // Get video path for colors
 const getVideoPathForColor = (color: string) => {
   return COLOR_VIDEO_MAP[color] || require("@/assets/videos/blue.MOV");
+};
+
+// Static mapping for color text images (e.g., black_text.png)
+const COLOR_TEXT_IMAGE_MAP: { [key: string]: any } = {
+  'BLUE': require("@/assets/images/Color/blue_text.png"),
+  'GREEN': require("@/assets/images/Color/green_text.png"),
+  'RED': require("@/assets/images/Color/red_text.png"),
+  'BROWN': require("@/assets/images/Color/brown_text.png"),
+  'BLACK': require("@/assets/images/Color/black_text.png"),
+  'WHITE': require("@/assets/images/Color/white_text.png"),
+  'YELLOW': require("@/assets/images/Color/yellow_text.png"),
+  'ORANGE': require("@/assets/images/Color/orange_text.png"),
+  'GRAY': require("@/assets/images/Color/gray_text.png"),
+  'PINK': require("@/assets/images/Color/pink_text.png"),
+  'VIOLET': require("@/assets/images/Color/violet_text.png"),
+};
+
+// Static mapping for color swatch images (e.g., black.png)
+const COLOR_IMAGE_MAP: { [key: string]: any } = {
+  'BLUE': require("@/assets/images/Color/blue.png"),
+  'GREEN': require("@/assets/images/Color/green.png"),
+  'RED': require("@/assets/images/Color/red.png"),
+  'BROWN': require("@/assets/images/Color/brown.png"),
+  'BLACK': require("@/assets/images/Color/black.png"),
+  'WHITE': require("@/assets/images/Color/white.png"),
+  'YELLOW': require("@/assets/images/Color/yellow.png"),
+  'ORANGE': require("@/assets/images/Color/orange.png"),
+  'GRAY': require("@/assets/images/Color/gray.png"),
+  'PINK': require("@/assets/images/Color/pink.png"),
+  'VIOLET': require("@/assets/images/Color/violet.png"),
+};
+
+// Get color text image (e.g., black_text.png)
+const getColorTextImage = (color: string) => {
+  return COLOR_TEXT_IMAGE_MAP[color] || null;
+};
+
+// Get color swatch image (e.g., black.png)
+const getColorImage = (color: string) => {
+  return COLOR_IMAGE_MAP[color] || null;
 };
 
 const Stage4Level1 = React.memo(function Stage4Level1({
@@ -91,7 +122,7 @@ const Stage4Level1 = React.memo(function Stage4Level1({
 
   // Get colors for current level - memoized to prevent recreation
   const currentLevelColors = useMemo(() =>
-    LEVEL_COLORS_MAP[Number(levelId)] || ['BLUE', 'GREEN', 'RED', 'BROWN', 'BLACK'],
+    LEVEL_COLORS_MAP[Number(levelId)] || ['RED', 'BLUE', 'YELLOW'],
     [levelId]
   );
 
@@ -129,7 +160,7 @@ const Stage4Level1 = React.memo(function Stage4Level1({
       Number(levelId),
       currentLevelColors,
       getVideoPathForColor,
-      getAITestLetter
+      getAIWord
     );
 
     return lessons;
@@ -200,6 +231,9 @@ const Stage4Level1 = React.memo(function Stage4Level1({
             isBoracayTheme={false}
             videoRef={videoRef}
             contentWord={content?.word}
+            isColorStage={true}
+            colorTextImage={content?.word ? getColorTextImage(content.word) : null}
+            colorImage={content?.word ? getColorImage(content.word) : null}
           />
         );
 
@@ -222,15 +256,15 @@ const Stage4Level1 = React.memo(function Stage4Level1({
 
       case "execute":
         return (
-          <ExecuteLesson
+          <ColorExecuteLesson
             title={currentLesson.title}
-            correctAnswer={currentLesson.correctAnswer} // This is now mapped to letter (A, B, C, etc.)
+            correctAnswer={currentLesson.correctAnswer} // AI color word
             currentLessonIndex={currentLessonIndex}
             isViganTheme={false}
             isSiargaoTheme={true} // Enable Siargao theme colors
             isManilaTheme={false}
             isBoracayTheme={false}
-            contentWord={content?.word}
+            colorImage={content?.word ? getColorImage(content.word) : null}
           />
         );
 
@@ -286,7 +320,7 @@ const Stage4Level1 = React.memo(function Stage4Level1({
           } else {
             // Generate simple fallback choices for the rare case of matching game with insufficient learned colors
             mcOptions = [mcTargetColor];
-            const allColors = ['BLUE', 'GREEN', 'RED', 'BROWN', 'BLACK', 'WHITE', 'YELLOW', 'ORANGE', 'GRAY', 'PINK', 'VIOLET', 'LIGHT', 'DARK'];
+            const allColors = ['RED', 'BLUE', 'YELLOW', 'ORANGE', 'GREEN', 'VIOLET', 'BLACK', 'WHITE', 'GRAY', 'BROWN', 'PINK'];
             const otherColors = allColors.filter(color => color !== mcTargetColor);
 
             while (mcOptions.length < 4 && otherColors.length > 0) {
@@ -316,16 +350,15 @@ const Stage4Level1 = React.memo(function Stage4Level1({
           );
         }
 
-        // Limit to maximum 4 pairs for better gameplay
-        const maxPairs = 4;
-        const colorsToMatch = learnedColorsForMatching.slice(0, maxPairs);
-
-        const matchingPairs = colorsToMatch.map((color, index) => ({
+        // Use the matching pairs from the generated lesson content (exactly 3 items)
+        const matchingPairs = currentLesson.content.map((item: any, index: number) => ({
           id: `pair_${index}`,
-          videoPath: getVideoPathForColor(color),
-          word: color,
+          videoPath: getVideoPathForColor(item.word), // Convert word to proper require() path
+          word: item.word,
           isMatched: false,
         }));
+
+        console.log('[MATCHING] Using pairs from lesson content:', matchingPairs);
 
         return (
           <MatchingGameLesson

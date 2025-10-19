@@ -20,19 +20,11 @@ const LEVEL_FAMILY_MAP: { [key: number]: string[] } = {
   3: ['COUSIN', 'PARENTS']                                      // Level 3: Other Family (2 words)
 };
 
-// Map family words to letters for AI testing (since AI only recognizes A-Z)
-// This is a temporary workaround: FATHER=A, MOTHER=B, SON=C, etc.
-const FAMILY_TO_LETTER_MAP: { [key: string]: string } = {
-  'FATHER': 'A', 'MOTHER': 'B', 'SON': 'C', 'DAUGHTER': 'D',
-  'GRANDFATHER': 'E', 'GRANDMOTHER': 'F', 'UNCLE': 'G', 'AUNTIE': 'H',
-  'COUSIN': 'I', 'PARENTS': 'J'
-};
-
-// Helper function to get AI test letter for a family word
-const getAITestLetter = (familyWord: string): string => {
-  const letter = FAMILY_TO_LETTER_MAP[familyWord];
-  console.log(`[Stage5] Family word "${familyWord}" mapped to letter ${letter} for AI testing`);
-  return letter || 'A'; // Fallback to 'A'
+// AI recognizes actual family words (no mapping needed)
+// Helper function that returns the family word itself for AI
+const getAIWord = (familyWord: string): string => {
+  console.log(`[Stage5] Using family word "${familyWord}" for AI recognition`);
+  return familyWord; // Return the family word as-is
 };
 
 // Static mapping for family word videos (React Native requires static paths)
@@ -125,7 +117,7 @@ const Stage5Level1 = React.memo(function Stage5Level1({
       Number(levelId),
       currentLevelFamily,
       getVideoPathForFamily,
-      getAITestLetter
+      getAIWord
     );
 
     return lessons;
@@ -319,16 +311,15 @@ const Stage5Level1 = React.memo(function Stage5Level1({
           );
         }
 
-        // Limit to maximum 4 pairs for better gameplay
-        const maxPairs = 4;
-        const familyToMatch = learnedFamilyForMatching.slice(0, maxPairs);
-
-        const matchingPairs = familyToMatch.map((familyWord, index) => ({
+        // Use the matching pairs from the generated lesson content (exactly 3 items)
+        const matchingPairs = currentLesson.content.map((item: any, index: number) => ({
           id: `pair_${index}`,
-          videoPath: getVideoPathForFamily(familyWord),
-          word: familyWord,
+          videoPath: getVideoPathForFamily(item.word), // Convert word to proper require() path
+          word: item.word,
           isMatched: false,
         }));
+
+        console.log('[MATCHING] Using pairs from lesson content:', matchingPairs);
 
         return (
           <MatchingGameLesson

@@ -443,7 +443,11 @@ export default function SpellingLesson({
           </View>
         )}
         <WebView
-          source={{ uri: "https://gesturbee-app-model.vercel.app/" }}
+          source={{
+            uri: Number(stageId) === 1
+              ? "https://gesturbee-app-model.vercel.app/alphabets"
+              : "https://gesturbee-app-model.vercel.app/words"
+          }}
           style={{
             width: "100%",
             height: "100%",
@@ -456,7 +460,7 @@ export default function SpellingLesson({
           cameraAccessibilityLabel="Allow Camera Access"
           geolocationEnabled={true}
           useWebKit={true}
-          originWhitelist={[""]}
+          originWhitelist={["*"]}
           androidHardwareAccelerationDisabled={false}
           onLoad={() => setIsWebViewLoaded(true)}
           onMessage={onMessage}
